@@ -226,7 +226,61 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
 end
 plot_all()
-savefig("Bursty/figs/tau=120.pdf")
+savefig("Bursty/Control_mean/tau=120.pdf")
+
+function plot_all()
+    time_choose = 30
+    p1=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label="exact",title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 45
+    p2=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 60
+    p3=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 75
+    p4=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 90
+    p5=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false, ylabel = "\n Probability")
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 105
+    p6=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 120
+    p7=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 150
+    p8=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 200
+    p9=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 300
+    p10=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 400
+    p11=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 800
+    p12=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+end
+plot_all()
+savefig("Bursty/Control_mean/tau=120.svg")
 
 # check τ = 30
 u0 = [1.; zeros(N)];
@@ -267,7 +321,61 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
 end
 plot_all()
-savefig("Bursty/figs/tau=30.pdf")
+savefig("Bursty/Control_mean/figs/tau=30.pdf")
+
+function plot_all()
+    time_choose = 5
+    p1=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label="exact",title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 10
+    p2=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 15
+    p3=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 20
+    p4=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 25
+    p5=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false, ylabel = "\n Probability")
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 30
+    p6=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 40
+    p7=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 50
+    p8=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 60
+    p9=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 90
+    p10=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 120
+    p11=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 150
+    p12=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+end
+plot_all()
+savefig("Bursty/Control_mean/tau=30.svg")
 
 #read params
 using CSV,DataFrames
@@ -283,7 +391,7 @@ params2
 df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 =params2)
 CSV.write("machine-learning/ode/bursty/after20230317/params_trained_origin2.csv",df)
 
-
+# predict
 function sol_Extenicity(τ,Attribute)
     decoder_Extenicity  = Chain(decoder_120[1],decoder_120[2],x-> 0.03*x.+[i/τ for i in 1:N],decoder_120[4]);
     _,re2_Extenicity = Flux.destructure(decoder_Extenicity);
@@ -319,7 +427,7 @@ function sol_Extenicity(τ,Attribute)
     return solution_temp
 end
 
-τ = 40
+τ = 100
 Attribute = -40/τ+4/3
 
 solution = sol_Extenicity(τ,Attribute)
@@ -333,6 +441,60 @@ for i = 0:end_time
         train_sol[1:N+1,i+1] = bursty(N+1,τ)
     end
 end
+
+function plot_all()
+    time_choose = 15
+    p1=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label="exact",title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 25
+    p2=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 35
+    p3=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 45
+    p4=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 55
+    p5=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false, ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 65
+    p6=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 75
+    p7=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 85
+    p8=plot(0:N,solution[:,time_choose],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 95
+    p9=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 105
+    p10=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 115
+    p11=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 120
+    p12=plot(0:N,solution[:,time_choose],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+end
+plot_all()
+savefig("Bursty/Control_mean/pre_tau=$τ.svg")
 
 #check probabilities
 function plot_distribution(time_choose)
