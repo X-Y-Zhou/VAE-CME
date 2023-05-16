@@ -174,3 +174,13 @@ params1
 params2
 df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
 CSV.write("Bursty/params_ode.csv",df)
+
+
+using Plots
+x = ["2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022"]
+y1 = [2,3,0,2,1,1,0,3,3,4,5]
+y2 = y1./sum(y1)
+bar(x,y2)
+plot!(twinx(),x,y1,linewidth=3,color="red",ylims=(-0.5,5.5))
+
+savefig("Bursty/123.pdf")
