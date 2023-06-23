@@ -1,0 +1,62 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{geometry}
+\geometry{a4paper, portrait, margin=.8in}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,bbm,empheq}
+\usepackage{paralist,graphics,epsfig,graphicx,epstopdf,mathrsfs}
+\usepackage{float,color,ulem,comment,tabulary,cite,booktabs}
+\usepackage{multirow,multicol}
+\usepackage{epsf,epsfig,subfigure}
+\setcounter{MaxMatrixCols}{30}
+\usepackage[colorlinks=true]{hyperref}
+\hypersetup{urlcolor=blue,linkcolor=black,citecolor=blue,colorlinks=true}
+% \usepackage[notref,notcite]{showkeys}
+\usepackage{mathpazo}
+\usepackage[table,xcdraw]{xcolor}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\title{VAE-CME}
+\author{Xinyi Zhou}
+\date{2023.6.23}
+
+\begin{document}
+\tableofcontents
+\maketitle
+
+\section{Birth Death Model}
+
+\section{On Off Model}
+
+\begin{table}[htbp]
+	\centering
+	{\small
+	\begin{tabular}{l|ccccc|ccccc}
+		\toprule
+		& \multicolumn{5}{c}{True} & \multicolumn{5}{c}{Telegraph}\\
+		\cmidrule{1-11}
+		Parameter & $\sigma_\text{off}$ & $\sigma_\text{on}$ & $\rho$  & burst Size & $ f_\text{ON} $ & $\sigma_\text{off}$ & $\sigma_\text{on}$ & $\rho$ & burst Size&$ f_\text{ON} $ \\
+		\cmidrule{1-11}
+		Set 1 & 120.38 & 7.70  & 40.85 & 0.34   & 0.06  & 15.58 & 5.63  & 9.22  & 0.59   & 0.27  \\ 
+		Set 2 & 35.48  & 17.39 & 85.05 & 2.40   & 0.33  & 36.73 & 18.03 & 85.17 & 2.32   & 0.33  \\ 
+		Set 3 & 0.52   & 0.42  & 46.21 & 88.36  & 0.44  & 0.57  & 0.42  & 46.62 & 82.47  & 0.43  \\ 
+		Set 4 & 0.32   & 0.47  & 15.71 & 48.65  & 0.59  & 0.33  & 0.47  & 15.70 & 48.01  & 0.59  \\ 
+		Set 5 & 0.53   & 5.85  & 49.95 & 94.72  & 0.92  & 0.64  & 6.62  & 50.20 & 77.99  & 0.91  \\
+		Set 6 & 0.16   & 3.89  & 26.45 & 169.81 & 0.96  & 0.11  & 2.94  & 26.30 & 238.76 & 0.96  \\ 
+		\bottomrule 
+	\end{tabular}}	
+	\caption{Estimates using the inference algorithm with the telegraph model for the six typical parameter sets. For both the ground truth and the estimated parameters, we fix the degradation rate $d = 1 \text{ min}^{-1}$.}
+	\label{table-supp-synthetic-mature}
+\end{table}
+
+\section{Bursty Model}
+
+\subsection{Control Mean of time delay $\tau$}
+
+\subsection{Control Variance of time delay $\tau$}
+
+\section{Oscillation Model}
+
+\subsection{Reducing sample size}
+
+\section{Exact solution for variable time delay $\tau$}
+
+\end{document}
