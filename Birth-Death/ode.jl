@@ -167,3 +167,45 @@ function plot_all()
 end
 plot_all()
 savefig("Birth-Death/fitting.svg")
+
+function plot_all()
+    time_choose = 2
+    p1=plot(0:N,solution[:,time_choose+1],linewidth = 3,xticks=false,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:topright)
+    
+    time_choose = 4
+    p2=plot(0:N,solution[:,time_choose+1],linewidth = 3,xticks=false,label="VAE-CME")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:false)
+    
+    time_choose = 8
+    p3=plot(0:N,solution[:,time_choose+1],linewidth = 3,xticks=false,label="VAE-CME")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:false)
+    
+    time_choose = 16
+    p4=plot(0:N,solution[:,time_choose+1],linewidth = 3,xticks=false,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:false)
+    
+    time_choose = 20
+    p5=plot(0:N,solution[:,time_choose+1],linewidth = 3,xticks=false,label="VAE-CME")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:false)
+    
+    time_choose = 40
+    p6=plot(0:N,solution[:,time_choose+1],linewidth = 3,xticks=false,label="VAE-CME")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:false)
+    
+    time_choose = 60
+    p7=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:false)
+    
+    time_choose = 80
+    p8=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:false)
+    
+    time_choose = 100
+    p9=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products")
+    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:false)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,900))
+end
+plot_all()
+savefig("Birth-Death/fitting.svg")
+savefig("Statement/Figs/Birth_Death_fitting.pdf")

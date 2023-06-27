@@ -184,3 +184,57 @@ bar(x,y2)
 plot!(twinx(),x,y1,linewidth=3,color="red",ylims=(-0.5,5.5))
 
 savefig("Bursty/123.pdf")
+
+function plot_all()
+    time_choose = 30
+    p1=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 45
+    p2=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 60
+    p3=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 75
+    p4=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 90
+    p5=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false, ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 105
+    p6=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 120
+    p7=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+    
+    time_choose = 150
+    p8=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 200
+    p9=plot(0:N,solution[:,time_choose+1],linewidth = 3,label=false,xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 300
+    p10=plot(0:N,solution[:,time_choose+1],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 400
+    p11=plot(0:N,solution[:,time_choose+1],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    time_choose = 800
+    p12=plot(0:N,solution[:,time_choose+1],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose]),line=:dash)
+
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+end
+plot_all()
+savefig("Statement/Figs/Bursty_fitting.pdf")

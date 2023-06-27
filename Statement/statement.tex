@@ -12,6 +12,8 @@
 % \usepackage[notref,notcite]{showkeys}
 \usepackage{mathpazo}
 \usepackage[table,xcdraw]{xcolor}
+\usepackage{cite}
+\usepackage{svg}
 
 \newcommand{\red}[1]{\textcolor{red}{#1}}
 \title{VAE-CME}
@@ -23,31 +25,38 @@
 \maketitle
 
 \section{Birth Death Model}
+Consider a simple non-Markovian system where molecules are produced at a rate $\rho$ and are removed from the system (degraded) after a fxed time delay $\tau$:
+\begin{equation}\label{birth-death}
+\emptyset\stackrel{\rho}\rightarrow N, N\stackrel{\tau}\Rightarrow\emptyset
+\end{equation}
+The training set is the distribution from $1 \times 10^4$ samples using the SSA.In the experiment, we assume $\rho=20$, $\tau=10$ and truncation $N=271$. 
+
+Both encoder and decoder are multilayer perceptron with one hidden layer. The objective function is chosen as the sum of mean-squared-error and KL divergence. For the training we used the standard adaptive moment estimation algorithm (ADAM). The weight of mean-squared-error needs to be increased, and the learning rate needs to be decreased from approximately 0.25 to 0.01 during the training process.
+
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{Figs/Birth_Death_fitting.pdf}
+	\caption{Birth Death Model Fitting}\label{Birth Death Model Fitting}  
+\end{figure*}
 
 \section{On Off Model}
 
-\begin{table}[htbp]
-	\centering
-	{\small
-	\begin{tabular}{l|ccccc|ccccc}
-		\toprule
-		& \multicolumn{5}{c}{True} & \multicolumn{5}{c}{Telegraph}\\
-		\cmidrule{1-11}
-		Parameter & $\sigma_\text{off}$ & $\sigma_\text{on}$ & $\rho$  & burst Size & $ f_\text{ON} $ & $\sigma_\text{off}$ & $\sigma_\text{on}$ & $\rho$ & burst Size&$ f_\text{ON} $ \\
-		\cmidrule{1-11}
-		Set 1 & 120.38 & 7.70  & 40.85 & 0.34   & 0.06  & 15.58 & 5.63  & 9.22  & 0.59   & 0.27  \\ 
-		Set 2 & 35.48  & 17.39 & 85.05 & 2.40   & 0.33  & 36.73 & 18.03 & 85.17 & 2.32   & 0.33  \\ 
-		Set 3 & 0.52   & 0.42  & 46.21 & 88.36  & 0.44  & 0.57  & 0.42  & 46.62 & 82.47  & 0.43  \\ 
-		Set 4 & 0.32   & 0.47  & 15.71 & 48.65  & 0.59  & 0.33  & 0.47  & 15.70 & 48.01  & 0.59  \\ 
-		Set 5 & 0.53   & 5.85  & 49.95 & 94.72  & 0.92  & 0.64  & 6.62  & 50.20 & 77.99  & 0.91  \\
-		Set 6 & 0.16   & 3.89  & 26.45 & 169.81 & 0.96  & 0.11  & 2.94  & 26.30 & 238.76 & 0.96  \\ 
-		\bottomrule 
-	\end{tabular}}	
-	\caption{Estimates using the inference algorithm with the telegraph model for the six typical parameter sets. For both the ground truth and the estimated parameters, we fix the degradation rate $d = 1 \text{ min}^{-1}$.}
-	\label{table-supp-synthetic-mature}
-\end{table}
-
 \section{Bursty Model}
+
+We consider Bursty Model, which is the same as Birth Death Model, except that the binding of RNAPs to the promoter occurs in bursts whose size $i$ is distributed according to the geometric distribution $b^i/(1 + b)^{i+1}$; this can be described by the reaction scheme:
+\begin{equation}\label{birth-death}
+	\begin{aligned}
+		&\emptyset\stackrel{\frac{\alpha\beta^i}{(1+\beta)^{i+1}}}\longrightarrow iN,i=1,2,3,...\\ &N\stackrel{\tau}\Rightarrow\emptyset
+	\end{aligned}
+\end{equation}
+To achieve the best fitting performance, the analytical solution of the Bursty model's probability distribution (See SI in \cite{jiang2021neural}) is used as the training set. In the experiment, we assume $\alpha=0.0282$, $\beta=3.46$, $\tau=120$ and truncation $N=64$.
+
+The same as before, we choose the sum of mean-squared-error and KL divergenc as the  objective  function, ADAM as the optimizer. And the weight of mean-squared-error needs to be increased, the learning rate needs to be decreased
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{Figs/Bursty_fitting.pdf}
+	\caption{Bursty Model Fitting}\label{Bursty Model Fitting}  
+\end{figure*}
 
 \subsection{Control Mean of time delay $\tau$}
 
@@ -58,5 +67,9 @@
 \subsection{Reducing sample size}
 
 \section{Exact solution for variable time delay $\tau$}
+
+\bibliographystyle{unsrt}
+\bibliography{VAE-CME.bib}
+\addcontentsline{toc}{section}{References}
 
 \end{document}
