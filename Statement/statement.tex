@@ -31,7 +31,7 @@ Consider a simple non-Markovian system where molecules are produced at a rate $\
 \end{equation}
 The training set is the distribution from $1 \times 10^4$ samples using the SSA.In the experiment, we assume $\rho=20$, $\tau=10$ and truncation $N=271$. 
 
-Both encoder and decoder are multilayer perceptron with one hidden layer. The objective function is chosen as the sum of mean-squared-error and KL divergence. For the training we used the standard adaptive moment estimation algorithm (ADAM). The weight of mean-squared-error needs to be increased, and the learning rate needs to be decreased from approximately 0.25 to 0.01 during the training process.
+Both encoder and decoder are multilayer perceptron with one hidden layer. The objective function is chosen as the sum of mean-squared-error and KL divergence. For the training we used the standard adaptive moment estimation algorithm (ADAM). The weight of mean-squared-error needs to be increased, and the learning rate needs to be decreased from approximately 0.25 to 0.01 during the training process. The fitting performance after training is shown in Fig. \ref{Birth Death Model Fitting}.
 
 \begin{figure*}[h]
 	\centering
@@ -40,6 +40,23 @@ Both encoder and decoder are multilayer perceptron with one hidden layer. The ob
 \end{figure*}
 
 \section{On Off Model}
+We also consider On Off Model wherein the promoter switches between an active and inactive state, RNAP binding occurs only in the active state, which is followed by delayed degradation modelling the RNAP movement along the gene and its detachment; this can be described by the reaction scheme:
+\begin{equation}\label{on-off}
+	\begin{aligned}
+	G^*\xrightarrow{k_{\text{on}}} G,
+	G\xrightarrow{k_{\text{off}}}G^*,
+	G\xrightarrow{\rho}G+N.
+	\end{aligned}
+\end{equation}
+The same as Birth Death Model, The training set is the distribution from $1 \times 10^4$ samples using the SSA.In the experiment, we assume $k_{\text{on}}=1$, $k_{\text{off}}=1$, $\rho=20$, and truncation $N=45$.
+
+The same objective function, optimizer, and adjustments to weights and learning rate are used for training as in the Birth Death Model. The fitting performance after training is shown in Fig. \ref{On Off Model fitting}. 
+
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{Figs/On_Off_fitting.pdf}
+	\caption{On Off Model fitting}\label{On Off Model fitting}  
+\end{figure*}
 
 \section{Bursty Model}
 
@@ -51,7 +68,7 @@ We consider Bursty Model, which is the same as Birth Death Model, except that th
 \end{equation}
 To achieve the best fitting performance, the analytical solution of the Bursty model's probability distribution (See SI in \cite{jiang2021neural}) is used as the training set. In the experiment, we assume $\alpha=0.0282$, $\beta=3.46$, $\tau=120$ and truncation $N=64$.
 
-The same as before, we choose the sum of mean-squared-error and KL divergenc as the  objective  function, ADAM as the optimizer. And the weight of mean-squared-error needs to be increased, the learning rate needs to be decreased
+The same as before, we choose the sum of mean-squared-error and KL divergenc as the  objective  function, ADAM as the optimizer. The weight of mean-squared-error needs to be increased, and the learning rate needs to be decreased. The fitting performance after training is shown in Fig. \ref{Bursty Model Fitting}
 \begin{figure*}[h]
 	\centering
 	\includegraphics[width=0.75\textwidth]{Figs/Bursty_fitting.pdf}
@@ -63,8 +80,46 @@ The same as before, we choose the sum of mean-squared-error and KL divergenc as 
 \subsection{Control Variance of time delay $\tau$}
 
 \section{Oscillation Model}
+Here we consider Oscillation Model, which is a simple genetic negative feedback loop whereby (i) a protein $X$ is transcribed by a promoter, (ii) subsequently after a fixed time delay $\tau$, $X$ turns (via some set of unspeci"ed biochemical processes) into a protein $Y$ and (iii) finally Y binds the promoter and reduces the rate of transcription of $X$. This can be described by the reaction scheme:
+\begin{equation}\label{oscillation}
+	\begin{aligned}
+		\emptyset \xrightarrow{J_1(Y)} X,
+		X\stackrel{\tau}\Rightarrow Y,
+		Y\xrightarrow{J_2(Y)} \emptyset.
+	\end{aligned}
+\end{equation}
+
+The function $J_1(Y)$ and $J_2(Y)$ is defined as follows:
+\begin{equation}\label{oscillation}
+	\begin{aligned}
+	J_1(Y)=k_1S\frac{K^p_d}{K^p_d+Y^p},\\
+	J_2(Y)=k_2E_T\frac{Y}{K_m+Y}.
+	\end{aligned}
+\end{equation}
+In this example, we assume $k_1=k_2=S=E_T=K_d=K_m=1, p=2$ for simplicity. Unlike Models considered earlier, the delay master equation corresponding to this model has no known analytical solution. The training set is the distribution from $1 \times 10^4$ samples using the SSA. Moreover, we assume $\tau=10$ and truncation $N=26$.
+
+We only use the simulated trajectories of mature protein Y to train the VAE. In other words, the data of protein $X$ is not required during training. However, an additional regularization term which is the first derivative of the probability distribution of protein $X$ obtained from the chemical master equation (CME), needs to be added to the objective function. Therefore, the final objective function of this experiment is the sum of mean-squared-error of protein $Y$, KL divergence and regularization term mentioned before. The fitting performance of protein $Y$ after training is shown in Fig. \ref{Oscillation_Y_fitting} and the predicting performance of protein $X$ is shown in Fig. \ref{Oscillation_X_predicting}.
+
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{Figs/Oscillation_Y_fitting.pdf}
+	\caption{Oscillation Y fitting}\label{Oscillation_Y_fitting}  
+\end{figure*}
+
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{Figs/Oscillation_X_predicting.pdf}
+	\caption{Oscillation X predicting}\label{Oscillation_X_predicting}  
+\end{figure*}
+
+\begin{figure*}[h]
+	\centering
+	\includegraphics[width=0.75\textwidth]{Figs/MSE_VAE_MLP.pdf}
+	\caption{MSE VAE and MLP}\label{MSE_VAE_MLP}  
+\end{figure*}
 
 \subsection{Reducing sample size}
+
 
 \section{Exact solution for variable time delay $\tau$}
 

@@ -170,3 +170,58 @@ end
 plot_all()
 savefig("On-Off/fitting.svg")
 
+function plot_all()
+    time_choose = 5
+    p1=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose/10]),line=:dash)
+    
+    time_choose = 10
+    p2=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+    
+    time_choose = 15
+    p3=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    time_choose = 20
+    p4=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    time_choose = 30
+    p5=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false, ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    time_choose = 40
+    p6=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    time_choose = 50
+    p7=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+    
+    time_choose = 60
+    p8=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label=false)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    time_choose = 70
+    p9=plot(0:N,solution[:,time_choose+1],linewidth = 3,label=false,xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    time_choose = 80
+    p10=plot(0:N,solution[:,time_choose+1],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    time_choose = 90
+    p11=plot(0:N,solution[:,time_choose+1],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    time_choose = 100
+    p12=plot(0:N,solution[:,time_choose+1],linewidth = 3,label=false,xlabel = "# of products")
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label=false,title=join(["t=",time_choose/10]),line=:dash)
+
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+end
+plot_all()
+savefig("Statement/Figs/On-Off_fitting.pdf")
+
+
