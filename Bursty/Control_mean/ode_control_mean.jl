@@ -281,6 +281,7 @@ function plot_all()
 end
 plot_all()
 savefig("Bursty/Control_mean/tau=120.svg")
+savefig("Statement/Figs/Bursty_fitting_tau=120.pdf")
 
 # check τ = 30
 u0 = [1.; zeros(N)];
@@ -376,6 +377,7 @@ function plot_all()
 end
 plot_all()
 savefig("Bursty/Control_mean/tau=30.svg")
+savefig("Statement/Figs/Bursty_fitting_tau=30.pdf")
 
 #read params
 using CSV,DataFrames
@@ -427,7 +429,7 @@ function sol_Extenicity(τ,Attribute)
     return solution_temp
 end
 
-τ = 100
+τ = 40
 Attribute = -40/τ+4/3
 
 solution = sol_Extenicity(τ,Attribute)
@@ -494,7 +496,7 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
 end
 plot_all()
-savefig("Bursty/Control_mean/pre_tau=$τ.svg")
+savefig("Statement/Figs/Bursty_predicting_tau=$τ.pdf")
 
 #check probabilities
 function plot_distribution(time_choose)
@@ -525,4 +527,4 @@ savefig("Bursty/figs/pre_tau=$τ.pdf")
 Attribute_list = -40. *τ_list.+4/3
 plot(τ_list,Attribute_list,xlabel="1/τ",ylabel="Attribute",legend=:false)
 scatter!(τ_list,Attribute_list,legend=:false)
-savefig("Bursty/Control_mean/τ_Attribute.pdf")
+savefig("Bursty/Control_mean/τ_Attribute.svg")
