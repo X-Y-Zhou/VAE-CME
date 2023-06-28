@@ -35,7 +35,7 @@ Both encoder and decoder are multilayer perceptron with one hidden layer. The ob
 
 \begin{figure*}[h]
 	\centering
-	\includegraphics[width=0.75\textwidth]{Figs/Birth_Death_fitting.pdf}
+	\includegraphics[width=0.6\textwidth]{Figs/Birth_Death_fitting.pdf}
 	\caption{Birth Death Model Fitting}\label{Birth Death Model Fitting}  
 \end{figure*}
 
@@ -54,7 +54,7 @@ The same objective function, optimizer, and adjustments to weights and learning 
 
 \begin{figure*}[h]
 	\centering
-	\includegraphics[width=0.75\textwidth]{Figs/On_Off_fitting.pdf}
+	\includegraphics[width=0.6\textwidth]{Figs/On_Off_fitting.pdf}
 	\caption{On Off Model fitting}\label{On Off Model fitting}  
 \end{figure*}
 
@@ -71,7 +71,7 @@ To achieve the best fitting performance, the analytical solution of the Bursty m
 The same as before, we choose the sum of mean-squared-error and KL divergenc as the  objective  function, ADAM as the optimizer. The weight of mean-squared-error needs to be increased, and the learning rate needs to be decreased. The fitting performance after training is shown in Fig. \ref{Bursty Model Fitting}
 \begin{figure*}[h]
 	\centering
-	\includegraphics[width=0.75\textwidth]{Figs/Bursty_fitting.pdf}
+	\includegraphics[width=0.6\textwidth]{Figs/Bursty_fitting.pdf}
 	\caption{Bursty Model Fitting}\label{Bursty Model Fitting}  
 \end{figure*}
 
@@ -99,28 +99,27 @@ The function $J_1(Y)$ and $J_2(Y)$ is defined as follows:
 In this example, we assume $k_1=k_2=S=E_T=K_d=K_m=1, p=2$ for simplicity. Unlike Models considered earlier, the delay master equation corresponding to this model has no known analytical solution. The training set is the distribution from $1 \times 10^4$ samples using the SSA. Moreover, we assume $\tau=10$ and truncation $N=26$.
 
 We only use the simulated trajectories of mature protein Y to train the VAE. In other words, the data of protein $X$ is not required during training. However, an additional regularization term which is the first derivative of the probability distribution of protein $X$ obtained from the chemical master equation (CME), needs to be added to the objective function. Therefore, the final objective function of this experiment is the sum of mean-squared-error of protein $Y$, KL divergence and regularization term mentioned before. The fitting performance of protein $Y$ after training is shown in Fig. \ref{Oscillation_Y_fitting} and the predicting performance of protein $X$ is shown in Fig. \ref{Oscillation_X_predicting}.
-
 \begin{figure*}[h]
 	\centering
-	\includegraphics[width=0.75\textwidth]{Figs/Oscillation_Y_fitting.pdf}
+	\includegraphics[width=0.6\textwidth]{Figs/Oscillation_Y_fitting.pdf}
 	\caption{Oscillation Y fitting}\label{Oscillation_Y_fitting}  
 \end{figure*}
-
 \begin{figure*}[h]
 	\centering
-	\includegraphics[width=0.75\textwidth]{Figs/Oscillation_X_predicting.pdf}
+	\includegraphics[width=0.6\textwidth]{Figs/Oscillation_X_predicting.pdf}
 	\caption{Oscillation X predicting}\label{Oscillation_X_predicting}  
 \end{figure*}
+\subsection{Reducing sample size}
+Due to the poor predicting performance of MLP\cite{jiang2021neural} on protein $X$ in the Oscillation model, we studied the predicting performance of VAE under small sample conditions. We trained MLP and VAE using probability distributions obtained from simulating SSA for 100, 300, 1000, 3000, and 10000 iterations as training sets, respectively. Since the distribution from  $1 \times 10^4$ samples using the SSA closely approximate the true probability distribution, we consider it as exact distributions. The measure of the accuracy is the mean squared error between the network(MLP or VAE) and exact distributions.
 
+We will trained MLP and VAE using three sets of probability distributions obtained from SSA for 100, 300, 1000, 3000 and 10000 iterations respectively. The average mean squared error is calculated and compared(See \ref{MSE_VAE_MLP}).
+
+Note that the VAE obtained from training with $1 \times 10^2$ samples produces a distribution that is as precise as that from $1.6 \times 10^3$ samples trained by MLP. In this case the training time of the VAE is also just about 1/3 of the MLP for every epoch.
 \begin{figure*}[h]
 	\centering
-	\includegraphics[width=0.75\textwidth]{Figs/MSE_VAE_MLP.pdf}
+	\includegraphics[width=0.35\textwidth]{Figs/MSE_VAE_MLP.pdf}
 	\caption{MSE VAE and MLP}\label{MSE_VAE_MLP}  
 \end{figure*}
-
-\subsection{Reducing sample size}
-
-
 \section{Exact solution for variable time delay $\tau$}
 
 \bibliographystyle{unsrt}

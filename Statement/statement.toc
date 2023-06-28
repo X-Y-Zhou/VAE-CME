@@ -1,9 +1,9 @@
 \contentsline {section}{\numberline {1}Birth Death Model}{2}{section.1}%
 \contentsline {section}{\numberline {2}On Off Model}{2}{section.2}%
 \contentsline {section}{\numberline {3}Bursty Model}{3}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Control Mean of time delay $\tau $}{3}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Control Variance of time delay $\tau $}{3}{subsection.3.2}%
-\contentsline {section}{\numberline {4}Oscillation Model}{3}{section.4}%
+\contentsline {subsection}{\numberline {3.1}Control Mean of time delay $\tau $}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Control Variance of time delay $\tau $}{4}{subsection.3.2}%
+\contentsline {section}{\numberline {4}Oscillation Model}{4}{section.4}%
 \contentsline {subsection}{\numberline {4.1}Reducing sample size}{4}{subsection.4.1}%
-\contentsline {section}{\numberline {5}Exact solution for variable time delay $\tau $}{4}{section.5}%
-\contentsline {section}{References}{4}{section*.2}%
+\contentsline {section}{\numberline {5}Exact solution for variable time delay $\tau $}{5}{section.5}%
+\contentsline {section}{References}{5}{section*.2}%
