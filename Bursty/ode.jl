@@ -4,6 +4,7 @@ using DelimitedFiles, Plots
 
 include("../utils.jl")
 
+# Exact solution of Bursty Model
 function bursty(N,τ)
     f(u) = exp(a*b*τ*u/(1-b*u));
     taylorexpand = taylor_expand(x->f(x),-1,order=N);
@@ -14,15 +15,14 @@ function bursty(N,τ)
     return P
 end;
 
-# truncation
+# Truncation
 N = 64
 
 a = 0.0282
 b = 3.46
 τ = 120
-P_exat = bursty(N+1,τ)
 
-# calculate the probabilities at 0~N
+# Calculate the probabilities at 0~N
 end_time = 1200
 train_sol = zeros(N+1,end_time+1)
 for i = 0:end_time
@@ -33,7 +33,7 @@ for i = 0:end_time
     end
 end
 
-# model initialization
+# Model initialization
 latent_size = 10;
 encoder = Chain(Dense(N+1, 20,tanh),Dense(20, latent_size * 2));
 decoder = Chain(Dense(latent_size, 20,tanh),Dense(20, N),x-> 0.03*x.+[i/120  for i in 1:N],x ->relu.(x));
@@ -42,7 +42,7 @@ params1, re1 = Flux.destructure(encoder);
 params2, re2 = Flux.destructure(decoder);
 ps = Flux.params(params1,params2);
 
-# define the CME
+# Define the CME
 function CME(du, u, p, t)
     h = re1(p[1:length(params1)])(u)
     μ, logσ = split_encoder_result(h, latent_size)
@@ -62,33 +62,31 @@ function CME(du, u, p, t)
     end
 end
 
-# initialize the ODE solver
+# Initialize the ODE solver
 u0 = [1.; zeros(N)]
-tf = 1200; #end time
-tspan = (0, tf);
+tf = 1200
+tspan = (0, tf)
 saveat = [10:10:120;140:20:1200]
 ϵ = zeros(latent_size)
 params_all = [params1;params2;ϵ];
 problem = ODEProblem(CME, u0, tspan, params_all);
 solution = solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat)
 
+# Define loss function
 function loss_func(p1,p2,ϵ)
     params_all = [p1;p2;ϵ]
     sol_cme = solve(ODEProblem(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
-    
     temp = sol_cme.u
-    temp = set_one.(temp)
+
+    mse = Flux.mse(Array(sol_cme),train_sol[:,saveat.+1])
+    print("mse:",mse," ")
 
     μ_logσ_list = [split_encoder_result(re1(p1)(temp[i]), latent_size) for i=1:length(saveat)]
     kl = sum([(0.5f0 * sum(exp.(2f0 .* μ_logσ_list[i][2]) + μ_logσ_list[i][1].^2 .- 1 .- (2 .* μ_logσ_list[i][2])))  
         for i=1:length(saveat)])/length(saveat)
     print(kl," ")
 
-    reg_zero = Flux.mse(Array(sol_cme),train_sol[:,saveat.+1])
-    print(reg_zero," ")
-
-    loss = kl + λ2*reg_zero
-
+    loss = λ*mse + kl
     print(loss,"\n")
     return loss
 end
@@ -99,9 +97,9 @@ end
 loss_func(params1,params2,ϵ)
 grads = gradient(()->loss_func(params1,params2,ϵ),ps)
 
+# Training process
 epochs_all = 0
-
-lr = 0.002;
+lr = 0.01;
 opt= ADAM(lr);
 epochs = 10;
 epochs_all = epochs_all + epochs
@@ -111,16 +109,20 @@ print("learning rate = ",lr)
     print(epoch,"\n")
     grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
     Flux.update!(opt, ps, grads)
-
-    solution_time_points = Array(solve(ODEProblem(CME, u0, tspan, [params1;params2;zeros(latent_size)]), 
-                                    Tsit5(), p=[params1;params2;zeros(latent_size)],u0=u0, saveat=saveat))
-    train_timepoints = train_sol[:,saveat.+1]
-    mse = Flux.mse(solution_time_points,train_timepoints)
-    print(mse,"\n")
 end
 
+# Write params
+using DataFrames,CSV
+df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
+CSV.write("Bursty/params_ode.csv",df)
 
-# check
+# Check
+using CSV,DataFrames
+df = CSV.read("Bursty/params_ode.csv",DataFrame)
+params1 = df.params1
+params2 = df.params2[1:length(params2)]
+ps = Flux.params(params1,params2);
+
 u0 = [1.; zeros(N)];
 use_time=1200;
 time_step = 1.0; 
@@ -130,15 +132,15 @@ problem = ODEProblem(CME, u0, tspan,params_all);
 solution = Array(solve(problem, Tsit5(), u0=u0, 
                  p=params_all, saveat=0:time_step:Int(use_time)))
 
-#check mean
+# Check mean value
 mean_exact = [sum([j for j=0:N].*train_sol[:,i]) for i=1:size(train_sol,2)]
 mean_trained = [sum([j for j=0:N].*solution[:,i]) for i=1:size(solution,2)]
 plot(mean_trained,linewidth = 3,label="VAE-CME",xlabel = "# t", ylabel = "mean value")
 plot!(mean_exact,label="exact",linewidth = 3,line=:dash,legend=:bottomright)
 
-#check probabilities
+# Check probability distribution
 function plot_distribution(time_choose)
-    p=plot(0:N,solution[:,time_choose],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    p=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
     plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label="exact",title=join(["t=",time_choose]),line=:dash)
     return p
 end
@@ -159,32 +161,9 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
 end
 plot_all()
-savefig("Bursty/ode_fitting.pdf")
+# savefig("Bursty/ode_fitting.pdf")
 
-#read params
-using CSV,DataFrames
-df = CSV.read("Bursty/params_ode.csv",DataFrame)
-params1 = df.params1
-params2 = df.params2[1:length(params2)]
-ps = Flux.params(params1,params2);
-
-#write params
-using DataFrames,CSV
-params1
-params2
-df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-CSV.write("Bursty/params_ode.csv",df)
-
-
-using Plots
-x = ["2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022"]
-y1 = [2,3,0,2,1,1,0,3,3,4,5]
-y2 = y1./sum(y1)
-bar(x,y2)
-plot!(twinx(),x,y1,linewidth=3,color="red",ylims=(-0.5,5.5))
-
-savefig("Bursty/123.pdf")
-
+#=
 function plot_all()
     time_choose = 30
     p1=plot(0:N,solution[:,time_choose+1],xticks=false,linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
@@ -237,4 +216,5 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
 end
 plot_all()
-savefig("Statement/Figs/Bursty_fitting.pdf")
+savefig("Bursty/Bursty_fitting.svg")
+=#

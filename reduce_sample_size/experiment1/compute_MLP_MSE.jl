@@ -4,12 +4,9 @@ using DelimitedFiles, Plots
 
 include("../../utils.jl")
 
+# Load check data
 solnet_X = readdlm("reduce_sample_size/experiment1/data/X_10000.csv",',')[2:end,:]
 solnet_Y = readdlm("reduce_sample_size/experiment1/data/Y_10000.csv",',')[2:end,:]
-
-maximum(solnet_X)
-maximum(solnet_Y)
-
 N = 26
 
 train_sol_X = zeros(N+1,size(solnet_X,1))
@@ -21,7 +18,6 @@ for i =1:size(solnet_X,1)
         train_sol_X[1:N+1,i] = probability[1:N+1]
     end
 end
-train_sol_X
 
 train_sol_Y = zeros(N+1,size(solnet_Y,1))
 for i =1:size(solnet_Y,1)
@@ -32,7 +28,6 @@ for i =1:size(solnet_Y,1)
         train_sol_Y[1:N+1,i] = probability[1:N+1]
     end
 end
-train_sol_Y
 
 k_1S=1.
 k_d=1.
@@ -45,7 +40,7 @@ J2(Y) = k_2E_T / (Km + Y)
 D1(m) = diagm(-1=>fill(J1(m), N)) .+ diagm(0=>[fill(-J1(m), N);0.0])
 D2(m) = m*J2(m) * diagm(0=>fill(1.0, N+1))
 
-# model initialization
+# Model initialization
 bias = zeros(N*(N-1))
 for i in 0:N-1
         bias[1+i*(N-1):N-1+i*(N-1)] = [i/10 for i in 1:N-1]
@@ -54,8 +49,8 @@ end
 model = Chain(Dense((N+1)*(N+1), 5, tanh), Dense(5, N*(N-1)), x -> x .+ bias, x->relu.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
-p1
 
+# Define CME
 function CME(du, u, p, t)
     NN = re(p)(u)
 
@@ -75,13 +70,14 @@ function CME(du, u, p, t)
                                                                              (D1(N)-D2(N))*u[(N+1)*N+1:(N+1)*N+N+1]
 end
 
+# Read parameters
 using CSV,DataFrames
 Sample_size = 10000
 df = CSV.read("reduce_sample_size/experiment1/params_MLP_$(Sample_size).csv",DataFrame)
 p1 = df.p
 ps = Flux.params(p1);
 
-#check
+# Check
 u0 = [1.; zeros((N+1)*(N+1)-1)]
 tf = 200.0
 tspan = (0.0, tf)
@@ -97,5 +93,6 @@ for i = 1:tmax
     sol_Y[:,i]=sum(reshape(solution[:,i],N+1,N+1),dims=1)[1:N+1]
 end
 
+# MSE
 Flux.mse(sol_X,train_sol_X)
 Flux.mse(sol_Y,train_sol_Y)

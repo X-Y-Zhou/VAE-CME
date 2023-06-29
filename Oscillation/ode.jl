@@ -4,11 +4,10 @@ using DelimitedFiles, Plots
 
 include("../utils.jl")
 
-Sample_size = 10000
+# Load training data
 solnet_X = readdlm("Oscillation/data/X.csv",',')[2:end,:]
 solnet_Y = readdlm("Oscillation/data/Y.csv",',')[2:end,:]
-
-N = 26
+N = Int(maximum(solnet_X))
 
 train_sol_X = zeros(N+1,size(solnet_X,1))
 for i =1:size(solnet_X,1)
@@ -41,13 +40,12 @@ J2(Y) = k_2E_T / (Km + Y)
 D1(m) = diagm(-1=>fill(J1(m), N)) .+ diagm(0=>[fill(-J1(m), N);0.0])
 D2(m) = m*J2(m) * diagm(0=>fill(1.0, N+1))
 
-# model initialization
+# Model initialization
 bias = zeros(N*(N-1))
 for i in 0:N-1
         bias[1+i*(N-1):N-1+i*(N-1)] = [i/10 for i in 1:N-1]
 end
 
-#model initialization
 latent_size = 10;
 encoder = Chain(Dense((N+1)*(N+1), 5,tanh),Dense(5, latent_size * 2));
 decoder = Chain(Dense(latent_size, 5,tanh),Dense(5, N*(N-1)), x -> x .+ bias, x ->relu.(x));
@@ -88,29 +86,22 @@ solution = solve(problem, Tsit5(), u0=u0, p=params_all, saveat=saveat)
 
 function loss_func(p1,p2,ϵ)
     params_all = [p1;p2;ϵ]
-    sol_cme = solve(ODEProblem(CME, u0, tspan, params_all),
-                Tsit5(),u0=u0,p=params_all,saveat=saveat)
-
+    sol_cme = solve(ODEProblem(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
     temp = sol_cme.u
-    # temp = set_one.(temp)
+
+    solution_time_points = Array(sol_cme)
+    mse_Y = sum([Flux.mse(vec(sum(reshape(solution_time_points[:,i],N+1,N+1),dims=1)),train_sol_Y[:,saveat[i]+1]) 
+                    for i=1:length(saveat)])/length(saveat)
+    Derivatives = sum([sum(Derivative_approxi(vec(sum(reshape(solution_time_points[:,i],N+1,N+1),dims=2))))
+                    for i=1:length(saveat)])/length(saveat)
+    print("mse:",mse_Y,"\n","Derivatives:",Derivatives,"\n")
 
     μ_logσ_list = [split_encoder_result(re1(p1)(temp[i]), latent_size) for i=1:length(saveat)]
     kl = sum([(0.5f0 * sum(exp.(2f0 .* μ_logσ_list[i][2]) + μ_logσ_list[i][1].^2 .- 1 .- (2 .* μ_logσ_list[i][2])))  
         for i=1:length(saveat)])/length(saveat)
     print("kl:",kl,"\n")
 
-    solution_time_points = Array(sol_cme)
-    
-    mse_X = sum([Flux.mse(vec(sum(reshape(solution_time_points[:,i],N+1,N+1),dims=2)),train_sol_X[:,saveat[i]+1]) 
-                    for i=1:length(saveat)])/length(saveat)
-    mse_Y = sum([Flux.mse(vec(sum(reshape(solution_time_points[:,i],N+1,N+1),dims=1)),train_sol_Y[:,saveat[i]+1]) 
-                    for i=1:length(saveat)])/length(saveat)
-    Derivatives1 = sum([sum(Derivative_approxi(vec(sum(reshape(solution_time_points[:,i],N+1,N+1),dims=2))))
-                    for i=1:length(saveat)])/length(saveat)
-    print("mse:",mse_X," ",mse_Y,"\n","Derivatives:",Derivatives1,"\n")
-
-    loss = kl + λ1*mse_Y + λ2*Derivatives1
-
+    loss = λ1*mse_Y + λ2*Derivatives + kl
     print("loss:",loss,"\n")
     return loss
 end
@@ -119,21 +110,15 @@ end
 λ1 = 10000
 λ2 = 20
 loss_func(params1,params2,ϵ)
-
-ϵ = rand(Normal(),latent_size)
 grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 
+# Training process
 epochs_all = 0
-
-lr = 0.006;
+lr = 0.01;
 opt= ADAM(lr);
 epochs = 20;
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
-
-mse_X_list = []
-mse_Y_list = []
-
 @time for epoch in 1:epochs
     ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
@@ -141,12 +126,12 @@ mse_Y_list = []
     Flux.update!(opt, ps, grads)
 end
 
-#write params
+# Write params
 using CSV,DataFrames
 df = DataFrame( params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
 CSV.write("Oscillation/params_trained_VAE.csv",df)
 
-#read params
+# Check
 using CSV,DataFrames
 df = CSV.read("Oscillation/params_trained_VAE.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
@@ -176,13 +161,22 @@ sol_Y;
 Flux.mse(sol_X,train_sol_X)
 Flux.mse(sol_Y,train_sol_Y)
 
-# mean
+# Check mean value
 mean_train_X = [sum([j for j=0:N].*train_sol_X[:,i]) for i=1:size(train_sol_X,2)]
 mean_train_Y = [sum([j for j=0:N].*train_sol_Y[:,i]) for i=1:size(train_sol_Y,2)]
-
 mean_trained_X = [sum([j for j=0:N].*sol_X[:,i]) for i=1:size(sol_X,2)]
 mean_trained_Y = [sum([j for j=0:N].*sol_Y[:,i]) for i=1:size(sol_Y,2)]
 
+function plot_mean()
+    p1=plot(mean_trained_X,label="X",linewidth = 3,xlabel = "# t", ylabel = "mean value")
+    plot!(mean_train_X,label="SSA",linewidth = 3,line=:dash,legend=:bottomright)
+    p2=plot(mean_trained_Y,label="Y",linewidth = 3,xlabel = "# t", ylabel = "mean value")
+    plot!(mean_train_Y,label="SSA",linewidth = 3,line=:dash,legend=:bottomright)
+    plot(p1,p2,size=(1200,400))
+end
+plot_mean()
+
+# Check probability distribution
 function plot_distribution_X(time_choose)
     p=plot(0:N,sol_X[:,time_choose+1],label="X",linewidth = 3,xlabel = "# of products", ylabel = "Probability")
     plot!(0:N,train_sol_X[:,time_choose+1],linewidth = 3,label="SSA",title=join(["t=",time_choose]),line=:dash)
@@ -194,15 +188,6 @@ function plot_distribution_Y(time_choose)
     plot!(0:N,train_sol_Y[:,time_choose+1],linewidth = 3,label="SSA",title=join(["t=",time_choose]),line=:dash)
     return p
 end
-
-function plot_mean()
-    p1=plot(mean_trained_X,label="X",linewidth = 3,xlabel = "# t", ylabel = "mean value")
-    plot!(mean_train_X,label="SSA",linewidth = 3,line=:dash,legend=:bottomright)
-    p2=plot(mean_trained_Y,label="Y",linewidth = 3,xlabel = "# t", ylabel = "mean value")
-    plot!(mean_train_Y,label="SSA",linewidth = 3,line=:dash,legend=:bottomright)
-    plot(p1,p2,size=(1200,400))
-end
-plot_mean()
 
 function plot_distribution_X_all()
     p1 = plot_distribution_X(25)
@@ -232,6 +217,7 @@ function plot_distribution_Y_all()
 end
 plot_distribution_Y_all()
 
+#=
 function plot_all()
     time_choose = 5
     p1=plot(0:N,sol_Y[:,time_choose+1],linewidth = 3,xticks=false,label="VAE-CME", ylabel = "\n Probability")
@@ -271,7 +257,7 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,900))
 end
 plot_all()
-savefig("Oscillation/Oscillation_Y_fitting.pdf")
+savefig("Oscillation/Oscillation_Y_fitting.svg")
 savefig("Statement/Figs/Oscillation_Y_fitting.pdf")
 
 function plot_all()
@@ -313,6 +299,6 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,900))
 end
 plot_all()
-savefig("Oscillation/Oscillation_X_predicting.pdf")
+savefig("Oscillation/Oscillation_X_predicting.svg")
 savefig("Statement/Figs/Oscillation_X_predicting.pdf")
 

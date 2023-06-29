@@ -4,9 +4,9 @@ using DelimitedFiles, Plots
 
 include("../../utils.jl")
 
+# Load check data
 solnet_X = readdlm("reduce_sample_size/experiment3/data/X_10000.csv",',')[2:end,:]
 solnet_Y = readdlm("reduce_sample_size/experiment3/data/Y_10000.csv",',')[2:end,:]
-
 N = 26
 
 train_sol_X = zeros(N+1,size(solnet_X,1))
@@ -40,13 +40,12 @@ J2(Y) = k_2E_T / (Km + Y)
 D1(m) = diagm(-1=>fill(J1(m), N)) .+ diagm(0=>[fill(-J1(m), N);0.0])
 D2(m) = m*J2(m) * diagm(0=>fill(1.0, N+1))
 
-# model initialization
+# Model initialization
 bias = zeros(N*(N-1))
 for i in 0:N-1
         bias[1+i*(N-1):N-1+i*(N-1)] = [i/10 for i in 1:N-1]
 end
 
-#model initialization
 latent_size = 10;
 encoder = Chain(Dense((N+1)*(N+1), 5,tanh),Dense(5, latent_size * 2));
 decoder = Chain(Dense(latent_size, 5,tanh),Dense(5, N*(N-1)), x -> x .+ bias, x ->relu.(x));
@@ -55,6 +54,7 @@ params1, re1 = Flux.destructure(encoder);
 params2, re2 = Flux.destructure(decoder);
 ps = Flux.params(params1,params2);
 
+# Define CME
 function CME(du, u, p, t)
     h = re1(p[1:length(params1)])(u)
     μ, logσ = split_encoder_result(h, latent_size)
@@ -74,7 +74,7 @@ function CME(du, u, p, t)
     du[((N+1)*N+1):((N+1)*N+N+1)] = (Nb(N-1)) * u[(N+1)*(N-1)+1:(N+1)*(N-1)+N+1] + (D1(N)-D2(N))*u[(N+1)*N+1:(N+1)*N+N+1]
 end
 
-#read params
+# Read parameters
 using CSV,DataFrames
 Sample_size = 10000
 df = CSV.read("reduce_sample_size/experiment3/params_VAE_$Sample_size.csv",DataFrame)
@@ -82,6 +82,7 @@ params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
+# Check
 u0 = [1.; zeros((N+1)*(N+1)-1)]; 
 tf = 200.0;
 tspan = (0.0, tf);
