@@ -83,10 +83,6 @@ function loss_func(p1,p2,p3,ϵ)
         for i=1:length(saveat)])/length(saveat)
     print("kl:",kl,"\n")
 
-    # solution = (sol_cme[1:N+1, :] + sol_cme[N+2:end, :])
-    # reg_zero = Flux.mse(Array(solution),train_sol)
-    # print("mse:",reg_zero," ")
-
     loss = λ*mse + kl
     print(loss,"\n")
     return loss
@@ -112,7 +108,7 @@ print("learning rate = ",lr)
     Flux.update!(opt, ps, grads)
 end
 
-# write parameters
+# Write parameters
 df = DataFrame(params1 = params1,
 params2_1 = vcat(params2_1,[0 for i=1:length(params1)-length(params2_1)]),
 params2_2 = vcat(params2_2,[0 for i=1:length(params1)-length(params2_2)]))
@@ -127,7 +123,7 @@ params2_2 = df.params2_2[1:length(params2_2)]
 ps = Flux.params(params1,params2_1,params2_2);
 
 u0 = [1.; zeros(2*N+1)]
-tf = 10; #end time
+tf = 10;
 tspan = (0, tf);
 saveat = 0:0.1:10
 ϵ = zeros(latent_size)
@@ -135,7 +131,6 @@ params_all = [params1;params2_1;params2_2;ϵ];
 problem = ODEProblem(CME, u0, tspan, params_all);
 solution = Array(solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat))
 solution = (solution[1:N+1, :] + solution[N+2:end, :]);
-
 Flux.mse(solution,train_sol)
 
 # Check mean value

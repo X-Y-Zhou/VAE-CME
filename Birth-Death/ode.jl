@@ -117,7 +117,7 @@ end
 # Write parameters
 using CSV,DataFrames
 df = DataFrame( params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-CSV.write("Research/machine-learning/ode/birth-death/params_trained.csv",df)
+CSV.write("Birth-Death/params_trained.csv",df)
 
 # Check 
 using CSV,DataFrames
