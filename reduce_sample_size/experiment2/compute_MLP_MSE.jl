@@ -50,7 +50,6 @@ model = Chain(Dense((N+1)*(N+1), 5, tanh), Dense(5, N*(N-1)), x -> x .+ bias, x-
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
-# Define CME
 function CME(du, u, p, t)
     NN = re(p)(u)
 

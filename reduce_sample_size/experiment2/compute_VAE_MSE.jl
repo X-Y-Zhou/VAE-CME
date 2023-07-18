@@ -99,8 +99,6 @@ for i = 1:tmax
     sol_X[:,i]=sum(reshape(solution[:,i],N+1,N+1),dims=2)[1:N+1]
     sol_Y[:,i]=sum(reshape(solution[:,i],N+1,N+1),dims=1)[1:N+1]
 end
-sol_X
-sol_Y;
 
 # MSE
 Flux.mse(sol_X,train_sol_X)

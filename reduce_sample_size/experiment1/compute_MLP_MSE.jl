@@ -50,7 +50,6 @@ model = Chain(Dense((N+1)*(N+1), 5, tanh), Dense(5, N*(N-1)), x -> x .+ bias, x-
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
-# Define CME
 function CME(du, u, p, t)
     NN = re(p)(u)
 
@@ -73,7 +72,7 @@ end
 # Read parameters
 using CSV,DataFrames
 Sample_size = 10000
-df = CSV.read("reduce_sample_size/experiment1/params_MLP_$(Sample_size).csv",DataFrame)
+df = CSV.read("reduce_sample_size/experiment1/params_MLP_$Sample_size.csv",DataFrame)
 p1 = df.p
 ps = Flux.params(p1);
 

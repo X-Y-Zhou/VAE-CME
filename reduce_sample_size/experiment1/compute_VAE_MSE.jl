@@ -7,7 +7,6 @@ include("../../utils.jl")
 # Load check data
 solnet_X = readdlm("reduce_sample_size/experiment1/data/X_10000.csv",',')[2:end,:]
 solnet_Y = readdlm("reduce_sample_size/experiment1/data/Y_10000.csv",',')[2:end,:]
-
 N = 26
 
 train_sol_X = zeros(N+1,size(solnet_X,1))
