@@ -102,7 +102,7 @@ function car_event(tmax,saveat,λ)
     end
 
     for i in saveat
-        index = length(filter(x->x<0,t_list.-i))
+        index = length(filter(x->x<=0,t_list.-i))
         push!(n_cars_list,n_list[index])
     end
 
