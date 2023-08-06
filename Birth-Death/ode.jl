@@ -24,7 +24,7 @@ function birth_death(N,τ)
     distribution = Poisson(ρ*τ)
     P = zeros(N)
     for i=1:N
-        P[i] = pdf(distribution,i)
+        P[i] = pdf(distribution,i-1)
     end
     return P
 end;
@@ -146,7 +146,7 @@ plot!(mean_exact,label="exact",linewidth = 3,line=:dash,legend=:bottomright)
 # Check probability distribution
 function plot_distribution(time_choose)
     p=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N,exact_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:bottomleft)
+    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:bottomleft)
     return p
 end
 
