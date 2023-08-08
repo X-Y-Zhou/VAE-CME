@@ -5,9 +5,9 @@ using DelimitedFiles, Plots
 include("../utils.jl")
 
 # Load training data
-solnet_X = readdlm("Oscillation/data/X.csv",',')[2:end,:]
-solnet_Y = readdlm("Oscillation/data/Y.csv",',')[2:end,:]
-N = Int(maximum(solnet_X))
+solnet_X = readdlm("Oscillation/data/X_train.csv",',')[2:end,:]
+solnet_Y = readdlm("Oscillation/data/Y_train.csv",',')[2:end,:]
+N = 26
 
 train_sol_X = zeros(N+1,size(solnet_X,1))
 for i =1:size(solnet_X,1)
@@ -133,7 +133,7 @@ CSV.write("Oscillation/params_trained_VAE.csv",df)
 
 # Check
 using CSV,DataFrames
-df = CSV.read("Oscillation/params_trained_VAE.csv",DataFrame)
+df = CSV.read("Oscillation/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -157,21 +157,48 @@ end
 sol_X
 sol_Y;
 
+# Load check data
+check_X = readdlm("Oscillation/data/X_check.csv",',')[2:end,:]
+check_Y = readdlm("Oscillation/data/Y_check.csv",',')[2:end,:]
+
+N = 26
+check_sol_X = zeros(N+1,size(check_X,1))
+for i =1:size(check_X,1)
+    probability = convert_histo(vec(check_X[i,:]))[2]
+    if length(probability)<N+1
+        check_sol_X[1:length(probability),i] = probability
+    else
+        check_sol_X[1:N+1,i] = probability[1:N+1]
+    end
+end
+
+check_sol_Y = zeros(N+1,size(check_Y,1))
+for i =1:size(check_Y,1)
+    probability = convert_histo(vec(check_Y[i,:]))[2]
+    if length(probability)<N+1
+        check_sol_Y[1:length(probability),i] = probability
+    else
+        check_sol_Y[1:N+1,i] = probability[1:N+1]
+    end
+end
+
+
+
 # MSE
-Flux.mse(sol_X,train_sol_X)
-Flux.mse(sol_Y,train_sol_Y)
+Flux.mse(sol_X,check_sol_X)
+Flux.mse(sol_Y,check_sol_Y)
 
 # Check mean value
-mean_train_X = [sum([j for j=0:N].*train_sol_X[:,i]) for i=1:size(train_sol_X,2)]
-mean_train_Y = [sum([j for j=0:N].*train_sol_Y[:,i]) for i=1:size(train_sol_Y,2)]
-mean_trained_X = [sum([j for j=0:N].*sol_X[:,i]) for i=1:size(sol_X,2)]
-mean_trained_Y = [sum([j for j=0:N].*sol_Y[:,i]) for i=1:size(sol_Y,2)]
+mean_check_X = [sum([j for j=0:N].*check_sol_X[:,i]) for i=1:size(check_sol_X,2)]
+mean_check_Y = [sum([j for j=0:N].*check_sol_Y[:,i]) for i=1:size(check_sol_Y,2)]
+mean_checked_X = [sum([j for j=0:N].*sol_X[:,i]) for i=1:size(sol_X,2)]
+mean_checked_Y = [sum([j for j=0:N].*sol_Y[:,i]) for i=1:size(sol_Y,2)]
 
 function plot_mean()
-    p1=plot(mean_trained_X,label="X",linewidth = 3,xlabel = "# t", ylabel = "mean value")
-    plot!(mean_train_X,label="SSA",linewidth = 3,line=:dash,legend=:bottomright)
-    p2=plot(mean_trained_Y,label="Y",linewidth = 3,xlabel = "# t", ylabel = "mean value")
-    plot!(mean_train_Y,label="SSA",linewidth = 3,line=:dash,legend=:bottomright)
+    p1=plot(mean_checked_X,label="X",linewidth = 3,xlabel = "# t", ylabel = "mean value")
+    plot!(mean_check_X,label="SSA",linewidth = 3,line=:dash,legend=:bottomright)
+    p2=plot(mean_checked_Y,label="Y",linewidth = 3,xlabel = "# t", ylabel = "mean value")
+    plot!(mean_check_Y,label="SSA",linewidth = 3,line=:dash,legend=:bottomright)
     plot(p1,p2,size=(1200,400))
 end
 plot_mean()
@@ -179,13 +206,13 @@ plot_mean()
 # Check probability distribution
 function plot_distribution_X(time_choose)
     p=plot(0:N,sol_X[:,time_choose+1],label="X",linewidth = 3,xlabel = "# of products", ylabel = "Probability")
-    plot!(0:N,train_sol_X[:,time_choose+1],linewidth = 3,label="SSA",title=join(["t=",time_choose]),line=:dash)
+    plot!(0:N,check_sol_X[:,time_choose+1],linewidth = 3,label="SSA",title=join(["t=",time_choose]),line=:dash)
     return p
 end
 
 function plot_distribution_Y(time_choose)
     p=plot(0:N,sol_Y[:,time_choose+1],label="Y",linewidth = 3,xlabel = "# of products", ylabel = "Probability")
-    plot!(0:N,train_sol_Y[:,time_choose+1],linewidth = 3,label="SSA",title=join(["t=",time_choose]),line=:dash)
+    plot!(0:N,check_sol_Y[:,time_choose+1],linewidth = 3,label="SSA",title=join(["t=",time_choose]),line=:dash)
     return p
 end
 
@@ -301,4 +328,26 @@ end
 plot_all()
 savefig("Oscillation/Oscillation_X_predicting.svg")
 savefig("Statement/Figs/Oscillation_X_predicting.pdf")
+
+using DataFrames,CSV
+df = DataFrame(check_sol_X,:auto)
+CSV.write("Oscillation/SSA_X.csv",df)
+
+using DataFrames,CSV
+df = DataFrame(sol_X,:auto)
+CSV.write("Oscillation/pred_X.csv",df)
+
+using DataFrames,CSV
+df = DataFrame(check_sol_Y,:auto)
+CSV.write("Oscillation/SSA_Y.csv",df)
+
+using DataFrames,CSV
+df = DataFrame(sol_Y,:auto)
+CSV.write("Oscillation/pred_Y.csv",df)
+
+sol_X = readdlm("Oscillation/pred_X.csv",',')[2:end,:]
+sol_Y = readdlm("Oscillation/pred_Y.csv",',')[2:end,:]
+
+check_sol_X = readdlm("Oscillation/SSA_X.csv",',')[2:end,:]
+check_sol_Y = readdlm("Oscillation/SSA_Y.csv",',')[2:end,:]
 
