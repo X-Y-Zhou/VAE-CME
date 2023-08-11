@@ -148,8 +148,8 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 50000
-λ2 = 10000
+λ1 = 10000000
+λ2 = 5000000
 
 ϵ = zeros(latent_size)
 loss_func_120(params1,params2,ϵ)
@@ -159,17 +159,48 @@ grads = gradient(()->loss_func(params1,params2,ϵ),ps)
 
 # Training process
 epochs_all = 0
-lr = 0.01;
+lr = 0.002;
 opt= ADAM(lr);
 epochs = 10;
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
+mse_list = []
+
+
 @time for epoch in 1:epochs
     ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
     grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
     Flux.update!(opt, ps, grads)
+
+    u0 = [1.; zeros(N)]
+    tf = 1200;
+    tspan = (0, tf);
+    saveat = 0:1:tf
+    ϵ = zeros(latent_size)
+    params_all = [params1;params2;ϵ];
+    problem_1 = ODEProblem(CME_120, u0, tspan, params_all);
+    problem_2 = ODEProblem(CME_30, u0, tspan, params_all);
+
+    solution_1 = Array(solve(problem_1,Tsit5(),u0=u0,p=params_all,saveat=saveat))
+    solution_2 = Array(solve(problem_2,Tsit5(),u0=u0,p=params_all,saveat=saveat))
+
+    mse_1 = Flux.mse(solution_1,train_sol_120)
+    mse_2 = Flux.mse(solution_2,train_sol_30)
+
+    if mse_1+mse_2<mse_min[1]
+        df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 =params2)
+        CSV.write("Bursty/Control_mean/params_ode_control_mean2.csv",df)
+        mse_min[1] = mse_1+mse_2
+    end
+
+    push!(mse_list,mse_1+mse_2)
 end
+
+mse_list
+mse_min 
+
+mse_min = [1.0276796210234337e-5]
 
 #Write params
 using DataFrames,CSV
@@ -180,11 +211,11 @@ CSV.write("Bursty/Control_mean/params_ode_control_mean.csv",df)
 
 # Check
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_mean/params_ode_control_mean.csv",DataFrame)
+df = CSV.read("Bursty/Control_mean/params_ode_control_mean2.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
-
+ 
 # Check τ = 120
 u0 = [1.; zeros(N)];
 use_time=1200;
@@ -192,8 +223,44 @@ time_step = 1.0;
 tspan = (0.0, use_time);
 params_all = [params1;params2;zeros(latent_size)];
 problem = ODEProblem(CME_120, u0, tspan,params_all);
-solution = Array(solve(problem, Tsit5(), u0=u0, 
+solution_1 = Array(solve(problem, Tsit5(), u0=u0, 
                  p=params_all, saveat=0:time_step:Int(use_time)))
+
+
+# Check τ = 30
+u0 = [1.; zeros(N)];
+use_time=1200;
+time_step = 1.0; 
+tspan = (0.0, use_time);
+params_all = [params1;params2;zeros(latent_size)];
+problem = ODEProblem(CME_30, u0, tspan,params_all);
+solution_2 = Array(solve(problem, Tsit5(), u0=u0, 
+                 p=params_all, saveat=0:time_step:Int(use_time)))
+
+
+using DataFrames,CSV
+df = DataFrame(train_sol_120,:auto)
+CSV.write("Bursty/Control_mean/SSA_120.csv",df)
+
+using DataFrames,CSV
+df = DataFrame(solution_1,:auto)
+CSV.write("Bursty/Control_mean/pred_120.csv",df)
+
+using DataFrames,CSV
+df = DataFrame(train_sol_30,:auto)
+CSV.write("Bursty/Control_mean/SSA_30.csv",df)
+
+using DataFrames,CSV
+df = DataFrame(solution_2,:auto)
+CSV.write("Bursty/Control_mean/pred_30.csv",df)
+
+
+mse_1 = Flux.mse(solution_1,train_sol_120)
+mse_2 = Flux.mse(solution_2,train_sol_30)
+mse_1+mse_2
+
+mse_1 = Flux.mse(solution_1,train_sol_120)
+mse_2 = Flux.mse(solution_2,train_sol_30)
 
 # Check mean value
 mean_exact = [sum([j for j=0:N].*train_sol_120[:,i]) for i=1:size(train_sol_120,2)]
@@ -203,7 +270,7 @@ plot!(mean_exact,label="exact",linewidth = 3,line=:dash,legend=:bottomright)
 
 # Check probability distribution
 function plot_distribution(time_choose)
-    p=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    p=plot(0:N,solution_1[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
     plot!(0:N,train_sol_120[:,time_choose+1],linewidth = 3,label="exact",title=join(["t=",time_choose]),line=:dash)
     return p
 end
@@ -217,8 +284,8 @@ function plot_all()
     p6 = plot_distribution(97)
     p7 = plot_distribution(107)
     p8 = plot_distribution(120)
-    p9 = plot_distribution(200)
-    p10 = plot_distribution(300)
+    p9 = plot_distribution(150)
+    p10 = plot_distribution(180)
     p11 = plot_distribution(500)
     p12 = plot_distribution(800)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
@@ -226,15 +293,7 @@ end
 plot_all()
 # savefig("Bursty/Control_mean/tau=120.pdf")
 
-# Check τ = 30
-u0 = [1.; zeros(N)];
-use_time=1200;
-time_step = 1.0; 
-tspan = (0.0, use_time);
-params_all = [params1;params2;zeros(latent_size)];
-problem = ODEProblem(CME_30, u0, tspan,params_all);
-solution = Array(solve(problem, Tsit5(), u0=u0, 
-                 p=params_all, saveat=0:time_step:Int(use_time)))
+
 
 # Check mean value
 mean_exact = [sum([j for j=0:N].*train_sol_30[:,i]) for i=1:size(train_sol_120,2)]
@@ -244,7 +303,7 @@ plot!(mean_exact,label="exact",linewidth = 3,line=:dash,legend=:bottomright)
 
 # Check probability distribution
 function plot_distribution(time_choose)
-    p=plot(0:N,solution[:,time_choose],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    p=plot(0:N,solution_2[:,time_choose],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
     plot!(0:N,train_sol_30[:,time_choose+1],linewidth = 3,label="exact",title=join(["t=",time_choose]),line=:dash)
     return p
 end
@@ -261,7 +320,7 @@ function plot_all()
     p9 = plot_distribution(60)
     p10 = plot_distribution(90)
     p11 = plot_distribution(120)
-    p12 = plot_distribution(150)
+    p12 = plot_distribution(200)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
 end
 plot_all()
@@ -293,7 +352,7 @@ function sol_Extenicity(τ,Attribute)
     end
 
     u0 = [1.; zeros(N)];
-    use_time=120;
+    use_time=800;
     time_step = 1.0; 
     tspan = (0.0, use_time);
     params_all = [params1;params2;zeros(latent_size)];
@@ -303,13 +362,13 @@ function sol_Extenicity(τ,Attribute)
     return solution_temp
 end
 
-τ = 40
+τ = 100
 Attribute = -40/τ+4/3
 
 solution = sol_Extenicity(τ,Attribute)
 
 # Exact solution
-end_time = 120
+end_time = 800
 train_sol = zeros(N+1,end_time+1)
 for i = 0:end_time
     if i < τ
@@ -319,6 +378,18 @@ for i = 0:end_time
     end
 end
 
+using DataFrames,CSV
+df = DataFrame(train_sol,:auto)
+CSV.write("Bursty/Control_mean/SSA_100.csv",df)
+
+using DataFrames,CSV
+df = DataFrame(solution,:auto)
+CSV.write("Bursty/Control_mean/pred_100.csv",df)
+
+
+Flux.mse(train_sol,solution)
+Flux.mse(train_sol,solution)
+
 # Check probability distribution
 function plot_distribution(time_choose)
     p=plot(0:N,solution[:,time_choose],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
@@ -327,7 +398,7 @@ function plot_distribution(time_choose)
 end
 
 function plot_all()
-    p1 = plot_distribution(17)
+    p1 = plot_distribution(15)
     p2 = plot_distribution(27)
     p3 = plot_distribution(37)
     p4 = plot_distribution(47)
@@ -336,12 +407,30 @@ function plot_all()
     p7 = plot_distribution(77)
     p8 = plot_distribution(87)
     p9 = plot_distribution(97)
-    p10 = plot_distribution(105)
-    p11 = plot_distribution(107)
-    p12 = plot_distribution(120)
+    p10 = plot_distribution(107)
+    p11 = plot_distribution(120)
+    p12 = plot_distribution(180)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
 end
 plot_all()
+
+function plot_all()
+    p1 = plot_distribution(200)
+    p2 = plot_distribution(250)
+    p3 = plot_distribution(300)
+    p4 = plot_distribution(350)
+    p5 = plot_distribution(400)
+    p6 = plot_distribution(450)
+    p7 = plot_distribution(500)
+    p8 = plot_distribution(550)
+    p9 = plot_distribution(600)
+    p10 = plot_distribution(650)
+    p11 = plot_distribution(700)
+    p12 = plot_distribution(800)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+end
+plot_all()
+
 # savefig("Bursty/Control_mean/pre_tau=$τ.pdf")
 
 # Relationship between τ and Attribute
