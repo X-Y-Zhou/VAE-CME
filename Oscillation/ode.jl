@@ -217,7 +217,7 @@ function plot_distribution_Y(time_choose)
 end
 
 function plot_distribution_X_all()
-    p1 = plot_distribution_X(25)
+    p1 = plot_distribution_X(28)
     p2 = plot_distribution_X(27)
     p3 = plot_distribution_X(30)
     p4 = plot_distribution_X(40)
@@ -231,7 +231,7 @@ end
 plot_distribution_X_all()
 
 function plot_distribution_Y_all()
-    p1 = plot_distribution_Y(15)
+    p1 = plot_distribution_Y(28)
     p2 = plot_distribution_Y(27)
     p3 = plot_distribution_Y(30)
     p4 = plot_distribution_Y(40)
@@ -243,6 +243,7 @@ function plot_distribution_Y_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,800))
 end
 plot_distribution_Y_all()
+
 
 #=
 function plot_all()

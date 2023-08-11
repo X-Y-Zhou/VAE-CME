@@ -71,7 +71,7 @@ end
 
 # Read parameters
 using CSV,DataFrames
-Sample_size = 10000
+Sample_size = 100
 df = CSV.read("reduce_sample_size/experiment1/params_MLP_$Sample_size.csv",DataFrame)
 p1 = df.p
 ps = Flux.params(p1);
@@ -95,3 +95,52 @@ end
 # MSE
 Flux.mse(sol_X,train_sol_X)
 Flux.mse(sol_Y,train_sol_Y)
+
+#=
+function plot_distribution_X(time_choose)
+    p=plot(0:N,sol_X[:,time_choose+1],label="X",linewidth = 3,xlabel = "# of products", ylabel = "Probability")
+    plot!(0:N,train_sol_X[:,time_choose+1],linewidth = 3,label="SSA",title=join(["t=",time_choose]),line=:dash)
+    return p
+end
+
+function plot_distribution_Y(time_choose)
+    p=plot(0:N,sol_Y[:,time_choose+1],label="Y",linewidth = 3,xlabel = "# of products", ylabel = "Probability")
+    plot!(0:N,train_sol_Y[:,time_choose+1],linewidth = 3,label="SSA",title=join(["t=",time_choose]),line=:dash)
+    return p
+end
+
+function plot_distribution_X_all()
+    p1 = plot_distribution_X(25)
+    p2 = plot_distribution_X(27)
+    p3 = plot_distribution_X(30)
+    p4 = plot_distribution_X(40)
+    p5 = plot_distribution_X(50)
+    p6 = plot_distribution_X(75)
+    p7 = plot_distribution_X(100)
+    p8 = plot_distribution_X(150)
+    p9 = plot_distribution_X(200)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,800))
+end
+plot_distribution_X_all()
+
+function plot_distribution_Y_all()
+    p1 = plot_distribution_Y(25)
+    p2 = plot_distribution_Y(27)
+    p3 = plot_distribution_Y(30)
+    p4 = plot_distribution_Y(40)
+    p5 = plot_distribution_Y(50)
+    p6 = plot_distribution_Y(75)
+    p7 = plot_distribution_Y(100)
+    p8 = plot_distribution_Y(150)
+    p9 = plot_distribution_Y(200)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,800))
+end
+plot_distribution_Y_all()
+
+using DataFrames,CSV
+df = DataFrame(sol_X,:auto)
+CSV.write("reduce_sample_size/experiment1/pred_X_MLP.csv",df)
+
+using DataFrames,CSV
+df = DataFrame(sol_Y,:auto)
+CSV.write("reduce_sample_size/experiment1/pred_Y_MLP.csv",df)
