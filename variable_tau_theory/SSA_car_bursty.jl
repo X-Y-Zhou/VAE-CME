@@ -129,7 +129,7 @@ tmax = maximum(saveat)
 n_cars_timepoints = [[] for i=1:length(saveat)]
 n_people_timepoints = [[] for i=1:length(saveat)]
 
-trajectories = 100000
+trajectories = 10000
 @time for i =1:trajectories
     if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
@@ -139,9 +139,9 @@ trajectories = 100000
     n_people_list=[]
     car_event(tmax,saveat,λ)
     #print(n_cars_list,"\n")
-    for i =1:length(saveat)
-        push!(n_cars_timepoints[i],n_cars_list[i])
-        push!(n_people_timepoints[i],n_people_list[i])
+    for k = 1:length(saveat)
+        push!(n_cars_timepoints[k],n_cars_list[k])
+        push!(n_people_timepoints[k],n_people_list[k])
     end
 end
 

@@ -165,6 +165,50 @@ end
 plot_all()
 # savefig("Birth-Death/fitting.svg")
 
+ρ = 10
+u0 = [1.; zeros(N)];
+use_time=100;
+time_step = 1.0; 
+tspan = (0.0, use_time);
+params_all = [params1;params2;zeros(latent_size)];
+problem = ODEProblem(CME, u0, tspan,params_all);
+solution = Array(solve(problem, Tsit5(), u0=u0, 
+                 p=params_all, saveat=0:time_step:Int(use_time)))
+
+
+end_time = 100
+exact_sol_extend = zeros(N+1,end_time+1)
+for i = 0:end_time
+    if i < τ
+        exact_sol_extend[1:N+1,i+1] = birth_death(N+1,i)
+    else
+        exact_sol_extend[1:N+1,i+1] = birth_death(N+1,τ)
+    end
+end
+
+function plot_distribution(time_choose)
+    p=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N,exact_sol_extend[:,time_choose+1],linewidth = 3,label="Exact",title=join(["t=",time_choose]),line=:dash,legend=:bottomleft)
+    return p
+end
+
+function plot_all()
+    p1 = plot_distribution(2)
+    p2 = plot_distribution(4)
+    p3 = plot_distribution(8)
+    p4 = plot_distribution(10)
+    p5 = plot_distribution(12)
+    p6 = plot_distribution(40)
+    p7 = plot_distribution(60)
+    p8 = plot_distribution(80)
+    p9 = plot_distribution(100)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,900))
+end
+plot_all()
+
+a = 1
+
+
 #=
 function plot_all()
     time_choose = 2

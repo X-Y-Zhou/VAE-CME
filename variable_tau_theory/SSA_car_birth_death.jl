@@ -110,8 +110,8 @@ trajectories = 10000
     n_cars_list = []
     car_event(tmax,saveat,λ)
     #print(n_cars_list,"\n")
-    for i =1:length(saveat)
-        push!(n_cars_timepoints[i],n_cars_list[i])
+    for k =1:length(saveat)
+        push!(n_cars_timepoints[k],n_cars_list[k])
     end
 end
 
