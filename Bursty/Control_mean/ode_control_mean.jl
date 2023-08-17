@@ -362,7 +362,7 @@ function sol_Extenicity(τ,Attribute)
     return solution_temp
 end
 
-τ = 100
+τ = 40
 Attribute = -40/τ+4/3
 
 solution = sol_Extenicity(τ,Attribute)
@@ -380,11 +380,11 @@ end
 
 using DataFrames,CSV
 df = DataFrame(train_sol,:auto)
-CSV.write("Bursty/Control_mean/SSA_100.csv",df)
+CSV.write("Bursty/Control_mean/SSA_40.csv",df)
 
 using DataFrames,CSV
 df = DataFrame(solution,:auto)
-CSV.write("Bursty/Control_mean/pred_100.csv",df)
+CSV.write("Bursty/Control_mean/pred_40.csv",df)
 
 
 Flux.mse(train_sol,solution)
