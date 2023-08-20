@@ -26,7 +26,7 @@ b = 3.46
 end_time = 1200
 train_sol_1 = zeros(N+1,end_time+1)
 for i = 0:end_time
-    a = 0.0082
+    a = 0.0182
     b = 3.46
     if i < τ
         train_sol_1[1:N+1,i+1] = bursty(N+1,i,a,b)
@@ -63,7 +63,7 @@ function CME_1(du, u, p, t)
     z = reparameterize.(μ, logσ, p[end-latent_size+1:end])
     NN = re2(p[length(params1)+1:end-latent_size])(z)
 
-    a = 0.0082
+    a = 0.0182
     b = 3.46
     du[1] = (-a*b/(1+b))*u[1] + NN[1]*u[2];
     for i in 2:N
@@ -155,8 +155,8 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 50000000
-λ2 = 50000000
+λ1 = 500000000
+λ2 = 500000000
 
 ϵ = zeros(latent_size)
 loss_func_1(params1,params2,ϵ)
@@ -176,7 +176,7 @@ mse_list = []
 @time for epoch in 1:epochs
     ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
-    grads = gradient(()->loss_func(parasms1,params2,ϵ) , ps)
+    grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
     Flux.update!(opt, ps, grads)
 
     u0 = [1.; zeros(N)]
@@ -196,7 +196,7 @@ mse_list = []
 
     if mse_1+mse_2<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("VAE-CME/Bursty/Control_rate/params_ode_rate.csv",df)
+        CSV.write("Bursty/Control_rate/params_ode_rate2.csv",df)
         mse_min[1] = mse_1+mse_2
     end
 
@@ -206,12 +206,16 @@ end
 mse_list
 mse_min 
 
-mse_min = [5.369648148651322e-5]
+mse_min = [0.0003896903866546234]
 
+# Write params
+using DataFrames,CSV
+df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
+CSV.write("Bursty/params_ode.csv",df)
 
 # Check
 using CSV,DataFrames
-df = CSV.read("VAE-CME/Bursty/Control_rate/params_ode_rate.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate/params_ode_rate2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -312,7 +316,7 @@ function CME(du, u, p, t)
     end
 end
 
-a = 0.028
+a = 0.020
 b = 3.46
 u0 = [1.; zeros(N)];
 use_time=1200;
