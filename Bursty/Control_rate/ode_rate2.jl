@@ -155,8 +155,8 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 500000000
-λ2 = 500000000
+λ1 = 1000000000
+λ2 = 1000000000
 
 ϵ = zeros(latent_size)
 loss_func_1(params1,params2,ϵ)
@@ -207,11 +207,6 @@ mse_list
 mse_min 
 
 mse_min = [0.0003896903866546234]
-
-# Write params
-using DataFrames,CSV
-df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-CSV.write("Bursty/params_ode.csv",df)
 
 # Check
 using CSV,DataFrames
