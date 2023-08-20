@@ -31,3 +31,10 @@ end
 function Derivative_approxi(vec::Vector)
     return [abs(vec[i+1]-vec[i]) for i=1:length(vec)-1]
 end
+
+# normalization
+function set_one(vec)
+    vec = abs.(vec)
+    vec = vec./sum(vec)
+    return vec
+end
