@@ -176,7 +176,7 @@ mse_list = []
 @time for epoch in 1:epochs
     ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
-    grads = gradient(()->loss_func(parasms1,params2,ϵ) , ps)
+    grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
     Flux.update!(opt, ps, grads)
 
     u0 = [1.; zeros(N)]
