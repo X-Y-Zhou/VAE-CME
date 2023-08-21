@@ -36,26 +36,26 @@ for i = 0:end_time
 end
 
 end_time = 1200
-train_sol_1 = zeros(N+1,end_time+1)
-for i = 0:end_time
-    a = 0.0232
-    b = 3.46
-    if i < τ
-        train_sol_1[1:N+1,i+1] = bursty(N+1,i,a,b)
-    else
-        train_sol_1[1:N+1,i+1] = bursty(N+1,τ,a,b)
-    end
-end
-
-end_time = 1200
 train_sol_2 = zeros(N+1,end_time+1)
 for i = 0:end_time
-    a = 0.0282
+    a = 0.0232
     b = 3.46
     if i < τ
         train_sol_2[1:N+1,i+1] = bursty(N+1,i,a,b)
     else
         train_sol_2[1:N+1,i+1] = bursty(N+1,τ,a,b)
+    end
+end
+
+end_time = 1200
+train_sol_3 = zeros(N+1,end_time+1)
+for i = 0:end_time
+    a = 0.0282
+    b = 3.46
+    if i < τ
+        train_sol_3[1:N+1,i+1] = bursty(N+1,i,a,b)
+    else
+        train_sol_3[1:N+1,i+1] = bursty(N+1,τ,a,b)
     end
 end
 
@@ -147,8 +147,6 @@ solution_1 = solve(problem_1,Tsit5(),u0=u0,p=params_all,saveat=saveat)
 solution_2 = solve(problem_2,Tsit5(),u0=u0,p=params_all,saveat=saveat)
 solution_3 = solve(problem_3,Tsit5(),u0=u0,p=params_all,saveat=saveat)
 
-
-
 # Define loss function
 function loss_func_1(p1,p2,ϵ)
     params_all = [p1;p2;ϵ]
@@ -209,9 +207,9 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 1000000000
-λ2 = 1000000000
-λ3 = 1000000000
+λ1 = 10000
+λ2 = 10000
+λ3 = 10000
 
 ϵ = zeros(latent_size)
 loss_func_1(params1,params2,ϵ)
@@ -222,7 +220,7 @@ grads = gradient(()->loss_func(params1,params2,ϵ),ps)
 
 # Training process
 epochs_all = 0
-lr = 0.001;
+lr = 0.01;
 opt= ADAM(lr);
 epochs = 30;
 epochs_all = epochs_all + epochs
@@ -243,20 +241,23 @@ mse_list = []
     params_all = [params1;params2;ϵ];
     problem_1 = ODEProblem(CME_1, u0, tspan, params_all);
     problem_2 = ODEProblem(CME_2, u0, tspan, params_all);
+    problem_3 = ODEProblem(CME_3, u0, tspan, params_all);
 
     solution_1 = Array(solve(problem_1,Tsit5(),u0=u0,p=params_all,saveat=saveat))
     solution_2 = Array(solve(problem_2,Tsit5(),u0=u0,p=params_all,saveat=saveat))
+    solution_3 = Array(solve(problem_3,Tsit5(),u0=u0,p=params_all,saveat=saveat))
 
     mse_1 = Flux.mse(solution_1,train_sol_1)
     mse_2 = Flux.mse(solution_2,train_sol_2)
+    mse_3 = Flux.mse(solution_3,train_sol_3)
 
-    if mse_1+mse_2<mse_min[1]
+    if mse_1+mse_2+mse_3<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate/params_ode_rate2.csv",df)
-        mse_min[1] = mse_1+mse_2
+        CSV.write("Bursty/Control_rate/params_ode_rate3.csv",df)
+        mse_min[1] = mse_1+mse_2+mse_3
     end
 
-    push!(mse_list,mse_1+mse_2)
+    push!(mse_list,mse_1+mse_2+mse_3)
 end
 
 mse_list
@@ -266,7 +267,7 @@ mse_min = [0.0003896903866546234]
 
 # Check
 using CSV,DataFrames
-df = CSV.read("params_ode_rate2.csv",DataFrame)
+df = CSV.read("params_ode_rate3.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
