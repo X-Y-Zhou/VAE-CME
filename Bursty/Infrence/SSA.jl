@@ -23,9 +23,9 @@ u0 = [0]
 de_chan0 = [[]]
 tf = 600.0
 tspan = (0, tf)
-ps = [0.0282, 3.46]
+ps = [0.0182, 2.46]
 dprob = DiscreteProblem(jumpsys, u0, tspan, ps)
-τ = 120.0
+τ = 100.0
 
 delay_trigger_affect! = []
 for i in 1:burst_sup
@@ -68,7 +68,7 @@ solnet
 
 using DataFrames,CSV
 df = DataFrame(solnet,:auto)
-CSV.write("Bursty/Infrence/data/SSA_3",df)
+CSV.write("Bursty/Infrence/data2/SSA_1.csv",df)
 
 using Distributions,StatsBase
 function convert_histo(data::Vector)
@@ -110,6 +110,6 @@ for i = 0:end_time
 end
 
 using Plots
-t = 120
+t = 100
 plot(convert_histo(vec(solnet[t+1,:])),lw=3,label="SSA")
 plot!(0:N,exact_sol[:,t+1],lw=3,line=:dash,label="exact")

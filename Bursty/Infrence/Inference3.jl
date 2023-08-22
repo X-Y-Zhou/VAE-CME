@@ -17,23 +17,23 @@ end;
 
 N = 64
 
-a = 0.0282
-b = 3.46
-τ = 120
+a = 0.0182
+b = 2.46
+τ = 100
 
-# # Exact data
-# end_time = 600
-# train_sol = zeros(N+1,end_time+1)
-# for i = 0:end_time
-#     if i < 120
-#         train_sol[1:N+1,i+1] = bursty(N+1,i)
-#     else
-#         train_sol[1:N+1,i+1] = bursty(N+1,120)
-#     end
-# end
+# Exact data
+end_time = 600
+train_sol = zeros(N+1,end_time+1)
+for i = 0:end_time
+    if i < τ
+        train_sol[1:N+1,i+1] = bursty(N+1,i)
+    else
+        train_sol[1:N+1,i+1] = bursty(N+1,τ)
+    end
+end
 
 # Simulation data
-SSA_data = readdlm("Bursty/Infrence/data/SSA_1.csv",',')[2:end,:]
+SSA_data = readdlm("Infrence/data2/SSA_1.csv",',')[2:end,:]
 
 # Model initialization
 latent_size = 10;
@@ -80,7 +80,7 @@ function CME(du, u, p, t)
 end
 
 using CSV,DataFrames
-df = CSV.read("Bursty/params_ode.csv",DataFrame)
+df = CSV.read("params_ode.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -96,34 +96,34 @@ solution = Array(solve(problem, Tsit5(), u0=u0,
 solution = solve(problem, Tsit5(), u0=u0, 
                  p=params_all, saveat=0:time_step:Int(use_time)).u
 
-# Check probability distribution
-function plot_distribution(time_choose)
-    p=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label="exact",title=join(["t=",time_choose]),line=:dash)
-    return p
-end
+# # Check probability distribution
+# function plot_distribution(time_choose)
+#     p=plot(0:N,solution[:,time_choose+1],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+#     plot!(0:N,train_sol[:,time_choose+1],linewidth = 3,label="exact",title=join(["t=",time_choose]),line=:dash)
+#     return p
+# end
 
-function plot_all()
-    p1 = plot_distribution(27)
-    p2 = plot_distribution(47)
-    p3 = plot_distribution(67)
-    p4 = plot_distribution(77)
-    p5 = plot_distribution(87)
-    p6 = plot_distribution(97)
-    p7 = plot_distribution(107)
-    p8 = plot_distribution(120)
-    p9 = plot_distribution(200)
-    p10 = plot_distribution(300)
-    p11 = plot_distribution(500)
-    p12 = plot_distribution(800)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
-end
-plot_all()
+# function plot_all()
+#     p1 = plot_distribution(27)
+#     p2 = plot_distribution(47)
+#     p3 = plot_distribution(67)
+#     p4 = plot_distribution(77)
+#     p5 = plot_distribution(87)
+#     p6 = plot_distribution(97)
+#     p7 = plot_distribution(107)
+#     p8 = plot_distribution(120)
+#     p9 = plot_distribution(200)
+#     p10 = plot_distribution(300)
+#     p11 = plot_distribution(500)
+#     p12 = plot_distribution(800)
+#     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+# end
+# plot_all()
 
 sample_size = 1e4
 solution = set_one.(solution)
-log_value = [log.(solution[i]) for i=1:use_time+1]
-# log_value = [log.(train_sol[:,i]) for i=1:use_time+1]
+# log_value = [log.(solution[i]) for i=1:use_time+1]
+log_value = [log.(train_sol[:,i]) for i=1:use_time+1]
 
 # SSA data
 SSA_timepoints = []
@@ -143,14 +143,14 @@ logp_x_z = sum([sum(SSA_timepoints[i].*log_value[i])/sample_size for i=2:use_tim
 
 
 # a b τ
-kinetic_params = [0.0282,3.46,120]
+kinetic_params = [a,b,τ]
 
 function LogLikelihood(kinetic_params)
     a = kinetic_params[1]
     b = kinetic_params[2]
     τ = kinetic_params[3]
 
-    df = CSV.read("Bursty/params_ode.csv",DataFrame)
+    df = CSV.read("params_ode.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
@@ -171,10 +171,10 @@ end
 
 LogLikelihood(kinetic_params)
 
-kinetic_params0 = [0.05,3,100]
+kinetic_params0 = [0.05,2,80]
 SRange = [(0.01,0.1),(0,6),(50,150)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
-
+best_fitness(res)
 
 

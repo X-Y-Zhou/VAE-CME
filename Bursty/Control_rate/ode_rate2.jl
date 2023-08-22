@@ -210,7 +210,7 @@ mse_min = [0.0003896903866546234]
 
 # Check
 using CSV,DataFrames
-df = CSV.read("params_ode_rate2.csv",DataFrame)
+df = CSV.read("GitHub/VAE-CME/Bursty/Control_rate/params_ode_rate2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -336,13 +336,13 @@ for i = 0:end_time
 end
 exact_sol_extend
 
-using DataFrames,CSV
-df = DataFrame(exact_sol_extend,:auto)
-CSV.write("SSA252.csv",df)
+# using DataFrames,CSV
+# df = DataFrame(exact_sol_extend,:auto)
+# CSV.write("SSA252.csv",df)
 
-using DataFrames,CSV
-df = DataFrame(solution,:auto)
-CSV.write("pred252.csv",df)
+# using DataFrames,CSV
+# df = DataFrame(solution,:auto)
+# CSV.write("pred252.csv",df)
 
 
 function plot_distribution(time_choose)
@@ -360,10 +360,10 @@ function plot_all()
     p6 = plot_distribution(97)
     p7 = plot_distribution(107)
     p8 = plot_distribution(120)
-    p9 = plot_distribution(150)
-    p10 = plot_distribution(200)
-    p11 = plot_distribution(250)
-    p12 = plot_distribution(300)
+    p9 = plot_distribution(140)
+    p10 = plot_distribution(160)
+    p11 = plot_distribution(180)
+    p12 = plot_distribution(200)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
 end
 plot_all()
