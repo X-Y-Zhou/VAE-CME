@@ -207,9 +207,9 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 10000
-λ2 = 10000
-λ3 = 10000
+λ1 = 5000000
+λ2 = 5000000
+λ3 = 5000000
 
 ϵ = zeros(latent_size)
 loss_func_1(params1,params2,ϵ)
@@ -220,9 +220,9 @@ grads = gradient(()->loss_func(params1,params2,ϵ),ps)
 
 # Training process
 epochs_all = 0
-lr = 0.01;
+lr = 0.001;
 opt= ADAM(lr);
-epochs = 30;
+epochs = 20;
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -263,11 +263,11 @@ end
 mse_list
 mse_min 
 
-mse_min = [0.0003896903866546234]
+mse_min = [0.0005786165118264229]
 
 # Check
 using CSV,DataFrames
-df = CSV.read("params_ode_rate3.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate/params_ode_rate3.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -296,7 +296,7 @@ time_step = 1.0;
 tspan = (0.0, use_time);
 params_all = [params1;params2;zeros(latent_size)];
 problem = ODEProblem(CME_3, u0, tspan,params_all);
-solution_2 = Array(solve(problem, Tsit5(), u0=u0, 
+solution_3 = Array(solve(problem, Tsit5(), u0=u0, 
                  p=params_all, saveat=0:time_step:Int(use_time)))
 
 mse_1 = Flux.mse(solution_1,train_sol_1)
