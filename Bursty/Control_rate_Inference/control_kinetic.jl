@@ -1,0 +1,198 @@
+using Flux, DiffEqSensitivity, DifferentialEquations
+using Distributions, Distances
+using DelimitedFiles, Plots
+
+include("../../utils.jl")
+
+#exact solution
+function bursty(N,a,b,τ)
+    f(u) = exp(a*b*τ*u/(1-b*u));
+    taylorexpand = taylor_expand(x->f(x),-1,order=N);
+    P = zeros(N)
+    for j in 1:N
+        P[j] = taylorexpand[j-1]
+    end
+    return P
+end;
+
+a = 0.0282;
+b = 3.46;
+τ = 120;
+
+N = 64
+train_sol = bursty(N,a,b,τ)
+
+a_list = [0.0082,0.0132,0.0182,0.0232,0.0282]
+b_list = [1.46,1.96,2.46,2.96,3.46]
+# τ_list = [100,110,120,130,140]
+l_ablist = length(a_list)*length(b_list)
+
+ab_list = [[a_list[i],b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
+# abτ_list = [[a_list[i],b_list[j],τ_list[k]] for i=1:length(a_list) for j=1:length(b_list) for k=1:length(τ_list)]
+
+τ
+train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
+# train_sol = [bursty(N,abτ_list[i][1],abτ_list[i][2],abτ_list[i][3]) for i=1:length(abτ_list)]
+
+
+# model initialization
+latent_size = 10;
+encoder = Chain(Dense(N, 20,tanh),Dense(20, latent_size * 2));
+decoder = Chain(Dense(latent_size, 20),Dense(20 , N-1),x->0.03.* x.+[i/τ  for i in 1:N-1],x ->relu.(x));
+
+params1, re1 = Flux.destructure(encoder);
+params2, re2 = Flux.destructure(decoder);
+ps = Flux.params(params1,params2);
+
+#CME
+function f1!(x,p1,p2,a,b,ϵ)
+    h = re1(p1)(x)
+    μ, logσ = split_encoder_result(h, latent_size)
+    z = reparameterize.(μ, logσ, ϵ)
+    NN = re2(p2)(z)
+    return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
+            (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+end
+
+#solve P
+P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
+P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for j=0:N-1] for i=1:l_ablist]
+
+ϵ = zeros(latent_size)
+sol(p1,p2,a,b,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,a,b,ϵ),P0).zero
+# sol(params1,params2,a,b,ϵ,P_0_list[25])
+
+function loss_func(p1,p2,ϵ)
+    sol_cme = [sol(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+        
+    mse = sum(Flux.mse(sol_cme[i],train_sol[i]) for i=1:l_ablist)/l_ablist
+    print(mse," ")
+
+    μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[i]), latent_size) for i=1:l_ablist]
+    kl = sum([(0.5f0 * sum(exp.(2f0 .* μ_logσ_list[i][2]) + μ_logσ_list[i][1].^2 .- 1 .- (2 .* μ_logσ_list[i][2])))  
+        for i=1:l_ablist])/l_ablist
+    print(kl," ")
+
+    loss = λ*mse + kl
+    print(loss,"\n")
+    return loss
+end
+
+λ = 5000000
+
+#check λ if is appropriate
+ϵ = zeros(latent_size)
+loss_func(params1,params2,ϵ)
+@time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
+
+epochs_all = 0
+
+# training
+lr = 0.006;  #lr需要操作一下的
+opt= ADAM(lr);
+epochs = 20
+epochs_all = epochs_all + epochs
+print("learning rate = ",lr)
+mse_list = []
+
+@time for epoch in 1:epochs
+    ϵ = rand(Normal(),latent_size)
+    print(epoch,"\n")
+    grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
+    Flux.update!(opt, ps, grads)
+
+    ϵ = zeros(latent_size)
+    solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+    mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
+
+    if mse<mse_min[1]
+        df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
+        CSV.write("Bursty/Control_rate_Inference/params_ck.csv",df)
+        mse_min[1] = mse
+    end
+
+    push!(mse_list,mse)
+    print(mse,"\n")
+end
+
+mse_list
+mse_min 
+
+mse_min = [0.002523797858241798]
+
+using CSV,DataFrames
+df = CSV.read("Bursty/Control_rate_Inference/params_ck.csv",DataFrame)
+params1 = df.params1
+params2 = df.params2[1:length(params2)]
+ps = Flux.params(params1,params2);
+
+ϵ = zeros(latent_size)
+solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
+
+function plot_distribution(set)
+    plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+end
+
+function plot_all()
+    p1 = plot_distribution(2)
+    p2 = plot_distribution(4)
+    p3 = plot_distribution(6)
+    p4 = plot_distribution(8)
+    p5 = plot_distribution(10)
+    p6 = plot_distribution(12)
+    p7 = plot_distribution(14)
+    p8 = plot_distribution(16)
+    p9 = plot_distribution(18)
+    p10 = plot_distribution(20)
+    p11 = plot_distribution(22)
+    p12 = plot_distribution(25)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+end
+plot_all()
+
+
+#test and check
+P_trained = sol(params1,params2,0)
+bar(0:N-1, P_trained, label = "trained", xlabel = "# of products", ylabel = "Probability")
+plot!(0:N-1, P_exact, linewidth = 3, label = "Exact solution")
+
+#ok，下面都是做测试
+truncation = 45
+if length(P_trained)>truncation
+    P_trained = P_trained[1:truncation]
+else
+    P_trained = vcat(P_trained,[0 for i=1:truncation-length(P_trained)])
+end
+
+mse = Flux.mse(P_trained,P_exact)
+
+#params save
+using DataFrames
+using CSV
+params1
+params2
+df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
+vcat(params2,[0 for i=1:length(params1)-length(params2)])
+CSV.write("machine-learning//results//params_trained_SSA100000.csv",df)
+
+#test Extenicity τ = 60
+decoder_changed = Chain(decoder[1],decoder[2],x->0.03.* x.+[i/60  for i in 1:N-1],decoder[4]);
+P_train_exten = bursty(N,60);
+
+_,re2_changed = Flux.destructure(decoder_changed);
+
+function f2!(x,p1,p2,ϵ)
+    h = re1(p1)(x)
+    μ, logσ = split_encoder_result(h, latent_size)
+    z = reparameterize.(μ, logσ, ϵ)
+    NN = re2_changed(p2)(z)
+    return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
+            (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+end
+sol_exten(p1,p2,ϵ) = nlsolve(x->f2!(x,p1,p2,ϵ),P_train).zero
+
+P_trained_exten = sol_exten(params1,params2,0)
+bar(0:length(P_trained_exten)-1, P_trained_exten, label = "trained", fmt=:svg, xlabel = "# of products", ylabel = "Probability")
+plot!(0:length(P_trained_exten)-1, P_train_exten, linewidth = 3, label = "Exact solution")
