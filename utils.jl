@@ -1,5 +1,8 @@
 using TaylorSeries,LinearMaps,StatsBase,Distributions
 using LinearAlgebra,DelimitedFiles
+using NLsolve,Zygote,IterativeSolvers
+using Zygote:@adjoint
+using CSV,DataFrames
 
 # Convert a vector to probability distributions
 function convert_histo(data::Vector)

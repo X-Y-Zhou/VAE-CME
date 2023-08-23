@@ -19,16 +19,17 @@ a = 0.0282;
 b = 3.46;
 τ = 120;
 
+N = 64
 train_sol = bursty(N,120)
 
 # model initialization
-latent_size = 5;
+latent_size = 10;
 encoder = Chain(Dense(N, 20,tanh),Dense(20, latent_size * 2));
-decoder = Chain(Dense(latent_size, 20),Dense(20 , N-1),x->0.03.* x.+[i/120  for i in 1:N-1],x ->relu.(x));
+decoder = Chain(Dense(latent_size, 20),Dense(20 , N-1),x->0.03.* x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 
-params1, re1 = Flux.destructure(encoder)
-params2, re2 = Flux.destructure(decoder)
-ps = Flux.params(params1,params2)
+params1, re1 = Flux.destructure(encoder);
+params2, re2 = Flux.destructure(decoder);
+ps = Flux.params(params1,params2);
 
 #CME
 function f1!(x,p1,p2,ϵ)
@@ -44,7 +45,7 @@ end
 P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
 P_0 = [pdf(P_0_distribution,i) for i=0:N-1]
 
-ϵ = rand(Normal(),latent_size)
+ϵ = zeros(latent_size)
 sol(p1,p2,ϵ) = nlsolve(x->f1!(x,p1,p2,ϵ),P_0).zero
 sol(params1,params2,ϵ)
 
@@ -54,8 +55,8 @@ function loss_func(p1,p2,ϵ)
     mse = Flux.mse(sol_cme,train_sol)
     print(mse," ")
 
-    μ, logσ = split_encoder_result(re1(p1)(temp), latent_size)
-    kl = -(0.5f0 * sum(exp.(2f0 .* logσ) + μ.^2 .- 1 .- (2 .* logσ)))
+    μ, logσ = split_encoder_result(re1(p1)(sol_cme), latent_size)
+    kl = 0.5f0 * sum(exp.(2f0 .* logσ) + μ.^2 .- 1 .- (2 .* logσ))
     print(kl," ")
 
     loss = λ*mse + kl
@@ -63,27 +64,61 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 1000
+λ = 5000000
 
 #check λ if is appropriate
-ϵ = rand(Normal(),latent_size)
+ϵ = zeros(latent_size)
 loss_func(params1,params2,ϵ)
+grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 
 epochs_all = 0
 
 #training
-lr = 0.001;  #lr需要操作一下的
+lr = 0.006;  #lr需要操作一下的
 opt= ADAM(lr);
-epochs = 10
+epochs = 20
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
+mse_list = []
+
 @time for epoch in 1:epochs
     ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
     grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
     Flux.update!(opt, ps, grads)
-    print(Flux.mse(sol(params1,params2,0),P_exact),"\n")#这个大概到1e-6差不多拟合了
+
+    ϵ = zeros(latent_size)
+    solution = sol(params1,params2,ϵ)
+    mse = Flux.mse(solution,train_sol)
+    
+    if mse<mse_min[1]
+        df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
+        CSV.write("Bursty/Control_rate_Inference/params_ss.csv",df)
+        mse_min[1] = mse
+    end
+
+    push!(mse_list,mse)
+    print(Flux.mse(sol(params1,params2,0),train_sol),"\n")#这个大概到1e-6差不多拟合了
 end
+
+mse_list
+mse_min 
+
+mse_min = [0.00012192452342102719]
+
+using CSV,DataFrames
+df = CSV.read("Bursty/Control_rate_Inference/params_ss.csv",DataFrame)
+params1 = df.params1
+params2 = df.params2[1:length(params2)]
+ps = Flux.params(params1,params2);
+
+ϵ = zeros(latent_size)
+solution = sol(params1,params2,ϵ)
+Flux.mse(solution,train_sol)
+
+plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+plot!(0:N-1,train_sol,linewidth = 3,label="exact",title="steady-state",line=:dash)
+
 
 #test and check
 P_trained = sol(params1,params2,0)
