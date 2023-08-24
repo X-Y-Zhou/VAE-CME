@@ -123,25 +123,80 @@ sol_4(params1,params2,ϵ)
 function loss_func_1(p1,p2,ϵ)
     sol_cme = sol(p1,p2,ϵ)
         
-    mse = Flux.mse(sol_cme,train_sol)
+    mse = Flux.mse(sol_cme,train_sol[:,1])
     print(mse," ")
 
     μ, logσ = split_encoder_result(re1(p1)(sol_cme), latent_size)
     kl = 0.5f0 * sum(exp.(2f0 .* logσ) + μ.^2 .- 1 .- (2 .* logσ))
     print(kl," ")
 
-    loss = λ*mse + kl
+    loss = λ1*mse + kl
     print(loss,"\n")
     return loss
 end
 
+function loss_func_2(p1,p2,ϵ)
+    sol_cme = sol(p1,p2,ϵ)
+        
+    mse = Flux.mse(sol_cme,train_sol[:,2])
+    print(mse," ")
 
+    μ, logσ = split_encoder_result(re1(p1)(sol_cme), latent_size)
+    kl = 0.5f0 * sum(exp.(2f0 .* logσ) + μ.^2 .- 1 .- (2 .* logσ))
+    print(kl," ")
+
+    loss = λ2*mse + kl
+    print(loss,"\n")
+    return loss
+end
+
+function loss_func_3(p1,p2,ϵ)
+    sol_cme = sol(p1,p2,ϵ)
+        
+    mse = Flux.mse(sol_cme,train_sol[:,3])
+    print(mse," ")
+
+    μ, logσ = split_encoder_result(re1(p1)(sol_cme), latent_size)
+    kl = 0.5f0 * sum(exp.(2f0 .* logσ) + μ.^2 .- 1 .- (2 .* logσ))
+    print(kl," ")
+
+    loss = λ3*mse + kl
+    print(loss,"\n")
+    return loss
+end
+
+function loss_func_4(p1,p2,ϵ)
+    sol_cme = sol(p1,p2,ϵ)
+        
+    mse = Flux.mse(sol_cme,train_sol[:,4])
+    print(mse," ")
+
+    μ, logσ = split_encoder_result(re1(p1)(sol_cme), latent_size)
+    kl = 0.5f0 * sum(exp.(2f0 .* logσ) + μ.^2 .- 1 .- (2 .* logσ))
+    print(kl," ")
+
+    loss = λ4*mse + kl
+    print(loss,"\n")
+    return loss
+end
+
+function loss_func(p1,p2,ϵ)
+    loss = loss_func_1(p1,p2,ϵ) + loss_func_2(p1,p2,ϵ)+
+           loss_func_3(p1,p2,ϵ) + loss_func_4(p1,p2,ϵ)
+    return loss
+end
 
 λ1 = 5000000
+λ2 = 5000000
+λ3 = 5000000
+λ4 = 5000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
-loss_func(params1,params2,ϵ)
+loss_func_1(params1,params2,ϵ)
+loss_func_2(params1,params2,ϵ)
+loss_func_3(params1,params2,ϵ)
+loss_func_4(params1,params2,ϵ)
 grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 
 epochs_all = 0
@@ -161,8 +216,16 @@ mse_list = []
     Flux.update!(opt, ps, grads)
 
     ϵ = zeros(latent_size)
-    solution = sol(params1,params2,ϵ)
-    mse = Flux.mse(solution,train_sol)
+    solution_1 = sol_1(params1,params2,ϵ)
+    solution_2 = sol_2(params1,params2,ϵ)
+    solution_3 = sol_3(params1,params2,ϵ)
+    solution_4 = sol_4(params1,params2,ϵ)
+
+    mse_1 = Flux.mse(solution_1,train_sol[:,1])
+    mse_2 = Flux.mse(solution_2,train_sol[:,2])
+    mse_3 = Flux.mse(solution_3,train_sol[:,3])
+    mse_4 = Flux.mse(solution_4,train_sol[:,4])
+    mse = mse_1+mse_2+mse_3+mse_4
     
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
@@ -171,7 +234,7 @@ mse_list = []
     end
 
     push!(mse_list,mse)
-    print(Flux.mse(sol(params1,params2,0),train_sol),"\n")#这个大概到1e-6差不多拟合了
+    print(mse,"\n")#这个大概到1e-6差不多拟合了
 end
 
 mse_list
@@ -180,59 +243,58 @@ mse_min
 mse_min = [0.00012192452342102719]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/params_ss.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/params_ckt.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
 ϵ = zeros(latent_size)
-solution = sol(params1,params2,ϵ)
-Flux.mse(solution,train_sol)
+solution_1 = sol_1(params1,params2,ϵ)
+solution_2 = sol_2(params1,params2,ϵ)
+solution_3 = sol_3(params1,params2,ϵ)
+solution_4 = sol_4(params1,params2,ϵ)
 
-plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,train_sol,linewidth = 3,label="exact",title="steady-state",line=:dash)
+mse_1 = Flux.mse(solution_1,train_sol[:,1])
+mse_2 = Flux.mse(solution_2,train_sol[:,2])
+mse_3 = Flux.mse(solution_3,train_sol[:,3])
+mse_4 = Flux.mse(solution_4,train_sol[:,4])
+mse = mse_1+mse_2+mse_3+mse_4
 
+solution = [solution_1,solution_2,solution_3,solution_4]
 
-#test and check
-P_trained = sol(params1,params2,0)
-bar(0:N-1, P_trained, label = "trained", xlabel = "# of products", ylabel = "Probability")
-plot!(0:N-1, P_exact, linewidth = 3, label = "Exact solution")
-
-#ok，下面都是做测试
-truncation = 45
-if length(P_trained)>truncation
-    P_trained = P_trained[1:truncation]
-else
-    P_trained = vcat(P_trained,[0 for i=1:truncation-length(P_trained)])
+function plot_distribution(set)
+    plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
 end
 
-mse = Flux.mse(P_trained,P_exact)
-
-#params save
-using DataFrames
-using CSV
-params1
-params2
-df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-vcat(params2,[0 for i=1:length(params1)-length(params2)])
-CSV.write("machine-learning//results//params_trained_SSA100000.csv",df)
-
-#test Extenicity τ = 60
-decoder_changed = Chain(decoder[1],decoder[2],x->0.03.* x.+[i/60  for i in 1:N-1],decoder[4]);
-P_train_exten = bursty(N,60);
-
-_,re2_changed = Flux.destructure(decoder_changed);
-
-function f2!(x,p1,p2,ϵ)
-    h = re1(p1)(x)
-    μ, logσ = split_encoder_result(h, latent_size)
-    z = reparameterize.(μ, logσ, ϵ)
-    NN = re2_changed(p2)(z)
-    return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
-            (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    plot(p1,p2,p3,p4,size=(400,400))
 end
-sol_exten(p1,p2,ϵ) = nlsolve(x->f2!(x,p1,p2,ϵ),P_train).zero
+plot_all()
 
-P_trained_exten = sol_exten(params1,params2,0)
-bar(0:length(P_trained_exten)-1, P_trained_exten, label = "trained", fmt=:svg, xlabel = "# of products", ylabel = "Probability")
-plot!(0:length(P_trained_exten)-1, P_train_exten, linewidth = 3, label = "Exact solution")
+function sol_Extenicity(τ,Attribute)
+    decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/τ for i in 1:N-1],decoder_1[4]);
+    _,re2_Extenicity = Flux.destructure(decoder_Extenicity);
+
+    function f_Extenicity!(x,p1,p2,ϵ)
+        h = re1(p1)(x)
+        μ, logσ = split_encoder_result(h, latent_size)
+        z = reparameterize.(μ, logσ, ϵ)
+        z = vcat(z,Attribute)
+        NN = re2_Extenicity(p2)(z)
+        return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
+                (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+    end
+
+    P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
+    P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
+
+    sol_Extenicity(p1,p2,ϵ) = nlsolve(x->f_Extenicity!(x,p1,p2,ϵ),P_0_Extenicity).zero
+
+    P_trained_Extenicity = sol_Extenicity(params1,params2,zeros(latent_size))
+    return P_trained_Extenicity
+end
