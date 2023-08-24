@@ -4,22 +4,44 @@ using DelimitedFiles, Plots
 
 include("../../../utils.jl")
 
-# mean = 120
-# Uniform(20,220) var = 3333  [1,1]
-# Uniform(40,200) var = 2133
-# Uniform(60,180) var = 1200
-# Uniform(80,160) var = 533
-# Uniform(100,140) var = 133
-# Uniform(120,120) var = 0    [1,0]
+#= 
+训练集采用 
+[τ~Uniform(0,240)    [1,1]] 
+[τ~Uniform(120,120), [1,0]] τ1 = 120
 
-# mean = 30
-# Uniform(5,55) var = 208     [0,1]
-# Uniform(10,50) var = 133
-# Uniform(15,45) var = 75
-# Uniform(20,40) var = 33
-# Uniform(25,35) var = 8
-# Uniform(30,30) var = 0      [0,0]
- 
+[τ~Uniform(0,80)     [0,1]] 
+[τ~Uniform(40,40),   [1,0]] τ2 = 40
+的稳态概率分布
+
+猜测 attri_1 与 1/ \hat{τ} 成比例关系
+attri_2 与 τ 成比例关系
+=#
+
+# 验证集包括mean=120,80,40的部分,training_data的顺序为
+
+# mean = 40
+# Uniform(0, 80) var = 533     [0,1]
+# Uniform(10,70) var = 300
+# Uniform(20,60) var = 133
+# Uniform(30,50) var = 33
+# Uniform(40,40) var = 0       [0,0]
+
+# mean = 80
+# Uniform(0, 160) var = 2133     
+# Uniform(20,140) var = 1200
+# Uniform(40,120) var = 533
+# Uniform(60,100) var = 133
+# Uniform(80,80) var = 0       
+
+# mean = 120
+# Uniform(0,240)   var = 4800  [1,1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [1,0]
+
+data = readdlm("Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
+train_sol = data[:,[11,15,1,5]]
 
 #exact solution
 function bursty(N,τ)
@@ -50,10 +72,10 @@ decoder_1 = Chain(Dense(latent_size, 20),Dense(20 , N-1),x->0.03.* x.+[i/120  fo
 decoder_2  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/120  for i in 1:N-1],decoder_1[4]);
 
 # τ~Uniform(5,55) var = 208     [0,1]
-decoder_3  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/30  for i in 1:N-1],decoder_1[4]);
+decoder_3  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/40  for i in 1:N-1],decoder_1[4]);
 
-# τ~Uniform(30,30) var = 0      [0,0]
-decoder_4  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/30  for i in 1:N-1],decoder_1[4]);
+# τ~Uniform(40,40) var = 0      [0,0]
+decoder_4  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/40  for i in 1:N-1],decoder_1[4]);
 
 params1, re1   = Flux.destructure(encoder);
 params2, re2_1 = Flux.destructure(decoder_1);
@@ -109,10 +131,10 @@ P_0_120 = [pdf(P_0_distribution_120,i) for i=0:N-1]
 sol_1(p1,p2,ϵ) = nlsolve(x->f1!(x,p1,p2,ϵ),P_0_120).zero
 sol_2(p1,p2,ϵ) = nlsolve(x->f2!(x,p1,p2,ϵ),P_0_120).zero
 
-P_0_distribution_30 = NegativeBinomial(a*30, 1/(1+b));
-P_0_30 = [pdf(P_0_distribution_30,i) for i=0:N-1]
-sol_3(p1,p2,ϵ) = nlsolve(x->f3!(x,p1,p2,ϵ),P_0_30).zero
-sol_4(p1,p2,ϵ) = nlsolve(x->f4!(x,p1,p2,ϵ),P_0_30).zero
+P_0_distribution_40 = NegativeBinomial(a*40, 1/(1+b));
+P_0_40 = [pdf(P_0_distribution_40,i) for i=0:N-1]
+sol_3(p1,p2,ϵ) = nlsolve(x->f3!(x,p1,p2,ϵ),P_0_40).zero
+sol_4(p1,p2,ϵ) = nlsolve(x->f4!(x,p1,p2,ϵ),P_0_40).zero
 
 ϵ = zeros(latent_size)
 sol_1(params1,params2,ϵ)
@@ -229,7 +251,7 @@ mse_list = []
     
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/params_ss.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/control_tau/params_ct.csv",df)
         mse_min[1] = mse
     end
 
@@ -243,7 +265,7 @@ mse_min
 mse_min = [0.00012192452342102719]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/params_ckt.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/params_ct.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -298,3 +320,5 @@ function sol_Extenicity(τ,Attribute)
     P_trained_Extenicity = sol_Extenicity(params1,params2,zeros(latent_size))
     return P_trained_Extenicity
 end
+
+
