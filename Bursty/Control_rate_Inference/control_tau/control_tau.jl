@@ -2,7 +2,7 @@ using Flux, DiffEqSensitivity, DifferentialEquations
 using Distributions, Distances
 using DelimitedFiles, Plots
 
-include("../../utils.jl")
+include("../../../utils.jl")
 
 # mean = 120
 # Uniform(20,220) var = 3333  [1,1]
