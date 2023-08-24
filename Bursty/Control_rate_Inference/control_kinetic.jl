@@ -78,7 +78,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 5000000
+λ = 50000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -88,9 +88,9 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.006;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 opt= ADAM(lr);
-epochs = 20
+epochs = 30
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -131,26 +131,51 @@ solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for 
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
 
 function plot_distribution(set)
-    plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,train_sol[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
 end
 
 function plot_all()
-    p1 = plot_distribution(2)
-    p2 = plot_distribution(4)
-    p3 = plot_distribution(6)
-    p4 = plot_distribution(8)
-    p5 = plot_distribution(10)
-    p6 = plot_distribution(12)
-    p7 = plot_distribution(14)
-    p8 = plot_distribution(16)
-    p9 = plot_distribution(18)
-    p10 = plot_distribution(20)
-    p11 = plot_distribution(22)
-    p12 = plot_distribution(25)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,size=(1200,900))
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    p17 = plot_distribution(17)
+    p18 = plot_distribution(18)
+    p19 = plot_distribution(19)
+    p20 = plot_distribution(20)
+    p21 = plot_distribution(21)
+    p22 = plot_distribution(22)
+    p23 = plot_distribution(23)
+    p24 = plot_distribution(24)
+    p25 = plot_distribution(25)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+         p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
+
+a = 0.0082
+b = 1.71
+P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
+P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
+
+ϵ = zeros(latent_size)
+solution = sol(params1,params2,a,b,ϵ,P_0)
+
+plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+plot!(0:N-1,bursty(N,a,b,τ),linewidth = 3,label="exact",title=join(["a,b,τ=","[",a," ",b,"]"]),line=:dash)
 
 
 #test and check
