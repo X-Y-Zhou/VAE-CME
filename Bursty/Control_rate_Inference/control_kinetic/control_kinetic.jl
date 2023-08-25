@@ -2,7 +2,7 @@ using Flux, DiffEqSensitivity, DifferentialEquations
 using Distributions, Distances
 using DelimitedFiles, Plots
 
-include("../../utils.jl")
+include("../../../utils.jl")
 
 #exact solution
 function bursty(N,a,b,τ)
@@ -30,7 +30,6 @@ l_ablist = length(a_list)*length(b_list)
 ab_list = [[a_list[i],b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
 # abτ_list = [[a_list[i],b_list[j],τ_list[k]] for i=1:length(a_list) for j=1:length(b_list) for k=1:length(τ_list)]
 
-τ
 train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 # train_sol = [bursty(N,abτ_list[i][1],abτ_list[i][2],abτ_list[i][3]) for i=1:length(abτ_list)]
 
@@ -78,7 +77,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 50000000
+λ = 5000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -88,9 +87,9 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.001;  #lr需要操作一下的
+lr = 0.006;  #lr需要操作一下的
 opt= ADAM(lr);
-epochs = 30
+epochs = 20
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -107,7 +106,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/params_ck.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck.csv",df)
         mse_min[1] = mse
     end
 
@@ -118,10 +117,10 @@ end
 mse_list
 mse_min 
 
-mse_min = [0.002523797858241798]
+mse_min = [3.656566158617185e-5]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/params_ck.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);

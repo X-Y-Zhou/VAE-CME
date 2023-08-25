@@ -40,9 +40,9 @@ attri_2 与 τ 成比例关系
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0     [1,0]
 
-data = readdlm("Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
+data = readdlm("VAE-CME/Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
 train_sol = data[:,[11,15,1,5]]
-
+train_sol
 #exact solution
 function bursty(N,τ)
     f(u) = exp(a*b*τ*u/(1-b*u));
@@ -58,7 +58,7 @@ a = 0.0282;
 b = 3.46;
 τ = 120;
 
-N = 64
+N = 65
 train_sol = bursty(N,120)
 
 # model initialization
@@ -66,7 +66,7 @@ latent_size = 10;
 encoder = Chain(Dense(N, 20,tanh),Dense(20, latent_size * 2));
 
 # τ~Uniform(20,220) var = 3333  [1,1]
-decoder_1 = Chain(Dense(latent_size, 20),Dense(20 , N-1),x->0.03.* x.+[i/120  for i in 1:N-1],x ->relu.(x));
+decoder_1 = Chain(Dense(latent_size+2, 20),Dense(20 , N-1),x->0.03.* x.+[i/120  for i in 1:N-1],x ->relu.(x));
 
 # τ~Uniform(120,120) var = 0    [1,0]
 decoder_2  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/120  for i in 1:N-1],decoder_1[4]);
@@ -142,8 +142,11 @@ sol_2(params1,params2,ϵ)
 sol_3(params1,params2,ϵ)
 sol_4(params1,params2,ϵ)
 
+train_sol[:,2]
+train_sol
+
 function loss_func_1(p1,p2,ϵ)
-    sol_cme = sol(p1,p2,ϵ)
+    sol_cme = sol_1(p1,p2,ϵ)
         
     mse = Flux.mse(sol_cme,train_sol[:,1])
     print(mse," ")
@@ -153,12 +156,12 @@ function loss_func_1(p1,p2,ϵ)
     print(kl," ")
 
     loss = λ1*mse + kl
-    print(loss,"\n")
+    # print(loss,"\n")
     return loss
 end
 
 function loss_func_2(p1,p2,ϵ)
-    sol_cme = sol(p1,p2,ϵ)
+    sol_cme = sol_2(p1,p2,ϵ)
         
     mse = Flux.mse(sol_cme,train_sol[:,2])
     print(mse," ")
@@ -168,12 +171,12 @@ function loss_func_2(p1,p2,ϵ)
     print(kl," ")
 
     loss = λ2*mse + kl
-    print(loss,"\n")
+    # print(loss,"\n")
     return loss
 end
 
 function loss_func_3(p1,p2,ϵ)
-    sol_cme = sol(p1,p2,ϵ)
+    sol_cme = sol_3(p1,p2,ϵ)
         
     mse = Flux.mse(sol_cme,train_sol[:,3])
     print(mse," ")
@@ -183,12 +186,12 @@ function loss_func_3(p1,p2,ϵ)
     print(kl," ")
 
     loss = λ3*mse + kl
-    print(loss,"\n")
+    # print(loss,"\n")
     return loss
 end
 
 function loss_func_4(p1,p2,ϵ)
-    sol_cme = sol(p1,p2,ϵ)
+    sol_cme = sol_4(p1,p2,ϵ)
         
     mse = Flux.mse(sol_cme,train_sol[:,4])
     print(mse," ")
@@ -198,7 +201,7 @@ function loss_func_4(p1,p2,ϵ)
     print(kl," ")
 
     loss = λ4*mse + kl
-    print(loss,"\n")
+    # print(loss,"\n")
     return loss
 end
 
@@ -208,10 +211,10 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 5000000
-λ2 = 5000000
-λ3 = 5000000
-λ4 = 5000000
+λ1 = 500000
+λ2 = 500000
+λ3 = 500000
+λ4 = 500000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -224,9 +227,9 @@ grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 epochs_all = 0
 
 #training
-lr = 0.006;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 opt= ADAM(lr);
-epochs = 20
+epochs = 40
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -251,21 +254,21 @@ mse_list = []
     
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/control_tau/params_ct.csv",df)
+        CSV.write("VAE-CME/Bursty/Control_rate_Inference/control_tau/params_ct.csv",df)
         mse_min[1] = mse
     end
 
     push!(mse_list,mse)
-    print(mse,"\n")#这个大概到1e-6差不多拟合了
+    print("\n",mse,"\n")#这个大概到1e-6差不多拟合了
 end
 
 mse_list
 mse_min 
 
-mse_min = [0.00012192452342102719]
+mse_min = [0.00259630617834702]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/params_ct.csv",DataFrame)
+df = CSV.read("VAE-CME/Bursty/Control_rate_Inference/control_tau/params_ct.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -283,10 +286,10 @@ mse_4 = Flux.mse(solution_4,train_sol[:,4])
 mse = mse_1+mse_2+mse_3+mse_4
 
 solution = [solution_1,solution_2,solution_3,solution_4]
-
+train_sol
 function plot_distribution(set)
     plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+    plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",line=:dash)
 end
 
 function plot_all()
@@ -294,7 +297,7 @@ function plot_all()
     p2 = plot_distribution(2)
     p3 = plot_distribution(3)
     p4 = plot_distribution(4)
-    plot(p1,p2,p3,p4,size=(400,400))
+    plot(p1,p2,p3,p4,size=(800,800))
 end
 plot_all()
 
@@ -321,4 +324,17 @@ function sol_Extenicity(τ,Attribute)
     return P_trained_Extenicity
 end
 
+data
+
+τ = 120
+τ1 = 80
+Attribute = [0.,0.]
+Attribute[1] = -60/τ+3/2
+Attribute[2] = -τ1/τ+1
+
+Attribute
+
+Uniform(τ1,2τ-τ1)
+
+P_trained_Extenicity = sol_Extenicity(τ,Attribute)
 
