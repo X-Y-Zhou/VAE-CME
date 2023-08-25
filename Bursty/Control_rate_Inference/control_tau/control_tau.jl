@@ -26,6 +26,13 @@ attri_2 与 τ 成比例关系
 # Uniform(30,50) var = 33
 # Uniform(40,40) var = 0       [0,0]
 
+# mean = 60
+# Uniform(0, 120) var = 1200   
+# Uniform(15,105) var = 675
+# Uniform(30,90)  var = 300
+# Uniform(45,75)  var = 75
+# Uniform(60,60)  var = 0      
+
 # mean = 80
 # Uniform(0, 160) var = 2133     
 # Uniform(20,140) var = 1200
@@ -336,7 +343,7 @@ end
 data
 
 τ = 100
-τ1 = 100
+τ1 = 0
 Attribute = [0.,0.]
 Attribute[1] = -60/τ+3/2
 Attribute[2] = -τ1/τ+1
@@ -350,9 +357,54 @@ P_trained_Extenicity = sol_Extenicity(τ,Attribute)
 # plot(0:N-1,P_trained_Extenicity,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
 # plot!(0:N-1,bursty(N,τ,0.0282,3.46),linewidth = 3,label="exact",line=:dash)
 
+ab = [[0,80],[10,70],[20,60],[30,50],[40,40],
+[0,160],[20,140],[40,120],[60,100],[80,80],
+[0,200],[25,175],[50,150],[75,125],[100,100],
+[0,240],[30,210],[60,180],[90,150],[120,120],]
 
-plot(0:N-1,P_trained_Extenicity,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,data[:,10],linewidth = 3,label="exact",line=:dash)
+P_trained_Extenicity_list = []
+for i=1:length(ab)
+    τ = mean(ab[i])
+    τ1 = ab[i][1]
+    Attribute = [0.,0.]
+    Attribute[1] = -60/τ+3/2
+    Attribute[2] = -τ1/τ+1
+
+    P_trained_Extenicity = sol_Extenicity(τ,Attribute)
+    push!(P_trained_Extenicity_list,P_trained_Extenicity)
+end
+P_trained_Extenicity_list[end]
+
+function  plot_distribution(set)
+    p=plot(0:N-1,P_trained_Extenicity_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,data[:,set],linewidth = 3,label="exact",line=:dash,title=join(["Uniform",ab[set]]))
+end
+
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    p17 = plot_distribution(17)
+    p18 = plot_distribution(18)
+    p19 = plot_distribution(19)
+    p20 = plot_distribution(20)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+         p16,p17,p18,p19,p20,size=(1500,1000),layout=(4,5))
+end
+plot_all()
 
 data
 function bursty(N,τ,a,b)
