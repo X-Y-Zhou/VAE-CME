@@ -120,7 +120,7 @@ mse_min
 mse_min = [3.656566158617185e-5]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck.csv",DataFrame)
+df = CSV.read("VAE-CME/Bursty/Control_rate_Inference/control_kinetic/params_ck.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -165,6 +165,53 @@ function plot_all()
 end
 plot_all()
 
+a_list_pre = [0.0107,0.0157,0.0207,0.0257]
+b_list_pre = [1.71,2.21,2.71,3.21]
+l_ablist_pre = length(a_list_pre)*length(b_list_pre)
+
+ab_list_pre = [[a_list_pre[i],b_list_pre[j]] for i=1:length(a_list_pre) for j=1:length(b_list_pre)]
+
+solution_list = []
+for i=1:l_ablist_pre
+    print(i,"\n")
+    a = ab_list_pre[i][1]
+    b = ab_list_pre[i][2]
+    P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
+    P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
+
+    ϵ = zeros(latent_size)
+    solution = sol(params1,params2,a,b,ϵ,P_0)
+    push!(solution_list,solution)
+end
+
+function  plot_distribution(set)
+    p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,bursty(N,ab_list_pre[set][1],ab_list_pre[set][2],τ),linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list_pre[set]]))
+end
+
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+         p16,size=(1200,1200),layout=(4,4))
+end
+plot_all()
+
+
 a = 0.0082
 b = 1.71
 P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
@@ -175,48 +222,3 @@ solution = sol(params1,params2,a,b,ϵ,P_0)
 
 plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,bursty(N,a,b,τ),linewidth = 3,label="exact",title=join(["a,b,τ=","[",a," ",b,"]"]),line=:dash)
-
-
-#test and check
-P_trained = sol(params1,params2,0)
-bar(0:N-1, P_trained, label = "trained", xlabel = "# of products", ylabel = "Probability")
-plot!(0:N-1, P_exact, linewidth = 3, label = "Exact solution")
-
-#ok，下面都是做测试
-truncation = 45
-if length(P_trained)>truncation
-    P_trained = P_trained[1:truncation]
-else
-    P_trained = vcat(P_trained,[0 for i=1:truncation-length(P_trained)])
-end
-
-mse = Flux.mse(P_trained,P_exact)
-
-#params save
-using DataFrames
-using CSV
-params1
-params2
-df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-vcat(params2,[0 for i=1:length(params1)-length(params2)])
-CSV.write("machine-learning//results//params_trained_SSA100000.csv",df)
-
-#test Extenicity τ = 60
-decoder_changed = Chain(decoder[1],decoder[2],x->0.03.* x.+[i/60  for i in 1:N-1],decoder[4]);
-P_train_exten = bursty(N,60);
-
-_,re2_changed = Flux.destructure(decoder_changed);
-
-function f2!(x,p1,p2,ϵ)
-    h = re1(p1)(x)
-    μ, logσ = split_encoder_result(h, latent_size)
-    z = reparameterize.(μ, logσ, ϵ)
-    NN = re2_changed(p2)(z)
-    return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
-            (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
-end
-sol_exten(p1,p2,ϵ) = nlsolve(x->f2!(x,p1,p2,ϵ),P_train).zero
-
-P_trained_exten = sol_exten(params1,params2,0)
-bar(0:length(P_trained_exten)-1, P_trained_exten, label = "trained", fmt=:svg, xlabel = "# of products", ylabel = "Probability")
-plot!(0:length(P_trained_exten)-1, P_train_exten, linewidth = 3, label = "Exact solution")

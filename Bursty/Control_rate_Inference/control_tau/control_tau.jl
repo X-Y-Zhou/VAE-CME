@@ -57,7 +57,7 @@ attri_2 与 τ 成比例关系
 
 
 data = readdlm("VAE-CME/Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
-train_sol = data[:,[11,15,1,5]]
+train_sol = data[:,[21,25,1,5]]
 train_sol
 #exact solution
 function bursty(N,τ)
@@ -283,6 +283,7 @@ mse_min
 
 mse_min = [0.00259630617834702]
 
+# check fitting
 using CSV,DataFrames
 df = CSV.read("VAE-CME/Bursty/Control_rate_Inference/control_tau/params_ct.csv",DataFrame)
 params1 = df.params1
@@ -317,6 +318,7 @@ function plot_all()
 end
 plot_all()
 
+# test 
 function sol_Extenicity(τ,Attribute)
     decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/τ for i in 1:N-1],decoder_1[4]);
     _,re2_Extenicity = Flux.destructure(decoder_Extenicity);
@@ -347,23 +349,19 @@ data
 Attribute = [0.,0.]
 Attribute[1] = -60/τ+3/2
 Attribute[2] = -τ1/τ+1
-
 Attribute
-
 Uniform(τ1,2τ-τ1)
-
 P_trained_Extenicity = sol_Extenicity(τ,Attribute)
 
-# plot(0:N-1,P_trained_Extenicity,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-# plot!(0:N-1,bursty(N,τ,0.0282,3.46),linewidth = 3,label="exact",line=:dash)
-
 ab = [[0,80],[10,70],[20,60],[30,50],[40,40],
+[0,120],[15,105],[30,90],[45,75],[60,60],
 [0,160],[20,140],[40,120],[60,100],[80,80],
 [0,200],[25,175],[50,150],[75,125],[100,100],
 [0,240],[30,210],[60,180],[90,150],[120,120],]
 
 P_trained_Extenicity_list = []
 for i=1:length(ab)
+    print(i,"\n")
     τ = mean(ab[i])
     τ1 = ab[i][1]
     Attribute = [0.,0.]
@@ -401,25 +399,14 @@ function plot_all()
     p18 = plot_distribution(18)
     p19 = plot_distribution(19)
     p20 = plot_distribution(20)
+    p21 = plot_distribution(21)
+    p22 = plot_distribution(22)
+    p23 = plot_distribution(23)
+    p24 = plot_distribution(24)
+    p25 = plot_distribution(25)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
-         p16,p17,p18,p19,p20,size=(1500,1000),layout=(4,5))
+         p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
 
-data
-function bursty(N,τ,a,b)
-    f(u) = exp(a*b*τ*u/(1-b*u));
-    taylorexpand = taylor_expand(x->f(x),-1,order=N);
-    P = zeros(N)
-    for j in 1:N
-        P[j] = taylorexpand[j-1]
-    end
-    return P
-end;
-
-plot(0:N-1,data[:,6],linewidth = 3,label="exact",line=:dash)
-plot!(0:N-1,data[:,7],linewidth = 3,label="exact",line=:dash)
-plot!(0:N-1,data[:,8],linewidth = 3,label="exact",line=:dash)
-plot!(0:N-1,data[:,9],linewidth = 3,label="exact",line=:dash)
-plot!(0:N-1,data[:,10],linewidth = 3,label="exact",line=:dash)
 
