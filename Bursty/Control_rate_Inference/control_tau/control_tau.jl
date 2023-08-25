@@ -33,12 +33,21 @@ attri_2 与 τ 成比例关系
 # Uniform(60,100) var = 133
 # Uniform(80,80) var = 0       
 
+# mean = 100
+# Uniform(0,200)   var = 3333  
+# Uniform(25,175)  var = 1875
+# Uniform(50,150)  var = 833
+# Uniform(75,125)  var = 208
+# Uniform(100,100) var = 0    
+
 # mean = 120
 # Uniform(0,240)   var = 4800  [1,1]
 # Uniform(30,210)  var = 2700
 # Uniform(60,180)  var = 1200
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0     [1,0]
+
+
 
 data = readdlm("VAE-CME/Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
 train_sol = data[:,[11,15,1,5]]
@@ -326,8 +335,8 @@ end
 
 data
 
-τ = 120
-τ1 = 80
+τ = 100
+τ1 = 100
 Attribute = [0.,0.]
 Attribute[1] = -60/τ+3/2
 Attribute[2] = -τ1/τ+1
@@ -337,4 +346,28 @@ Attribute
 Uniform(τ1,2τ-τ1)
 
 P_trained_Extenicity = sol_Extenicity(τ,Attribute)
+
+# plot(0:N-1,P_trained_Extenicity,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+# plot!(0:N-1,bursty(N,τ,0.0282,3.46),linewidth = 3,label="exact",line=:dash)
+
+
+plot(0:N-1,P_trained_Extenicity,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+plot!(0:N-1,data[:,10],linewidth = 3,label="exact",line=:dash)
+
+data
+function bursty(N,τ,a,b)
+    f(u) = exp(a*b*τ*u/(1-b*u));
+    taylorexpand = taylor_expand(x->f(x),-1,order=N);
+    P = zeros(N)
+    for j in 1:N
+        P[j] = taylorexpand[j-1]
+    end
+    return P
+end;
+
+plot(0:N-1,data[:,6],linewidth = 3,label="exact",line=:dash)
+plot!(0:N-1,data[:,7],linewidth = 3,label="exact",line=:dash)
+plot!(0:N-1,data[:,8],linewidth = 3,label="exact",line=:dash)
+plot!(0:N-1,data[:,9],linewidth = 3,label="exact",line=:dash)
+plot!(0:N-1,data[:,10],linewidth = 3,label="exact",line=:dash)
 
