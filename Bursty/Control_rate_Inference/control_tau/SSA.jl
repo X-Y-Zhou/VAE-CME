@@ -23,7 +23,7 @@ end
 E(a,b) = (a+b)/2
 D(a,b) = (a-b)^2/12
 
-a = 40;b = 40
+a = 60;b = 60
 Ex = E(a,b)
 Dx = D(a,b)
 L = 200 
@@ -32,7 +32,7 @@ struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
     # mean = 120
     # temp = rand(Uniform(a,b))
-    temp = 40
+    temp = 60
     velo = L/temp
     return velo
 end
@@ -167,6 +167,7 @@ for i =1:size(solnet_people,1)
 end
 train_sol_people
 
+title = [join([a,"-",b])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
 CSV.write("Bursty/Control_rate_Inference/control_tau/data/$(a)-$(b).csv",df)
 
