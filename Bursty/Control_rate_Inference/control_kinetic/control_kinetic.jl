@@ -120,7 +120,7 @@ mse_min
 mse_min = [3.656566158617185e-5]
 
 using CSV,DataFrames
-df = CSV.read("VAE-CME/Bursty/Control_rate_Inference/control_kinetic/params_ck.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -164,6 +164,8 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
+savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
+
 
 a_list_pre = [0.0107,0.0157,0.0207,0.0257]
 b_list_pre = [1.71,2.21,2.71,3.21]
@@ -210,15 +212,4 @@ function plot_all()
          p16,size=(1200,1200),layout=(4,4))
 end
 plot_all()
-
-
-a = 0.0082
-b = 1.71
-P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
-P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
-
-ϵ = zeros(latent_size)
-solution = sol(params1,params2,a,b,ϵ,P_0)
-
-plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,bursty(N,a,b,τ),linewidth = 3,label="exact",title=join(["a,b,τ=","[",a," ",b,"]"]),line=:dash)
+savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")

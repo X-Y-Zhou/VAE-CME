@@ -10,7 +10,7 @@ include("../../../utils.jl")
 [τ~Uniform(120,120), [1,0]] τ1 = 120
 
 [τ~Uniform(0,80)     [0,1]] 
-[τ~Uniform(40,40),   [1,0]] τ2 = 40
+[τ~Uniform(40,40),   [0,0]] τ2 = 40
 的稳态概率分布
 
 猜测 attri_1 与 1/ \hat{τ} 成比例关系
@@ -54,11 +54,9 @@ attri_2 与 τ 成比例关系
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0     [1,0]
 
-
-
-data = readdlm("VAE-CME/Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
+data = readdlm("Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
 train_sol = data[:,[21,25,1,5]]
-train_sol
+
 #exact solution
 function bursty(N,τ)
     f(u) = exp(a*b*τ*u/(1-b*u));
@@ -73,9 +71,7 @@ end;
 a = 0.0282;
 b = 3.46;
 τ = 120;
-
 N = 65
-train_sol = bursty(N,120)
 
 # model initialization
 latent_size = 10;
@@ -157,9 +153,6 @@ sol_1(params1,params2,ϵ)
 sol_2(params1,params2,ϵ)
 sol_3(params1,params2,ϵ)
 sol_4(params1,params2,ϵ)
-
-train_sol[:,2]
-train_sol
 
 function loss_func_1(p1,p2,ϵ)
     sol_cme = sol_1(p1,p2,ϵ)
@@ -270,7 +263,7 @@ mse_list = []
     
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("VAE-CME/Bursty/Control_rate_Inference/control_tau/params_ct.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/control_tau/params_ct.csv",df)
         mse_min[1] = mse
     end
 
@@ -285,7 +278,7 @@ mse_min = [0.00259630617834702]
 
 # check fitting
 using CSV,DataFrames
-df = CSV.read("VAE-CME/Bursty/Control_rate_Inference/control_tau/params_ct.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_tau/params_ct.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -317,6 +310,7 @@ function plot_all()
     plot(p1,p2,p3,p4,size=(800,800))
 end
 plot_all()
+savefig("Bursty/Control_rate_Inference/control_tau/fitting.svg")
 
 # test 
 function sol_Extenicity(τ,Attribute)
@@ -408,5 +402,8 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
+savefig("Bursty/Control_rate_Inference/control_tau/predicting.svg")
+
+
 
 
