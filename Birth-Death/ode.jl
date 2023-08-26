@@ -206,7 +206,10 @@ function plot_all()
 end
 plot_all()
 
-a = 1
+using Plots,StatsPlots,Distributions
+P = Normal(0,1)
+plot(P,xlims=(-4,4),ylims=(0,0.45),size=(600,600))
+savefig("Birth-Death/standard_normal.pdf")
 
 
 #=
