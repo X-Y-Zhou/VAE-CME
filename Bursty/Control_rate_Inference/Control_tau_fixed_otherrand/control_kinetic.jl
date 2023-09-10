@@ -89,7 +89,7 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.004;  #lr需要操作一下的
+lr = 0.002;  #lr需要操作一下的
 opt= ADAM(lr);
 epochs = 20
 epochs_all = epochs_all + epochs
@@ -117,7 +117,7 @@ mse_list = []
 end
 
 mse_list
-mse_min 
+mse_min
 
 mse_min = [4.8837664738541205e-6]
 
