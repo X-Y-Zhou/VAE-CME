@@ -79,7 +79,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 1000000
+λ = 10000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -89,7 +89,7 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.002;  #lr需要操作一下的
+lr = 0.004;  #lr需要操作一下的
 opt= ADAM(lr);
 epochs = 20
 epochs_all = epochs_all + epochs
@@ -119,7 +119,7 @@ end
 mse_list
 mse_min 
 
-mse_min = [4.488651790438598e-5]
+mse_min = [4.8837664738541205e-6]
 
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_ck.csv",DataFrame)
@@ -176,8 +176,8 @@ plot_all()
 savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
 
 
-a_list_pre = [0.0107,0.0157,0.0207,0.0257]
-b_list_pre = [1.71,2.21,2.71,3.21]
+a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
+b_list_pre = [1.46,1.96,2.46,2.96,3.46]
 l_ablist_pre = length(a_list_pre)*length(b_list_pre)
 
 ab_list_pre = [[a_list_pre[i],b_list_pre[j]] for i=1:length(a_list_pre) for j=1:length(b_list_pre)]
@@ -217,8 +217,17 @@ function plot_all()
     p14 = plot_distribution(14)
     p15 = plot_distribution(15)
     p16 = plot_distribution(16)
+    p17 = plot_distribution(17)
+    p18 = plot_distribution(18)
+    p19 = plot_distribution(19)
+    p20 = plot_distribution(20)
+    p21 = plot_distribution(21)
+    p22 = plot_distribution(22)
+    p23 = plot_distribution(23)
+    p24 = plot_distribution(24)
+    p25 = plot_distribution(25)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
-         p16,size=(1200,1200),layout=(4,4))
+         p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
 savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")
