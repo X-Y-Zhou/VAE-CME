@@ -135,7 +135,7 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.002;  #lr需要操作一下的
+lr = 0.006;  #lr需要操作一下的
 opt= ADAM(lr);
 epochs = 20
 epochs_all = epochs_all + epochs
@@ -158,7 +158,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_ck.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",df)
         mse_min[1] = mse
     end
 
@@ -169,10 +169,10 @@ end
 mse_list
 mse_min 
 
-mse_min = [4.488651790438598e-5]
+mse_min = [0.006394759343918389]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_ck.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -186,12 +186,12 @@ mse = mse_1+mse_2
 
 function plot_distribution_1(set)
     plot(0:N-1,solution_1[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_1[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
 end
 
 function plot_distribution_2(set)
     plot(0:N-1,solution_2[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_2[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
 end
 
 function plot_all()
@@ -199,7 +199,7 @@ function plot_all()
     p2 = plot_distribution_1(2)
     p3 = plot_distribution_2(1)
     p4 = plot_distribution_2(2)
-    plot(p1,p2,p3,p4,layouts=(2,2))
+    plot(p1,p2,p3,p4,layouts=(2,2),size=(800,800))
 end
 plot_all()
 
