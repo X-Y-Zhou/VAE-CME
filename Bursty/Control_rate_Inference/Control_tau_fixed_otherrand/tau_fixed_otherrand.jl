@@ -4,6 +4,7 @@ using DelimitedFiles, Plots
 
 include("../../../utils.jl")
 
+# set1
 # mean = 120
 # α = 0.0282 β = 3.46 
 # Uniform(0,240)   var = 4800  [1]
@@ -12,6 +13,7 @@ include("../../../utils.jl")
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0     [0]
 
+# set2
 # mean = 120
 # α = 0.0082 β = 1.46 
 # Uniform(0,240)   var = 4800  [1]
@@ -202,11 +204,11 @@ function plot_all()
 end
 plot_all()
 
-function sol_Extenicity(τ,Attribute)
+function sol_Extenicity(τ,Attribute,a,b)
     decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/τ for i in 1:N-1],decoder_1[4]);
     _,re2_Extenicity = Flux.destructure(decoder_Extenicity);
 
-    function f_Extenicity!(x,p1,p2,ϵ)
+    function f_Extenicity!(x,p1,p2,a,b,ϵ)
         h = re1(p1)(x)
         μ, logσ = split_encoder_result(h, latent_size)
         z = reparameterize.(μ, logσ, ϵ)
@@ -219,10 +221,44 @@ function sol_Extenicity(τ,Attribute)
     P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
     P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
 
-    sol_Extenicity(p1,p2,ϵ) = nlsolve(x->f_Extenicity!(x,p1,p2,ϵ),P_0_Extenicity).zero
+    sol_Extenicity(p1,p2,ϵ) = nlsolve(x->f_Extenicity!(x,p1,p2,a,b,ϵ),P_0_Extenicity).zero
 
     P_trained_Extenicity = sol_Extenicity(params1,params2,zeros(latent_size))
     return P_trained_Extenicity
+end
+
+τ = 120
+τ1 = 120
+Attribute = -τ1/τ+1
+
+# Uniform(τ1,2τ-τ1)
+a = 0.0282
+b = 3.46
+ϵ = zeros(latent_size)
+P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
+
+a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
+b_list_pre = [1.46,1.96,2.46,2.96,3.46]
+l_ablist_pre = length(a_list_pre)*length(b_list_pre)
+
+ab_list_pre = [[a_list_pre[i],b_list_pre[j]] for i=1:length(a_list_pre) for j=1:length(b_list_pre)]
+
+solution_list = []
+for i=1:l_ablist_pre
+    print(i,"\n")
+    a = ab_list_pre[i][1]
+    b = ab_list_pre[i][2]
+    P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
+    P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
+
+    ϵ = zeros(latent_size)
+    solution = sol_Extenicity(τ,Attribute,a,b)
+    push!(solution_list,solution)
+end
+
+function  plot_distribution(set)
+    p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,bursty(N,ab_list_pre[set][1],ab_list_pre[set][2],τ),linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list_pre[set]]))
 end
 
 function plot_all()
@@ -255,31 +291,27 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
-savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
 
+τ1_list = [0,30,60,90,120]
+Attribute_list = -τ1_list./τ.+1
 
-a_list_pre = [0.0107,0.0157,0.0207,0.0257]
-b_list_pre = [1.71,2.21,2.71,3.21]
-l_ablist_pre = length(a_list_pre)*length(b_list_pre)
-
-ab_list_pre = [[a_list_pre[i],b_list_pre[j]] for i=1:length(a_list_pre) for j=1:length(b_list_pre)]
-
+a = 0.0082
+b = 1.46
 solution_list = []
-for i=1:l_ablist_pre
+for i=1:length(Attribute_list)
     print(i,"\n")
-    a = ab_list_pre[i][1]
-    b = ab_list_pre[i][2]
+    Attribute = Attribute_list[i]
     P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
 
     ϵ = zeros(latent_size)
-    solution = sol(params1,params2,a,b,ϵ,P_0)
+    solution = sol_Extenicity(τ,Attribute,a,b)
     push!(solution_list,solution)
 end
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,bursty(N,ab_list_pre[set][1],ab_list_pre[set][2],τ),linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list_pre[set]]))
+    plot!(0:N-1,data[:,set+5],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
 end
 
 function plot_all()
@@ -288,19 +320,62 @@ function plot_all()
     p3 = plot_distribution(3)
     p4 = plot_distribution(4)
     p5 = plot_distribution(5)
-    p6 = plot_distribution(6)
-    p7 = plot_distribution(7)
-    p8 = plot_distribution(8)
-    p9 = plot_distribution(9)
-    p10 = plot_distribution(10)
-    p11 = plot_distribution(11)
-    p12 = plot_distribution(12)
-    p13 = plot_distribution(13)
-    p14 = plot_distribution(14)
-    p15 = plot_distribution(15)
-    p16 = plot_distribution(16)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
-         p16,size=(1200,1200),layout=(4,4))
+    plot(p1,p2,p3,p4,p5,size=(1500,300),layout=(1,5))
 end
 plot_all()
-savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")
+
+# check
+# set3
+# mean = 120
+# α = 0.0182 β = 2.46 
+# Uniform(0,240)   var = 4800 
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0 
+
+# set4
+# mean = 120
+# α = 0.0232 β = 2.96 
+# Uniform(0,240)   var = 4800 
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0 
+
+check_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
+
+τ1_list = [0,30,60,90,120]
+Attribute_list = -τ1_list./τ.+1
+
+a = 0.0232
+b = 2.96
+solution_list = []
+for i=1:length(Attribute_list)
+    print(i,"\n")
+    Attribute = Attribute_list[i]
+    P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
+    P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
+
+    ϵ = zeros(latent_size)
+    solution = sol_Extenicity(τ,Attribute,a,b)
+    push!(solution_list,solution)
+end
+
+function  plot_distribution(set)
+    p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,check_data[:,set+5],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
+end
+
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    plot(p1,p2,p3,p4,p5,size=(1500,300),layout=(1,5))
+end
+plot_all()
+
+
+
