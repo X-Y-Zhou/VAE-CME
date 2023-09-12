@@ -36,7 +36,6 @@ b = 3.46;
 τ = 120;
 
 N = 65
-train_sol = bursty(N,a,b,τ)
 
 data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
 train_sol_1 = data[:,[1,6]]
@@ -89,7 +88,7 @@ sol_2(p1,p2,a,b,ϵ,P0) = nlsolve(x->f2!(x,p1,p2,a,b,ϵ),P0).zero
 function loss_func_1(p1,p2,ϵ)
     sol_cme = [sol_1(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
         
-    mse = sum(Flux.mse(sol_cme[i],train_sol_1[i]) for i=1:l_ablist)/l_ablist
+    mse = sum(Flux.mse(sol_cme[i],train_sol_1[:,i]) for i=1:l_ablist)/l_ablist
     print(mse," ")
 
     μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[i]), latent_size) for i=1:l_ablist]
@@ -105,7 +104,7 @@ end
 function loss_func_2(p1,p2,ϵ)
     sol_cme = [sol_2(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
         
-    mse = sum(Flux.mse(sol_cme[i],train_sol_2[i]) for i=1:l_ablist)/l_ablist
+    mse = sum(Flux.mse(sol_cme[i],train_sol_2[:,i]) for i=1:l_ablist)/l_ablist
     print(mse," ")
 
     μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[i]), latent_size) for i=1:l_ablist]
@@ -123,7 +122,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000
+λ = 50000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -135,7 +134,7 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.006;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 opt= ADAM(lr);
 epochs = 20
 epochs_all = epochs_all + epochs
@@ -152,8 +151,8 @@ mse_list = []
     solution_1 = [sol_1(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
     solution_2 = [sol_2(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 
-    mse_1 = sum(Flux.mse(solution_1[i],train_sol_1[i]) for i=1:l_ablist)/l_ablist
-    mse_2 = sum(Flux.mse(solution_2[i],train_sol_2[i]) for i=1:l_ablist)/l_ablist
+    mse_1 = sum(Flux.mse(solution_1[i],train_sol_1[:,i]) for i=1:l_ablist)/l_ablist
+    mse_2 = sum(Flux.mse(solution_2[i],train_sol_2[:,i]) for i=1:l_ablist)/l_ablist
     mse = mse_1+mse_2
 
     if mse<mse_min[1]
@@ -169,7 +168,7 @@ end
 mse_list
 mse_min 
 
-mse_min = [0.006394759343918389]
+# mse_min = [0.0001368414665310464]
 
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
@@ -180,8 +179,8 @@ ps = Flux.params(params1,params2);
 ϵ = zeros(latent_size)
 solution_1 = [sol_1(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 solution_2 = [sol_2(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
-mse_1 = sum(Flux.mse(solution_1[i],train_sol_1[i]) for i=1:l_ablist)/l_ablist
-mse_2 = sum(Flux.mse(solution_2[i],train_sol_2[i]) for i=1:l_ablist)/l_ablist
+mse_1 = sum(Flux.mse(solution_1[i],train_sol_1[:,i]) for i=1:l_ablist)/l_ablist
+mse_2 = sum(Flux.mse(solution_2[i],train_sol_2[:,i]) for i=1:l_ablist)/l_ablist
 mse = mse_1+mse_2
 
 function plot_distribution_1(set)
@@ -202,6 +201,29 @@ function plot_all()
     plot(p1,p2,p3,p4,layouts=(2,2),size=(800,800))
 end
 plot_all()
+
+function sol_Extenicity(τ,Attribute)
+    decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/τ for i in 1:N-1],decoder_1[4]);
+    _,re2_Extenicity = Flux.destructure(decoder_Extenicity);
+
+    function f_Extenicity!(x,p1,p2,ϵ)
+        h = re1(p1)(x)
+        μ, logσ = split_encoder_result(h, latent_size)
+        z = reparameterize.(μ, logσ, ϵ)
+        z = vcat(z,Attribute)
+        NN = re2_Extenicity(p2)(z)
+        return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
+                (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+    end
+
+    P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
+    P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
+
+    sol_Extenicity(p1,p2,ϵ) = nlsolve(x->f_Extenicity!(x,p1,p2,ϵ),P_0_Extenicity).zero
+
+    P_trained_Extenicity = sol_Extenicity(params1,params2,zeros(latent_size))
+    return P_trained_Extenicity
+end
 
 function plot_all()
     p1 = plot_distribution(1)
