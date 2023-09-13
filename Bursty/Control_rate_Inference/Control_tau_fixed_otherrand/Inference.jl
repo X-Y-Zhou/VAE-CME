@@ -27,7 +27,7 @@ ps = Flux.params(params1,params2);
 length_1 = length(params1)
 length_2 = length(params2)
 
-function f_Extenicity!(x,p1,p2,a,b,ϵ,Attribute)
+function f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
@@ -38,29 +38,29 @@ function f_Extenicity!(x,p1,p2,a,b,ϵ,Attribute)
 end
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
 P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
 P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
-sol_Extenicity(p1,p2,a,b,ϵ,P_0_Extenicity) = nlsolve(x->f_Extenicity!(x,p1,p2,a,b,ϵ,Attribute),P_0_Extenicity).zero
+sol_Extenicity(p1,p2,a,b,Attribute,ϵ,P_0_Extenicity) = nlsolve(x->f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ),P_0_Extenicity).zero
 
-solution = sol_Extenicity(p1,p2,a,b,ϵ,P_0_Extenicity)
+Attribute = 1
+ϵ = zeros(latent_size)
+solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
 sample_size = 1e4
-solution = set_one.(solution)
+solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
-i = 1
+i = 5
 SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
-
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
-
-# a b τ
+# a b Attribute
 kinetic_params = [a,b,Attribute]
 
 function LogLikelihood(kinetic_params)
@@ -73,9 +73,11 @@ function LogLikelihood(kinetic_params)
     params2 = df.params2[1:length_2]
 
     ϵ = zeros(latent_size)
-    solution = sol_Extenicity(params1,params2,a,b,ϵ,P_0_Extenicity)
+    P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
+    P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
+    solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-    solution = set_one.(solution)
+    solution = set_one(solution)
     log_value = log.(solution)
     loglikelihood_value = -sum(SSA_timepoints.*log_value)/sample_size
 
@@ -84,8 +86,8 @@ end
 
 LogLikelihood(kinetic_params)
 
-kinetic_params0 = [0.05,2,80]
-SRange = [(0.01,0.1),(0,6),(50,150)]
+kinetic_params0 = [0.03,3,0.5]
+SRange = [(0.01,0.06),(2,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 best_fitness(res)
