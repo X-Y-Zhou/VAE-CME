@@ -11,7 +11,7 @@ N = 65
 τ = 120
 
 # Simulation data
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -56,7 +56,7 @@ solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
-i = 5
+i = 10
 SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
