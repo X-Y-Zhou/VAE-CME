@@ -153,3 +153,42 @@ for i = 2:length(y)
     y[i] = quadgk(g, 0, t, rtol=1e-3)[1]
 end
 y
+
+
+using SymPy,QuadGK
+@vars x s
+L = 200
+T1 = 90
+T2 = 150
+# p = 0.6
+λ = 0.0082
+β = 1.46
+t = 600
+
+f(x) = x<T1 ? 0 : T1<x<T2 ? (x-T1)/(T2-T1) : 1
+f_(x) = 1-f(x)
+
+g0(x) = f_(t-x)
+P0 = exp(-λ*quadgk(g0, 0, t, rtol=1e-3)[1])
+
+n = 1
+g(x) = exp(-λ*(t-x))*(λ*(t-x))^(n-1)*λ*(1-f(t-x))*exp(-λ*quadgk(g0, 0, x, rtol=1e-3)[1])/factorial(n-1)
+Pn = quadgk(g, 0, t, rtol=1e-3)[1]
+
+n_cars_max = 20
+car_distribution_theory = zeros(n_cars_max)
+car_distribution_theory[1] = exp(-λ*quadgk(g0, 0, t, rtol=1e-3)[1])
+for i = 2:n_cars_max
+    print(i,"\n")
+    n = i-1
+    g(x) = exp(-λ*(t-x))*(λ*(t-x))^(n-1)*λ*(1-f(t-x))*exp(-λ*quadgk(g0, 0, x, rtol=1e-3)[1])/factorial(n-1)
+    car_distribution_theory[i] = quadgk(g, 0, t, rtol=1e-3)[1]
+end
+car_distribution_theory
+
+truncation = 70
+sum([(1/(1+β))^m*car_distribution_theory[m+1] for m=0:n_cars_max-1])
+sum([pdf(NegativeBinomial(k, 1/(1+β)),0)*car_distribution_theory[k+1] for k=1:n_cars_max-1])+car_distribution_theory[1]
+people_distribution_theory = [sum([pdf(NegativeBinomial(k, 1/(1+β)),n)*car_distribution_theory[k+1] for k=1:n_cars_max-1]) for n=0:truncation]
+people_distribution_theory[1]=sum([pdf(NegativeBinomial(k, 1/(1+β)),0)*car_distribution_theory[k+1] for k=1:n_cars_max-1])+car_distribution_theory[1]
+people_distribution_theory
