@@ -1,4 +1,4 @@
-using Flux, DiffEqSensitivity, DifferentialEquations
+using Flux, DiffEqSensitivity, DifferentialEquation
 using Distributions, Distances
 using DelimitedFiles, Plots
 
