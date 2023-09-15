@@ -11,7 +11,7 @@ N = 65
 τ = 120
 
 # Simulation data
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
+SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -38,7 +38,7 @@ function f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ)
 end
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -56,7 +56,8 @@ solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
-i = 7
+SSA_data[:,1:5]
+i = 3
 SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
@@ -68,7 +69,7 @@ function LogLikelihood(kinetic_params)
     b = kinetic_params[2]
     Attribute = kinetic_params[3]
 
-    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
+    df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
@@ -102,6 +103,7 @@ Attribute = thetax[3]
 distribution = Uniform(τ1,τ2)
 var = (τ1-τ2)^2/12
 
+x = 1
 
 # training data
 # set1
