@@ -11,7 +11,7 @@ N = 65
 τ = 120
 
 # Simulation data
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -51,15 +51,14 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 1e4
+sample_size = 1e5
 solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
-i = 1
+i = 2
 SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
-SSA_distribution = convert_histo(SSA_data[:,i])
 
 # a b Attribute
 kinetic_params = [a,b,Attribute]
@@ -79,7 +78,7 @@ function LogLikelihood(kinetic_params)
     solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
     # loglikelihood_value = Flux.mse(solution,SSA_data[:,i])
-    
+
     solution = set_one(solution)
     log_value = log.(solution)
     loglikelihood_value = -sum(SSA_timepoints.*log_value)/sample_size
@@ -89,11 +88,20 @@ end
 
 LogLikelihood(kinetic_params0)
 
-kinetic_params0 = [0.03,3,0.75]
+kinetic_params0 = [0.03,3,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 best_fitness(res)
+
+α = thetax[1]
+β = thetax[2]
+Attribute = thetax[3]
+τ1 = (1-Attribute)*τ
+τ2 = 2τ-τ1
+distribution = Uniform(τ1,τ2)
+var = (τ1-τ2)^2/12
+
 
 # training data
 # set1
@@ -113,5 +121,24 @@ best_fitness(res)
 # Uniform(60,180)  var = 1200
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0     [0]
+
+# check data
+# set3
+# mean = 120
+# α = 0.0182 β = 2.46 
+# Uniform(0,240)   var = 4800 
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0 
+
+# set4
+# mean = 120
+# α = 0.0232 β = 2.96 
+# Uniform(0,240)   var = 4800 
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0 
 
 
