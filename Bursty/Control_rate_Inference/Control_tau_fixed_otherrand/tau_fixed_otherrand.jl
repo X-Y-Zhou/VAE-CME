@@ -1,9 +1,10 @@
-using Flux, DiffEqSensitivity, DifferentialEquation
+using Flux, DiffEqSensitivity, DifferentialEquations
 using Distributions, Distances
 using DelimitedFiles, Plots
 
 include("../../../utils.jl")
 
+# training data
 # set1
 # mean = 120
 # α = 0.0282 β = 3.46 
@@ -187,12 +188,12 @@ mse = mse_1+mse_2
 
 function plot_distribution_1(set)
     plot(0:N-1,solution_1[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 4800"]),line=:dash)
 end
 
 function plot_distribution_2(set)
     plot(0:N-1,solution_2[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 0"]),line=:dash)
 end
 
 function plot_all()
@@ -295,8 +296,8 @@ plot_all()
 τ1_list = [0,30,60,90,120]
 Attribute_list = -τ1_list./τ.+1
 
-a = 0.0082
-b = 1.46
+a = 0.0282
+b = 3.46
 solution_list = []
 for i=1:length(Attribute_list)
     print(i,"\n")
@@ -308,10 +309,11 @@ for i=1:length(Attribute_list)
     solution = sol_Extenicity(τ,Attribute,a,b)
     push!(solution_list,solution)
 end
+solution_list
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,data[:,set+5],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
+    plot!(0:N-1,data[:,set],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
 end
 
 function plot_all()
@@ -324,7 +326,7 @@ function plot_all()
 end
 plot_all()
 
-# check
+# check data
 # set3
 # mean = 120
 # α = 0.0182 β = 2.46 
@@ -348,8 +350,8 @@ check_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/
 τ1_list = [0,30,60,90,120]
 Attribute_list = -τ1_list./τ.+1
 
-a = 0.0232
-b = 2.96
+a = 0.0182
+b = 2.46
 solution_list = []
 for i=1:length(Attribute_list)
     print(i,"\n")
@@ -364,7 +366,7 @@ end
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,check_data[:,set+5],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
+    plot!(0:N-1,check_data[:,set],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
 end
 
 function plot_all()

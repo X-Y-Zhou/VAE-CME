@@ -47,7 +47,7 @@ P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
 P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
 sol_Extenicity(p1,p2,a,b,Attribute,ϵ,P_0_Extenicity) = nlsolve(x->f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ),P_0_Extenicity).zero
 
-Attribute = 1
+Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
@@ -56,9 +56,10 @@ solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
-i = 10
+i = 1
 SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
+SSA_distribution = convert_histo(SSA_data[:,i])
 
 # a b Attribute
 kinetic_params = [a,b,Attribute]
@@ -77,6 +78,8 @@ function LogLikelihood(kinetic_params)
     P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
     solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
+    # loglikelihood_value = Flux.mse(solution,SSA_data[:,i])
+    
     solution = set_one(solution)
     log_value = log.(solution)
     loglikelihood_value = -sum(SSA_timepoints.*log_value)/sample_size
@@ -84,12 +87,31 @@ function LogLikelihood(kinetic_params)
     return loglikelihood_value
 end
 
-LogLikelihood(kinetic_params)
+LogLikelihood(kinetic_params0)
 
-kinetic_params0 = [0.03,3,0.5]
-SRange = [(0.01,0.06),(2,6),(0,1)]
+kinetic_params0 = [0.03,3,0.75]
+SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 best_fitness(res)
+
+# training data
+# set1
+# mean = 120
+# α = 0.0282 β = 3.46 
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
+
+# set2
+# mean = 120
+# α = 0.0082 β = 1.46 
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
 
 
