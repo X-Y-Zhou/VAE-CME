@@ -296,8 +296,8 @@ plot_all()
 τ1_list = [0,30,60,90,120]
 Attribute_list = -τ1_list./τ.+1
 
-a = 0.0282
-b = 3.46
+a = 0.0082
+b = 1.46
 solution_list = []
 for i=1:length(Attribute_list)
     print(i,"\n")
@@ -313,7 +313,7 @@ solution_list
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,data[:,set],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
+    plot!(0:N-1,data[:,set+5],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
 end
 
 function plot_all()
@@ -346,12 +346,14 @@ plot_all()
 # Uniform(120,120) var = 0 
 
 check_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
+check_data[:,1:5]
+check_data[:,6:10]
 
 τ1_list = [0,30,60,90,120]
 Attribute_list = -τ1_list./τ.+1
 
-a = 0.0182
-b = 2.46
+a = 0.0232
+b = 2.96
 solution_list = []
 for i=1:length(Attribute_list)
     print(i,"\n")
@@ -363,6 +365,7 @@ for i=1:length(Attribute_list)
     solution = sol_Extenicity(τ,Attribute,a,b)
     push!(solution_list,solution)
 end
+solution_list
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
