@@ -51,14 +51,18 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 1e4
+sample_size = 1e5
 solution = set_one(solution)
 log_value = log.(solution)
+
+i = 1
+SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
+logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
 # SSA data
 result_list = []
 for dataset = 1:5
-SSA_data = readdlm("Inference_data/set1/30-210_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("Inference_data/set4/60-180_$dataset.csv",',')[2:end,:]
 
 # SSA_data[:,1:5]
 i = 1
@@ -69,8 +73,8 @@ logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 # kinetic_params = [a,b,Attribute]
 
 function LogLikelihood(kinetic_params)
-    a = 0.0282
-    b = 3.46
+    a = 0.0232
+    b = 2.96
     Attribute = kinetic_params[1]
 
     df = CSV.read("params_tfo.csv",DataFrame)
@@ -100,8 +104,8 @@ SearchRange = SRange, NumDimensions = 1, MaxSteps = 150) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 # best_fitness(res)
 
-α = 0.0282
-β = 3.46
+α = 0.0232
+β = 2.96
 Attribute = thetax[1]
 τ1 = (1-Attribute)*τ
 τ2 = 2τ-τ1

@@ -51,14 +51,14 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 1e4
+sample_size = 1e5
 solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
 result_list = []
 for dataset = 1:5
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/30-210_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set4/30-210_$dataset.csv",',')[2:end,:]
 
 # SSA_data[:,1:5]
 i = 1
@@ -69,8 +69,8 @@ logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 # kinetic_params = [a,b,Attribute]
 
 function LogLikelihood(kinetic_params)
-    a = 0.0282
-    b = 3.46
+    a = 0.0232
+    b = 2.96
     Attribute = kinetic_params[1]
 
     df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)

@@ -97,25 +97,25 @@ end
 E(a,b) = (a+b)/2
 D(a,b) = (a-b)^2/12
 
-a = 30;b = 210
+a = 90;b = 150
 Ex = E(a,b)
 Dx = D(a,b)
 L = 200
 
 # # reaction rate
-# set1
-λ = 0.0282
-β = 3.46
+# # set = 1
+# λ = 0.0282
+# β = 3.46
 
-# # set2
+# # set = 2
 # λ = 0.0082
 # β = 1.46
 
-# # set3
-# λ = 0.0182
-# β = 2.46
+set = 3
+λ = 0.0182
+β = 2.46
 
-# # set4
+# # set = 4
 # λ = 0.0232
 # β = 2.96
 
@@ -141,7 +141,7 @@ tmax = maximum(saveat)
 n_cars_timepoints = [[] for i=1:length(saveat)]
 n_people_timepoints = [[] for i=1:length(saveat)]
 
-trajectories = 10000
+trajectories = 100000
 @time for i =1:trajectories
     if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
@@ -176,5 +176,5 @@ end
 
 title = [join([a,"-",b])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/$(a)-$(b)_$epoch.csv",df)
+CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set$set/$(a)-$(b)_$epoch.csv",df)
 end

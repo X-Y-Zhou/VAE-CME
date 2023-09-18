@@ -51,7 +51,7 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 1e4
+sample_size = 1e5
 solution = set_one(solution)
 log_value = log.(solution)
 
