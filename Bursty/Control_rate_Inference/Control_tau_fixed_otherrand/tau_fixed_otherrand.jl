@@ -125,7 +125,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 50000000
+λ = 500000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -139,7 +139,7 @@ epochs_all = 0
 # training
 lr = 0.001;  #lr需要操作一下的
 opt= ADAM(lr);
-epochs = 20
+epochs = 40
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -171,7 +171,7 @@ end
 mse_list
 mse_min 
 
-# mse_min = [0.0001368414665310464]
+# mse_min = [2.6634592951590713e-6]
 
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
