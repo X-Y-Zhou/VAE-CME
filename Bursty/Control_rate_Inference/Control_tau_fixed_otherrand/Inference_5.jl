@@ -11,7 +11,7 @@ N = 65
 τ = 120
 
 # Simulation data
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
+SSA_data = readdlm("VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -38,7 +38,7 @@ function f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ)
 end
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
+df = CSV.read("VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -57,7 +57,7 @@ log_value = log.(solution)
 
 # SSA data
 SSA_data[:,1:5]
-i = 5
+i = 3
 SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
@@ -69,7 +69,7 @@ function LogLikelihood(kinetic_params)
     b = kinetic_params[2]
     Attribute = kinetic_params[3]
 
-    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
+    df = CSV.read("VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
@@ -91,7 +91,8 @@ LogLikelihood(kinetic_params0)
 
 kinetic_params0 = [0.03,3,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
-res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
+res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 200) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 best_fitness(res)
 

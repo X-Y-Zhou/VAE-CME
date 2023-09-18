@@ -11,7 +11,7 @@ N = 65
 τ = 120
 
 # Simulation data
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
+# SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/30-210_1.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -51,18 +51,22 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 1e5
+sample_size = 1e4
 solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
-SSA_data[:,1:5]
-i = 3
+result_list = []
+for dataset = 1:5
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/30-210_$dataset.csv",',')[2:end,:]
+
+# SSA_data[:,1:5]
+i = 1
 SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
 # a b Attribute
-kinetic_params = [a,b,Attribute]
+# kinetic_params = [a,b,Attribute]
 
 function LogLikelihood(kinetic_params)
     a = kinetic_params[1]
@@ -87,13 +91,14 @@ function LogLikelihood(kinetic_params)
     return loglikelihood_value
 end
 
-LogLikelihood(kinetic_params0)
+# LogLikelihood(kinetic_params0)
 
 kinetic_params0 = [0.03,3,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
-res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
+res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
-best_fitness(res)
+# best_fitness(res)
 
 α = thetax[1]
 β = thetax[2]
@@ -103,7 +108,23 @@ Attribute = thetax[3]
 distribution = Uniform(τ1,τ2)
 var = (τ1-τ2)^2/12
 
+[α,β,Attribute,τ1,τ2,var]
+push!(result_list,[α,β,Attribute,τ1,τ2,var])
+end
+result_list
+result_list[1]
+result_list[2]
+result_list[3]
+result_list[4]
+result_list[5]
+
+using DataFrames,CSV
+df = DataFrame(result_list,:auto)
+CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/temp_1.csv",df)
+
+
 x = 1
+i
 
 # training data
 # set1

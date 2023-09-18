@@ -11,7 +11,7 @@ N = 65
 τ = 120
 
 # Simulation data
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
+SSA_data = readdlm("Inference_data/set1/30-210_1.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -38,7 +38,7 @@ function f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ)
 end
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
+df = CSV.read("params_tfo.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -51,13 +51,17 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 1e5
+sample_size = 1e4
 solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
-SSA_data[:,1:5]
-i = 5
+result_list = []
+for dataset = 1:5
+SSA_data = readdlm("Inference_data/set1/60-180_$dataset.csv",',')[2:end,:]
+
+# SSA_data[:,1:5]
+i = 1
 SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
@@ -69,7 +73,7 @@ function LogLikelihood(kinetic_params)
     b = kinetic_params[2]
     Attribute = kinetic_params[3]
 
-    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
+    df = CSV.read("params_tfo.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
@@ -87,13 +91,14 @@ function LogLikelihood(kinetic_params)
     return loglikelihood_value
 end
 
-LogLikelihood(kinetic_params0)
+# LogLikelihood(kinetic_params0)
 
 kinetic_params0 = [0.03,3,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
-res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
+res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 200) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
-best_fitness(res)
+# best_fitness(res)
 
 α = thetax[1]
 β = thetax[2]
@@ -103,7 +108,18 @@ Attribute = thetax[3]
 distribution = Uniform(τ1,τ2)
 var = (τ1-τ2)^2/12
 
+[α,β,Attribute,τ1,τ2,var]
+push!(result_list,[α,β,Attribute,τ1,τ2,var])
+end
+result_list
+result_list[1]
+result_list[2]
+result_list[3]
+result_list[4]
+result_list[5]
+
 x = 1
+i
 
 # training data
 # set1
