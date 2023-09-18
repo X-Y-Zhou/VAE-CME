@@ -9,6 +9,7 @@ a = 0.0282
 b = 3.46
 N = 65
 τ = 120
+
 # Simulation data
 # SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/30-210_1.csv",',')[2:end,:]
 
