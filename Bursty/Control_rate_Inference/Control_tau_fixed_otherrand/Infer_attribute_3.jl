@@ -11,7 +11,7 @@ N = 65
 τ = 120
 
 # Simulation data
-# SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set4/30-210_1.csv",',')[2:end,:]
+# SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/30-210_1.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -58,7 +58,7 @@ log_value = log.(solution)
 # SSA data
 result_list = []
 for dataset = 1:5
-SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/60-180_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/30-210_$dataset.csv",',')[2:end,:]
 
 # SSA_data[:,1:5]
 i = 1
@@ -69,9 +69,9 @@ logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 # kinetic_params = [a,b,Attribute]
 
 function LogLikelihood(kinetic_params)
-    a = kinetic_params[1]
-    b = kinetic_params[2]
-    Attribute = kinetic_params[3]
+    a = 0.0282
+    b = 3.46
+    Attribute = kinetic_params[1]
 
     df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
     params1 = df.params1
@@ -93,16 +93,16 @@ end
 
 # LogLikelihood(kinetic_params0)
 
-kinetic_params0 = [0.03,2,0.5]
-SRange = [(0,0.06),(0,6),(0,1)]
+kinetic_params0 = [0.5]
+SRange = [(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 3, MaxSteps = 150) #参数推断求解
+SearchRange = SRange, NumDimensions = 1, MaxSteps = 150) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 # best_fitness(res)
 
-α = thetax[1]
-β = thetax[2]
-Attribute = thetax[3]
+α = 0.0282
+β = 3.46
+Attribute = thetax[1]
 τ1 = (1-Attribute)*τ
 τ2 = 2τ-τ1
 distribution = Uniform(τ1,τ2)
@@ -121,9 +121,11 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("Control_rate_Inference/Control_tau_fixed_otherrand/temp_3.csv",df)
+CSV.write("Control_rate_Inference/Control_tau_fixed_otherrand/temp_1.csv",df)
+
 
 x = 1
+i
 
 # training data
 # set1

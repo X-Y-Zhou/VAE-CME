@@ -58,7 +58,7 @@ log_value = log.(solution)
 # SSA data
 result_list = []
 for dataset = 1:5
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/30-210_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/60-180_$dataset.csv",',')[2:end,:]
 
 # SSA_data[:,1:5]
 i = 1
@@ -93,10 +93,10 @@ end
 
 # LogLikelihood(kinetic_params0)
 
-kinetic_params0 = [0.03,3,0.5]
+kinetic_params0 = [0.03,2,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 3, MaxSteps = 100) #参数推断求解
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 150) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 # best_fitness(res)
 
@@ -111,6 +111,7 @@ var = (τ1-τ2)^2/12
 [α,β,Attribute,τ1,τ2,var]
 push!(result_list,[α,β,Attribute,τ1,τ2,var])
 end
+
 result_list
 result_list[1]
 result_list[2]

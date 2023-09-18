@@ -11,7 +11,7 @@ N = 65
 τ = 120
 
 # Simulation data
-SSA_data = readdlm("Inference_data/set1/30-210_1.csv",',')[2:end,:]
+# SSA_data = readdlm("Inference_data/set1/30-210_1.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -66,7 +66,7 @@ SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
 logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
 # a b Attribute
-kinetic_params = [a,b,Attribute]
+# kinetic_params = [a,b,Attribute]
 
 function LogLikelihood(kinetic_params)
     a = kinetic_params[1]
@@ -93,10 +93,10 @@ end
 
 # LogLikelihood(kinetic_params0)
 
-kinetic_params0 = [0.03,3,0.5]
+kinetic_params0 = [0.03,2,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 3, MaxSteps = 200) #参数推断求解
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 150) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 # best_fitness(res)
 
@@ -111,12 +111,17 @@ var = (τ1-τ2)^2/12
 [α,β,Attribute,τ1,τ2,var]
 push!(result_list,[α,β,Attribute,τ1,τ2,var])
 end
+
 result_list
 result_list[1]
 result_list[2]
 result_list[3]
 result_list[4]
 result_list[5]
+
+using DataFrames,CSV
+df = DataFrame(result_list,:auto)
+CSV.write("temp_2.csv",df)
 
 x = 1
 i
@@ -158,5 +163,8 @@ i
 # Uniform(60,180)  var = 1200
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0 
+
+
+
 
 
