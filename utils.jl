@@ -52,6 +52,15 @@ function Derivative_approxi(vec::Vector)
     return [abs(vec[i+1]-vec[i]) for i=1:length(vec)-1]
 end
 
+# Calculate mean value according to the distribution P
+P2mean(P) = [P[i] * (i-1) for i in 1:length(P)] |> sum
+
+# Calculate variance var
+P2var(P) = ([P[i] * (i-1)^2 for i in 1:length(P)] |> sum) - P2mean(P)^2
+
+# Calculate second moment sm
+P2sm(P) = [P[i] * (i-1)^2 for i in 1:length(P)] |> sum
+
 # normalization
 function set_one(vec)
     vec = abs.(vec)
