@@ -51,22 +51,19 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 1e5
+sample_size = 5000
 solution = set_one(solution)
 log_value = log.(solution)
 
 # SSA data
 result_list = []
+set = 1
+width = "30-210"
+
 for dataset = 1:5
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/60-180_$dataset.csv",',')[2:end,:]
-
-# SSA_data[:,1:5]
-i = 1
-SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
-logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
-
-# a b Attribute
-# kinetic_params = [a,b,Attribute]
+print(dataset,"\n")    
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
 
 function LogLikelihood(kinetic_params)
     a = kinetic_params[1]
@@ -93,7 +90,7 @@ end
 
 # LogLikelihood(kinetic_params0)
 
-kinetic_params0 = [0.03,2,0.5]
+kinetic_params0 = [0.03,3,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
 SearchRange = SRange, NumDimensions = 3, MaxSteps = 150) #参数推断求解
@@ -123,9 +120,36 @@ using DataFrames,CSV
 df = DataFrame(result_list,:auto)
 CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/temp_1.csv",df)
 
+function check_inference(kinetic_params)
+    a = kinetic_params[1]
+    b = kinetic_params[2]
+    Attribute = kinetic_params[3]
 
-x = 1
-i
+    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
+    params1 = df.params1
+    params2 = df.params2[1:length_2]
+
+    ϵ = zeros(latent_size)
+    P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
+    P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
+    solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
+    return solution
+end
+using Flux
+
+set
+width
+result_list
+
+dataset = 5
+result_list[dataset]
+solution_inference = check_inference(result_list[dataset])
+SSA_data = vec(readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/set$set/$(width).csv",',')[2:end,:])
+Flux.mse(solution_inference_1,SSA_data)
+
+plot(0:N-1,solution_inference,lw=3,label="inference")
+plot!(0:N-1,SSA_data,lw=3,label="SSA",line=:dash)
+
 
 # training data
 # set1

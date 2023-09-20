@@ -51,30 +51,35 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 1e5
+sample_size = 5000
 solution = set_one(solution)
 log_value = log.(solution)
 
-i = 1
-SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
-logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
+# dataset = 1
+# SSA_data = readdlm("Inference_data/set1/30-210_$dataset.csv",',')[2:end,:]
+# SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
+# logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
 
 # SSA data
 result_list = []
+set = 1
+width = "60-180"
+
 for dataset = 1:5
-SSA_data = readdlm("Inference_data/set4/60-180_$dataset.csv",',')[2:end,:]
+print(dataset,"\n")
+SSA_data = readdlm("Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
 
-# SSA_data[:,1:5]
-i = 1
-SSA_timepoints = round.(Int, SSA_data[:,i].*sample_size)
-logp_x_z = sum(SSA_timepoints.*log_value)/sample_size
+# Ex = P2mean(SSA_data)
+# Dx = P2var(SSA_data)
 
-# a b Attribute
-# kinetic_params = [a,b,Attribute]
+# a = 2Ex^2/(Dx-Ex)τ
+# b = (Dx-Ex)/2Ex
 
 function LogLikelihood(kinetic_params)
-    a = 0.0232
-    b = 2.96
+    a = 0.0282
+    b = 3.46
+
     Attribute = kinetic_params[1]
 
     df = CSV.read("params_tfo.csv",DataFrame)
@@ -104,8 +109,8 @@ SearchRange = SRange, NumDimensions = 1, MaxSteps = 150) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 # best_fitness(res)
 
-α = 0.0232
-β = 2.96
+α = 0.0282
+β = 3.46
 Attribute = thetax[1]
 τ1 = (1-Attribute)*τ
 τ2 = 2τ-τ1
@@ -127,9 +132,40 @@ using DataFrames,CSV
 df = DataFrame(result_list,:auto)
 CSV.write("temp_2.csv",df)
 
+function check_inference(kinetic_params)
+    a = kinetic_params[1]
+    b = kinetic_params[2]
+    Attribute = kinetic_params[3]
+    # Attribute = 0.5
 
-x = 1
-i
+    df = CSV.read("params_tfo.csv",DataFrame)
+    params1 = df.params1
+    params2 = df.params2[1:length_2]
+
+    ϵ = zeros(latent_size)
+    P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
+    P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
+    solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
+    return solution
+end
+
+set
+width
+
+dataset = 1
+result_list[dataset]
+solution_inference = check_inference(result_list[dataset])
+solution_theoty = check_inference([0.0282,3.46,0.5])
+SSA_data = vec(readdlm("Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:])
+
+using Flux
+Flux.mse(solution_inference,SSA_data)
+Flux.mse(solution_theoty,SSA_data)
+
+plot(0:N-1,solution_inference,lw=3,label="inference")
+plot!(0:N-1,solution_theoty,lw=3,label="theory",line=:dash)
+plot!(0:N-1,SSA_data,lw=3,label="SSA",line=:dash)
+
 
 # training data
 # set1
