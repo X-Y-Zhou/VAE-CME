@@ -293,11 +293,12 @@ function plot_all()
 end
 plot_all()
 
+
 τ1_list = [0,30,60,90,120]
 Attribute_list = -τ1_list./τ.+1
 
-a = 0.0082
-b = 1.46
+a = 0.0282
+b = 3.46
 solution_list = []
 for i=1:length(Attribute_list)
     print(i,"\n")
@@ -313,7 +314,7 @@ solution_list
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,data[:,set+5],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
+    plot!(0:N-1,data[:,set],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
 end
 
 function plot_all()
