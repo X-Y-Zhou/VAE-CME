@@ -57,10 +57,10 @@ log_value = log.(solution)
 
 # SSA data
 result_list = []
-set = 4
+set = 5
 width = "30-210"
 
-for dataset = 1:5
+@time for dataset = [1,2,3,4,5]
 print(dataset,"\n")    
 SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
 SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
@@ -207,4 +207,19 @@ plot!(0:N-1,solution_inference_2,lw=3,label="inference_2")
 # λ = 0.0182
 # β = 2.96
 
+ratio_1 = vec([0.109579055	0.556445614	0.326641891	0.307330316	0.015693066])
+ratio_2 = vec([0.075949743	1.714033248	0.294608006	2.32722465	1.970046557])
+ratio_3 = vec([0.674024417	13.6231843	0.448051408	1.888556556	0.239288549])
+x = [1,2,3,4,5]
+y = [1,1,1,1,1]
 
+p1 = plot(x,y,lw=3)
+plot!(x,ratio_1,line=:dash,lw=3,size=(1200,300),ylims=(0,3))
+
+p2 = plot(x,y,lw=3)
+plot!(x,ratio_2,line=:dash,lw=3,size=(1200,300),ylims=(0,3))
+
+p3 = plot(x,y,lw=3)
+plot!(x,ratio_3,line=:dash,lw=3,size=(1200,300),ylims=(0,3))
+
+plot(p1,p2,p3,layouts=(1,3))
