@@ -1,4 +1,4 @@
-using Distributions,StatsPlots,StatsBase,DelimitedFiles
+using Distributions,StatsPlots,StatsBase,DelimitedFiles,DataFrames,CSV
 
 function convert_histo(data::Vector)
     # Define histogram edge set (integers)
@@ -23,27 +23,35 @@ end
 E(a,b) = (a+b)/2
 D(a,b) = (a-b)^2/12
 
+a = 0;b = 240
+a = 30;b = 210
+a = 60;b = 180
+a = 90;b = 150
 a = 120;b = 120
 Ex = E(a,b)
 Dx = D(a,b)
 L = 200
 
 # reaction rate
-# # set1
+# set1
 # λ = 0.0282
 # β = 3.46
 
-# # set2
+# set2
 # λ = 0.0082
 # β = 1.46
 
-# set3
-λ = 0.0182
-β = 2.46
+# set = 3
+# λ = 0.0182
+# β = 2.46
 
-# # set4
+# set = 4
 # λ = 0.0232
 # β = 2.96
+
+set = 5
+λ = 0.0182
+β = 2.96
 
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
@@ -181,7 +189,7 @@ train_sol_people
 
 title = [join([a,"-",b])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/set3/$(a)-$(b).csv",df)
+CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/set$set/$(a)-$(b).csv",df)
 
 
 
@@ -190,6 +198,7 @@ plot(0:N,train_sol_people[:,end],lw=3,label="car 0 240")
 plot!(0:N,train_sol_1[:,1],lw=3,label="car 120")
 plot!(0:N,bursty(N+1,120,0.0282,3.46),lw=3,line=:dash,label="exact-120")
 
+using TaylorSeries
 function bursty(N,τ,a,b)
     f(u) = exp(a*b*τ*u/(1-b*u));
     taylorexpand = taylor_expand(x->f(x),-1,order=N);
@@ -199,7 +208,7 @@ function bursty(N,τ,a,b)
     end
     return P
 end;
-bursty(64,120,0.0182,2.46)
+bursty(64,120,0.0182,2.96)
 
 train_sol = readdlm("Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
 train_sol_2 = readdlm("Bursty/Control_rate_Inference/control_tau/data/30-210.csv",',')[2:end,:]

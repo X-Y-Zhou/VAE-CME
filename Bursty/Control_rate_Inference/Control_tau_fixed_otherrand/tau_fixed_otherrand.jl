@@ -346,6 +346,15 @@ plot_all()
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0 
 
+# set5
+# mean = 120
+# α = 0.0182 β = 2.96 
+# Uniform(0,240)   var = 4800 
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0 
+
 check_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
 check_data[:,1:5]
 check_data[:,6:10]
@@ -353,7 +362,7 @@ check_data[:,6:10]
 τ1_list = [0,30,60,90,120]
 Attribute_list = -τ1_list./τ.+1
 
-a = 0.0232
+a = 0.0182
 b = 2.96
 solution_list = []
 for i=1:length(Attribute_list)
@@ -370,7 +379,7 @@ solution_list
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,check_data[:,set],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
+    plot!(0:N-1,check_data[:,set+10],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
 end
 
 function plot_all()
