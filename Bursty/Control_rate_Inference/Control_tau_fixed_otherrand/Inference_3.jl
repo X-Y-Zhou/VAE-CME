@@ -57,7 +57,7 @@ log_value = log.(solution)
 
 # SSA data
 result_list = []
-set = 1
+set = 5
 width = "90-150"
 
 for dataset = 1:5
@@ -88,9 +88,13 @@ function LogLikelihood(kinetic_params)
     return loglikelihood_value
 end
 
-# LogLikelihood(kinetic_params0)
+Ex = P2mean(SSA_data)
+Dx = P2var(SSA_data)
 
-kinetic_params0 = [0.03,3,0.5]
+a_0 = 2Ex^2/(Dx-Ex)τ
+b_0 = (Dx-Ex)/2Ex
+
+kinetic_params0 = [a_0,b_0,0.25]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
 SearchRange = SRange, NumDimensions = 3, MaxSteps = 150) #参数推断求解
@@ -106,7 +110,7 @@ distribution = Uniform(τ1,τ2)
 var = (τ1-τ2)^2/12
 
 [α,β,Attribute,τ1,τ2,var]
-push!(result_list,[α,β,Attribute,τ1,τ2,var])
+push!(result_list,[α,β,Attribute,τ1,τ2,var,kinetic_params0])
 end
 
 result_list

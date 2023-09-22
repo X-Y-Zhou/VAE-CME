@@ -57,7 +57,7 @@ log_value = log.(solution)
 
 # SSA data
 result_list = []
-set = 1
+set = 4
 width = "30-210"
 
 for dataset = 1:5
@@ -88,12 +88,16 @@ function LogLikelihood(kinetic_params)
     return loglikelihood_value
 end
 
-# LogLikelihood(kinetic_params0)
+Ex = P2mean(SSA_data)
+Dx = P2var(SSA_data)
 
-kinetic_params0 = [0.03,3,0.5]
+a_0 = 2Ex^2/(Dx-Ex)τ
+b_0 = (Dx-Ex)/2Ex
+
+kinetic_params0 = [a_0,b_0,0.75]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 3, MaxSteps = 150) #参数推断求解
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 200) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 # best_fitness(res)
 
@@ -106,7 +110,7 @@ distribution = Uniform(τ1,τ2)
 var = (τ1-τ2)^2/12
 
 [α,β,Attribute,τ1,τ2,var]
-push!(result_list,[α,β,Attribute,τ1,τ2,var])
+push!(result_list,[α,β,Attribute,τ1,τ2,var,kinetic_params0])
 end
 
 result_list
@@ -150,6 +154,16 @@ Flux.mse(solution_inference_1,SSA_data)
 plot(0:N-1,solution_inference,lw=3,label="inference")
 plot!(0:N-1,SSA_data,lw=3,label="SSA",line=:dash)
 
+dataset = 4
+result_list[dataset]
+solution_inference_1 = check_inference(result_list[dataset])
+
+dataset = 1
+result_list[dataset]
+solution_inference_2 = check_inference(result_list[dataset])
+
+plot(0:N-1,solution_inference_1,lw=3,label="inference_1")
+plot!(0:N-1,solution_inference_2,lw=3,label="inference_2")
 
 # training data
 # set1
@@ -188,5 +202,9 @@ plot!(0:N-1,SSA_data,lw=3,label="SSA",line=:dash)
 # Uniform(60,180)  var = 1200
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0 
+
+# set = 5
+# λ = 0.0182
+# β = 2.96
 
 

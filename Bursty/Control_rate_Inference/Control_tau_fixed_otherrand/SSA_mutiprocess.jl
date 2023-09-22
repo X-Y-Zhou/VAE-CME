@@ -105,9 +105,9 @@ Dx = D(a,b)
 L = 200
 
 # # reaction rate
-set = 1
-λ = 0.0282
-β = 3.46
+# set = 1
+# λ = 0.0282
+# β = 3.46
 
 # # set = 2
 # λ = 0.0082
@@ -117,9 +117,13 @@ set = 1
 # λ = 0.0182
 # β = 2.46
 
-# # set = 4
+# set = 4
 # λ = 0.0232
 # β = 2.96
+
+set = 5
+λ = 0.0182
+β = 2.96
 
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
