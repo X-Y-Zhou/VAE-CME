@@ -57,10 +57,10 @@ log_value = log.(solution)
 
 # SSA data
 result_list = []
-set = 1
-width = "90-150"
+set = 5
+width = "60-180"
 
-for dataset in [3,3,3,3,3,3]
+@time for dataset = [1,2,3,4,5]
 print(dataset,"\n")
 SSA_data = readdlm("Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
 SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
@@ -94,10 +94,10 @@ Dx = P2var(SSA_data)
 a_0 = 2Ex^2/(Dx-Ex)τ
 b_0 = (Dx-Ex)/2Ex
 
-kinetic_params0 = [a_0,b_0,0.25]
+kinetic_params0 = [a_0,b_0,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 3, MaxSteps = 150) #参数推断求解
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 200) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 # best_fitness(res)
 
@@ -152,17 +152,6 @@ Flux.mse(solution_inference,SSA_data)
 
 plot(0:N-1,solution_inference,lw=3,label="inference")
 plot!(0:N-1,SSA_data,lw=3,label="SSA",line=:dash)
-
-dataset = 3
-result_list[dataset]
-solution_inference_1 = check_inference(result_list[dataset])
-
-dataset = 4
-result_list[dataset]
-solution_inference_2 = check_inference(result_list[dataset])
-
-plot(0:N-1,solution_inference_1,lw=3,label="inference_1")
-plot!(0:N-1,solution_inference_2,lw=3,label="inference_2")
 
 # training data
 # set1
