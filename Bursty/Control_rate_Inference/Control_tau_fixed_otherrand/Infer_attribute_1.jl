@@ -57,7 +57,7 @@ log_value = log.(solution)
 
 # SSA data
 result_list = []
-set = 1
+set = 4
 width = "30-210"
 
 for dataset = 1:5
@@ -72,8 +72,8 @@ SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
 # b = (Dx-Ex)/2Ex
 
 function LogLikelihood(kinetic_params)
-    a = 0.0282
-    b = 3.46
+    a = 0.0232
+    b = 2.96
     Attribute = kinetic_params[1]
 
     df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
@@ -103,8 +103,8 @@ SearchRange = SRange, NumDimensions = 1, MaxSteps = 150) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 # best_fitness(res)
 
-α = 0.0282
-β = 3.46
+α = 0.0232
+β = 2.96
 Attribute = thetax[1]
 τ1 = (1-Attribute)*τ
 τ2 = 2τ-τ1
@@ -145,12 +145,13 @@ end
 
 set
 width
+result_list
 
 dataset = 1
 result_list[dataset]
 solution_inference = check_inference(result_list[dataset])
-solution_theoty = check_inference([0.0282,3.46,0.75])
-SSA_data = vec(readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:])
+solution_theoty = check_inference([0.0232,2.96,0.75])
+SSA_data = vec(readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/set$set/$(width).csv",',')[2:end,:])
 
 using Flux
 Flux.mse(solution_inference,SSA_data)

@@ -62,7 +62,7 @@ log_value = log.(solution)
 
 # SSA data
 result_list = []
-set = 1
+set = 4
 width = "60-180"
 
 for dataset = 1:5
@@ -77,8 +77,8 @@ SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
 # b = (Dx-Ex)/2Ex
 
 function LogLikelihood(kinetic_params)
-    a = 0.0282
-    b = 3.46
+    a = 0.0232
+    b = 2.96
 
     Attribute = kinetic_params[1]
 
@@ -133,8 +133,8 @@ df = DataFrame(result_list,:auto)
 CSV.write("temp_2.csv",df)
 
 function check_inference(kinetic_params)
-    a = kinetic_params[1]
-    b = kinetic_params[2]
+    a = 0.0232
+    b = 2.96
     Attribute = kinetic_params[3]
     # Attribute = 0.5
 
@@ -152,11 +152,11 @@ end
 set
 width
 
-dataset = 1
+dataset = 5
 result_list[dataset]
 solution_inference = check_inference(result_list[dataset])
-solution_theoty = check_inference([0.0282,3.46,0.5])
-SSA_data = vec(readdlm("Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:])
+solution_theoty = check_inference([0.0232,2.96,0.5])
+SSA_data = vec(readdlm("data/set$set/$(width).csv",',')[2:end,:])
 
 using Flux
 Flux.mse(solution_inference,SSA_data)
