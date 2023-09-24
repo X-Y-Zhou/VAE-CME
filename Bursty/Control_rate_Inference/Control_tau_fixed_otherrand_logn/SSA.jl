@@ -13,27 +13,27 @@ function convert_histo(data::Vector)
     return saved[:,1], saved[:,2]
 end
 
-# mean = 120
-# Uniform(0,240)   var = 4800  
-# Uniform(30,210)  var = 2700
-# Uniform(60,180)  var = 1200
-# Uniform(90,150)  var = 300
-# Uniform(120,120) var = 0    
+E(μ,σ) = exp(μ+σ^2/2)
+D(μ,σ) = (exp(σ^2)-1)*exp(2*μ+σ^2)
 
-E(a,b) = (a+b)/2
-D(a,b) = (a-b)^2/12
+μ_max = 4
 
-a = 0;b = 240
-a = 30;b = 210
-a = 60;b = 180
-a = 90;b = 150
-a = 120;b = 120
+μ = μ_max;σ = sqrt(0) # var = 0
+μ = 2;σ = sqrt(2) # var = 2577
+μ = 1;σ = sqrt(4) # var = 21623
+μ = 0;σ = sqrt(2*μ_max) # var = 162351
 
-a = 60;b = 60
+E(μ,σ) 
+D(μ,σ)
 
-Ex = E(a,b)
-Dx = D(a,b)
-L = 200
+# mean = 120+e^3
+# LogNormal(0,sqrt(6))+120
+# LogNormal(0.5,sqrt(5))+120
+# LogNormal(1.0,sqrt(4))+120
+# LogNormal(1.5,sqrt(3))+120
+# LogNormal(2.0,sqrt(2))+120
+# LogNormal(2.5,sqrt(1))+120
+# LogNormal(3.0,sqrt(0))+120 ~ τ=120+exp(3)
 
 # reaction rate
 set = 1
@@ -58,8 +58,7 @@ set = 1
 
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
-    # temp = rand(Uniform(a,b))
-    temp = 60
+    temp = rand(LogNormal(μ,σ))+70
     velo = L/temp
     return velo
 end
@@ -190,15 +189,18 @@ for i =1:size(solnet_people,1)
 end
 train_sol_people
 
-title = [join([a,"-",b])]
+title = [join([μ,"-",σ])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/set$set/$(a)-$(b).csv",df)
+CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/$(μ)-$(σ).csv",df)
 
+train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set1/4-0.0.csv",',')[2:end,:]
+train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set1/0-2.8284271247461903.csv",',')[2:end,:]
 
+plot(0:N,train_sol_1[:,end],lw=3,label="τ~LogNormal(4,0)+70")
+plot!(0:N,train_sol_2[:,end],lw=3,label="τ~LogNormal(0,sqrt(8))+70")
 
-
-plot(0:N,train_sol_people[:,end],lw=3,label=join(["τ~Uniform(",a,",",b,")"]))
-plot!(0:N,train_sol_people[:,end],lw=3,label=join(["τ~Uniform(",a,",",b,")"]))
+plot(0:N,train_sol_1[:,end],lw=3,label=join(["τ~LogNormal(",μ,",",σ,")"]))
+plot!(0:N,train_sol_2[:,end],lw=3,label=join(["τ~LogNormal(",μ,",",σ,")"]))
 
 plot!(0:N,train_sol_1[:,1],lw=3,label="car 120")
 plot!(0:N,bursty(N+1,120,0.0282,3.46),lw=3,line=:dash,label="exact-120")
@@ -213,7 +215,7 @@ function bursty(N,τ,a,b)
     end
     return P
 end;
-bursty(64,120,0.0182,2.96)
+bursty(64,120+exp(3),0.0282,3.46)
 
 train_sol = readdlm("Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
 train_sol_2 = readdlm("Bursty/Control_rate_Inference/control_tau/data/30-210.csv",',')[2:end,:]
