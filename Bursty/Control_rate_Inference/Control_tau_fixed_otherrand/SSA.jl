@@ -29,16 +29,14 @@ a = 60;b = 180
 a = 90;b = 150
 a = 120;b = 120
 
-a = 60;b = 60
-
 Ex = E(a,b)
 Dx = D(a,b)
 L = 200
 
 # reaction rate
-set = 1
-λ = 0.0282
-β = 3.46
+# set = 1
+# λ = 0.0282
+# β = 3.46
 
 # set2
 # λ = 0.0082
@@ -56,10 +54,18 @@ set = 1
 # λ = 0.0182
 # β = 2.96
 
+set = 6
+λ = 0.0082
+β = 3.46
+
+# set = 7
+# λ = 0.0282
+# β = 1.46
+
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
-    # temp = rand(Uniform(a,b))
-    temp = 60
+    temp = rand(Uniform(a,b))
+    # temp = 120
     velo = L/temp
     return velo
 end
@@ -213,7 +219,8 @@ function bursty(N,τ,a,b)
     end
     return P
 end;
-bursty(64,120,0.0182,2.96)
+
+bursty(64,120,λ,β)
 
 train_sol = readdlm("Bursty/Control_rate_Inference/control_tau/data/training_data.csv",',')[2:end,:]
 train_sol_2 = readdlm("Bursty/Control_rate_Inference/control_tau/data/30-210.csv",',')[2:end,:]
