@@ -23,6 +23,24 @@ include("../../../utils.jl")
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0     [0]
 
+# set6
+# mean = 120
+# α = 0.0082 β = 3.46 
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
+
+# set7
+# mean = 120
+# α = 0.0282 β = 1.46 
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
+
 #exact solution
 function bursty(N,a,b,τ)
     f(u) = exp(a*b*τ*u/(1-b*u));
