@@ -14,28 +14,43 @@ function convert_histo(data::Vector)
 end
 
 # mean = 180
-# Uniform(0,360)    var = 10800  
-# Uniform(45,315)   var = 6075
-# Uniform(90,270)   var = 2700
-# Uniform(135,225)  var = 675
-# Uniform(180,180)  var = 0    
+# Erlang(0,360)    var = 10800
+# Erlang(0,360)    var = 10800  
+# Erlang(0,360)    var = 10800  
+# Erlang(0,360)    var = 10800  
+# Erlang(0,360)    var = 10800  
 
 E(a,b) = a/b
 D(a,b) = a/b^2
 
-a = 16;b = 8
-a = 12;b = 6
-a = 8;b = 4
-a = 4;b = 2
-a = 2;b = 1
+a = 1200;b = 0.1
+a = 600;b = 0.2
+a = 150;b = 0.8
+a = 75;b = 1.6
 
-plot(Erlang(a,b))
+a = 30;b = 4  # var = 480
+a = 20;b = 6  # var = 720
+a = 10;b = 12 # var = 1440
+a = 5;b = 24  # var = 2880
+a = 2;b = 60  # var = 7200
+a = 1;b = 120 # var = 14400
+
+mean(Erlang(a,b))
+var(Erlang(a,b))
+
+plot!(Erlang(a,b),label=[a,b])
 rand(Erlang(a,b))
 
-Ex = E(a,b)
-Dx = D(a,b)
 L = 200
 
+ab_list = [[1200,0.1],[600,0.2],[150,0.8],[75,1.6],[30,4],[10,12],[1,120]]
+
+ab_list = [[30,4],[20,6],[10,12],[5,24],[2,60],[1,120]]
+
+for temp_ab in ab_list
+print(temp_ab,"\n")
+a = Int(temp_ab[1])
+b = temp_ab[2]
 # reaction rate
 set = 1
 λ = 0.0282
@@ -187,10 +202,11 @@ for i =1:size(solnet_people,1)
 end
 train_sol_people
 
-using DataFrames
+using DataFrames,CSV
 title = [join([a,"-",b])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
 CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(a)-$(b).csv",df)
+end
 
 bursty(N,0.0282,3.46,180)
 
@@ -211,17 +227,22 @@ function bursty(N,τ,a,b)
 end;
 bursty(64,120,0.0182,2.46)
 
-train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand2/data/set1/0-360.csv",',')[2:end,:]
-train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand2/data/set1/45-315.csv",',')[2:end,:]
-train_sol_3 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand2/data/set1/90-270.csv",',')[2:end,:]
-train_sol_4 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand2/data/set1/135-225.csv",',')[2:end,:]
-train_sol_5 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand2/data/set1/180-180.csv",',')[2:end,:]
+train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/1-120.csv",',')[2:end,:]
+train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/2-60.csv",',')[2:end,:]
+train_sol_3 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/5-24.csv",',')[2:end,:]
+train_sol_4 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/10-12.csv",',')[2:end,:]
+train_sol_5 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/20-6.csv",',')[2:end,:]
+train_sol_6 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/30-4.csv",',')[2:end,:]
+train_sol_7 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/1-120.0.csv",',')[2:end,:]
 
-plot(0:N,vec(train_sol_1),lw=3,label="car 1")
-plot!(0:N,vec(train_sol_2),lw=3,label="car 2")
-plot!(0:N,vec(train_sol_3),lw=3,label="car 3")
-plot!(0:N,vec(train_sol_4),lw=3,label="car 4")
-plot!(0:N,vec(train_sol_5),lw=3,label="car 5")
+
+p1 = plot(0:N,vec(train_sol_1),lw=3,label="Erlang(1200,0.1),var=1.2")
+p2 = plot!(0:N,vec(train_sol_2),lw=3,label="Erlang(1,120),var=14400")
+p3 = plot!(0:N,vec(train_sol_3),lw=3,label="Uniform(120,120),var=0")
+p4 = plot!(0:N,vec(train_sol_4),lw=3,label="Uniform(0,240),var=4800")
+p5 = plot!(0:N,vec(train_sol_5),lw=3,label="car 5")
+p6 = plot!(0:N,vec(train_sol_6),lw=3,label="car 5")
+plot(p1,p2,p3,p4,p5,layouts=(1,5),size=(1500,300))
 
 train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/set1/0-240.csv",',')[2:end,:]
 train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/set1/30-210.csv",',')[2:end,:]
