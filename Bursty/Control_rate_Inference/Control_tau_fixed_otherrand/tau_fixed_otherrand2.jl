@@ -7,17 +7,41 @@ include("../../../utils.jl")
 # training data
 # set1
 # mean = 120
-# α = 0.0282 β = 3.46
+# α = 0.0282 β = 3.46 
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
 
-# Erlang(a,b)
-# a = 30;b = 4  # var = 480
-# a = 20;b = 6  # var = 720
-# a = 10;b = 12 # var = 1440
-# a = 5;b = 24  # var = 2880
-# a = 2;b = 60  # var = 7200
-# a = 1;b = 120 # var = 14400
+# set2
+# mean = 120
+# α = 0.0082 β = 1.46 
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
 
-# exact solution
+# set6
+# mean = 120
+# α = 0.0082 β = 3.46 
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
+
+# set7
+# mean = 120
+# α = 0.0282 β = 1.46 
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
+
+#exact solution
 function bursty(N,a,b,τ)
     f(u) = exp(a*b*τ*u/(1-b*u));
     taylorexpand = taylor_expand(x->f(x),-1,order=N);
@@ -28,16 +52,19 @@ function bursty(N,a,b,τ)
     return P
 end;
 
-a = 0.0282;
+a = 0.0082;
 b = 3.46;
 τ = 120;
 
-N = 81
+N = 65
 
-train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/1-120.csv",',')[2:end,:]
-train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/30-4.csv",',')[2:end,:]
+bursty(N,a,b,τ)
 
-ab_list = [[0.0282,3.46]]
+data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
+train_sol_1 = data[:,[1,6,11,16]]
+train_sol_2 = data[:,[5,10,15,20]]
+
+ab_list = [[0.0282,3.46],[0.0082,1.46],[0.0082,3.46],[0.0282,1.46]]
 l_ablist = length(ab_list)
 
 # model initialization
@@ -50,8 +77,7 @@ params1, re1 = Flux.destructure(encoder);
 params2, re2_1 = Flux.destructure(decoder_1);
       _, re2_2 = Flux.destructure(decoder_2);
 ps = Flux.params(params1,params2);
-params1
-params2
+
 #CME 4800~1
 function f1!(x,p1,p2,a,b,ϵ)
     h = re1(p1)(x)
@@ -119,7 +145,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 1000000000
+λ = 10000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -131,7 +157,7 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.001;  #lr需要操作一下的
+lr = 0.002;  #lr需要操作一下的
 opt= ADAM(lr);
 epochs = 40
 epochs_all = epochs_all + epochs
@@ -154,7 +180,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",df)
+        CSV.write("Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo2.csv",df)
         mse_min[1] = mse
     end
 
@@ -165,10 +191,10 @@ end
 mse_list
 mse_min 
 
-# mse_min = [0.00031384265351741954]
+# mse_min = [0.0013296720752306824]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -192,8 +218,14 @@ end
 
 function plot_all()
     p1 = plot_distribution_1(1)
-    p2 = plot_distribution_2(1)
-    plot(p1,p2,layouts=(1,2),size=(800,400))
+    p2 = plot_distribution_1(2)
+    p3 = plot_distribution_1(3)
+    p4 = plot_distribution_1(4)
+    p5 = plot_distribution_2(1)
+    p6 = plot_distribution_2(2)
+    p7 = plot_distribution_2(3)
+    p8 = plot_distribution_2(4)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,layouts=(2,4),size=(1600,800))
 end
 plot_all()
 
@@ -228,50 +260,7 @@ Attribute = -τ1/τ+1
 a = 0.0282
 b = 3.46
 ϵ = zeros(latent_size)
-
-Attribute = 0.8
-x1 = 2
-x2 = 60
 P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
-check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/$(x1)-$(x2).csv",',')[2:end,:]
-
-plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,vec(check_sol),linewidth = 3,label=[x1,x2],line=:dash)
-
-Attribute = 0.55
-P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
-check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/10-12.csv",',')[2:end,:]
-
-plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,vec(check_sol),linewidth = 3,label="exact",line=:dash,title="Erlang(10,12)")
-
-
-Attribute = 0
-plot(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of products", ylabel = "\n Probability",label=Attribute)
-Attribute = 0.1
-plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of products", ylabel = "\n Probability",label=Attribute)
-Attribute = 0.2
-plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of products", ylabel = "\n Probability",label=Attribute)
-Attribute = 0.4
-plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of products", ylabel = "\n Probability",label=Attribute)
-Attribute = 0.6
-plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of products", ylabel = "\n Probability",label=Attribute)
-Attribute = 0.8
-plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of products", ylabel = "\n Probability",label=Attribute)
-Attribute = 1.0
-plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of products", ylabel = "\n Probability",label=Attribute)
-
-
-x1 = 20
-x2 = 6
-check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/$(x1)-$(x2).csv",',')[2:end,:]
-plot!(0:N-1,vec(check_sol),linewidth = 3,label=[x1,x2],line=:dash)
-
-
-x_temp = [1,2,5,10,20,30]
-x_temp.^-0.5
-y_temp = [1,0.8,0.4,0.2,0.1,0]
-plot(x_temp.^-0.5,y_temp)
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
 b_list_pre = [1.46,1.96,2.46,2.96,3.46]
@@ -390,7 +379,7 @@ plot_all()
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0 
 
-check_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
+check_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
 check_data[:,1:5]
 check_data[:,6:10]
 
