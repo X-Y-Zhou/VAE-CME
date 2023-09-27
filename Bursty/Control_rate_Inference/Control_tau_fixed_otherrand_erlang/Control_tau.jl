@@ -32,7 +32,7 @@ a = 0.0282;
 b = 3.46;
 τ = 120;
 
-N = 65
+N = 81
 
 train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/1-120.csv",',')[2:end,:]
 train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/30-4.csv",',')[2:end,:]
@@ -50,7 +50,8 @@ params1, re1 = Flux.destructure(encoder);
 params2, re2_1 = Flux.destructure(decoder_1);
       _, re2_2 = Flux.destructure(decoder_2);
 ps = Flux.params(params1,params2);
-
+params1
+params2
 #CME 4800~1
 function f1!(x,p1,p2,a,b,ϵ)
     h = re1(p1)(x)
@@ -118,7 +119,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000
+λ = 100000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -153,7 +154,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",df)
         mse_min[1] = mse
     end
 
@@ -164,10 +165,10 @@ end
 mse_list
 mse_min 
 
-mse_min = [2.6634592951590713e-6]
+# mse_min = [0.00031384265351741954]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);

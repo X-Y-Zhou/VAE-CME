@@ -20,9 +20,6 @@ end
 # Erlang(0,360)    var = 10800  
 # Erlang(0,360)    var = 10800  
 
-E(a,b) = a/b
-D(a,b) = a/b^2
-
 a = 1200;b = 0.1
 a = 600;b = 0.2
 a = 150;b = 0.8
@@ -43,7 +40,7 @@ rand(Erlang(a,b))
 
 L = 200
 
-ab_list = [[1200,0.1],[600,0.2],[150,0.8],[75,1.6],[30,4],[10,12],[1,120]]
+# ab_list = [[1200,0.1],[600,0.2],[150,0.8],[75,1.6],[30,4],[10,12],[1,120]]
 
 ab_list = [[30,4],[20,6],[10,12],[5,24],[2,60],[1,120]]
 
@@ -160,7 +157,7 @@ tmax = maximum(saveat)
 n_cars_timepoints = [[] for i=1:length(saveat)]
 n_people_timepoints = [[] for i=1:length(saveat)]
 
-trajectories = 100000
+trajectories = 500000
 @time for i =1:trajectories
     if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
@@ -190,7 +187,7 @@ solnet_people
 
 maximum(solnet_people)
 
-N = 64
+N = 80
 train_sol_people = zeros(N+1,size(solnet_people,1))
 for i =1:size(solnet_people,1)
     probability = convert_histo(vec(solnet_people[i,:]))[2]
