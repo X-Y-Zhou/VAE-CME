@@ -17,8 +17,6 @@ include("../../../utils.jl")
 # a = 2; b = 60  # var = 7200  [0.8]
 # a = 1; b = 120 # var = 14400 [1]
 
-plot!(Erlang(a,b))
-
 # exact solution
 function bursty(N,a,b,τ)
     f(u) = exp(a*b*τ*u/(1-b*u));
@@ -170,7 +168,7 @@ mse_min
 # mse_min = [0.00031384265351741954]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -246,10 +244,10 @@ end
 
 function plot_all()
     p1 = plot_one(1,120,1)
-    p2 = plot_one(2,60,0.8)
-    p3 = plot_one(5,24,0.4)
-    p4 = plot_one(10,12,0.2)
-    p5 = plot_one(20,6,0.1)
+    p2 = plot_one(2,60,0.79)
+    p3 = plot_one(5,24,0.52)
+    p4 = plot_one(10,12,0.32)
+    p5 = plot_one(20,6,0.12)
     p6 = plot_one(30,4,0)
     plot(p1,p2,p3,p4,p5,p6,layout=(2,3),size=(1100,600))
 end
@@ -289,11 +287,15 @@ plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of p
 # a = 1; b = 120 # var = 14400 [1]
 
 x_temp = [1,2,5,10,20,30]
-x_temp = x_temp.^-1
+x_temp_log = log.(x_temp)
 y_temp = [1,0.8,0.4,0.2,0.1,0]
+y_temp_theory = (-1/log(30)).*(log.(x_temp)).+1
 
-plot(x_temp,y_temp,xlabel="a^-1",ylabel="Attribute")
+plot(x_temp_log,y_temp,xlabel="a^-1",ylabel="Attribute")
+plot!(x_temp_log,y_temp_theory)
 scatter!(x_temp,y_temp)
+
+
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
 b_list_pre = [1.46,1.96,2.46,2.96,3.46]
