@@ -13,17 +13,13 @@ function convert_histo(data::Vector)
     return saved[:,1], saved[:,2]
 end
 
-# mean = 180
-# Erlang(0,360)    var = 10800
-# Erlang(0,360)    var = 10800  
-# Erlang(0,360)    var = 10800  
-# Erlang(0,360)    var = 10800  
-# Erlang(0,360)    var = 10800  
-
-a = 1200;b = 0.1
-a = 600;b = 0.2
-a = 150;b = 0.8
-a = 75;b = 1.6
+# Erlang(a,b)
+# a = 30;b = 4   # var = 480   [0]    [0]
+# a = 20;b = 6   # var = 720   [0.1]  [0.1192]
+# a = 10;b = 12  # var = 1440  [0.2]  [0.3230]
+# a = 5; b = 24  # var = 2880  [0.4]  [0.5268]
+# a = 2; b = 60  # var = 7200  [0.8]  [0.7962]
+# a = 1; b = 120 # var = 14400 [1]    [1]
 
 a = 30;b = 4  # var = 480
 a = 20;b = 6  # var = 720
@@ -32,17 +28,12 @@ a = 5;b = 24  # var = 2880
 a = 2;b = 60  # var = 7200
 a = 1;b = 120 # var = 14400
 
-mean(Erlang(a,b))
-var(Erlang(a,b))
-
-plot!(Erlang(a,b),label=[a,b])
-rand(Erlang(a,b))
 
 L = 200
 
 # ab_list = [[1200,0.1],[600,0.2],[150,0.8],[75,1.6],[30,4],[10,12],[1,120]]
 
-ab_list = [[30,4],[20,6],[10,12],[5,24],[2,60],[1,120]]
+ab_list = [[20,6],[10,12],[5,24],[2,60]]
 
 for temp_ab in ab_list
 print(temp_ab,"\n")
@@ -157,7 +148,7 @@ tmax = maximum(saveat)
 n_cars_timepoints = [[] for i=1:length(saveat)]
 n_people_timepoints = [[] for i=1:length(saveat)]
 
-trajectories = 500000
+trajectories = 5000
 @time for i =1:trajectories
     if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
@@ -202,8 +193,9 @@ train_sol_people
 using DataFrames,CSV
 title = [join([a,"-",b])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(a)-$(b).csv",df)
+CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(a)-$(b).csv",df)
 end
+
 
 bursty(N,0.0282,3.46,180)
 
