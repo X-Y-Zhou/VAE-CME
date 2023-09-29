@@ -10,12 +10,14 @@ include("../../../utils.jl")
 # α = 0.0282 β = 3.46
 
 # Erlang(a,b)
-# a = 30;b = 4  # var = 480
-# a = 20;b = 6  # var = 720
-# a = 10;b = 12 # var = 1440
-# a = 5;b = 24  # var = 2880
-# a = 2;b = 60  # var = 7200
-# a = 1;b = 120 # var = 14400
+# a = 30;b = 4   # var = 480   [0]
+# a = 20;b = 6   # var = 720   [0.1]
+# a = 10;b = 12  # var = 1440  [0.2]
+# a = 5; b = 24  # var = 2880  [0.4]
+# a = 2; b = 60  # var = 7200  [0.8]
+# a = 1; b = 120 # var = 14400 [1]
+
+plot!(Erlang(a,b))
 
 # exact solution
 function bursty(N,a,b,τ)
@@ -119,7 +121,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 1000000000
+λ = 5000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -182,12 +184,12 @@ mse = mse_1+mse_2
 
 function plot_distribution_1(set)
     plot(0:N-1,solution_1[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 4800"]),line=:dash)
+    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 14400"]),line=:dash)
 end
 
 function plot_distribution_2(set)
     plot(0:N-1,solution_2[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 0"]),line=:dash)
+    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 480"]),line=:dash)
 end
 
 function plot_all()
@@ -232,11 +234,28 @@ b = 3.46
 Attribute = 0.8
 x1 = 2
 x2 = 60
-P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
-check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/$(x1)-$(x2).csv",',')[2:end,:]
 
-plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,vec(check_sol),linewidth = 3,label=[x1,x2],line=:dash)
+function plot_one(x1,x2,Attribute)
+    P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
+    check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/$(x1)-$(x2).csv",',')[2:end,:]
+
+    p = plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,vec(check_sol),linewidth = 3,label="SSA",line=:dash,title=join(["Erlang(",x1,",",x2,")"," Attribute=",Attribute]))
+    return p
+end
+
+function plot_all()
+    p1 = plot_one(1,120,1)
+    p2 = plot_one(2,60,0.8)
+    p3 = plot_one(5,24,0.4)
+    p4 = plot_one(10,12,0.2)
+    p5 = plot_one(20,6,0.1)
+    p6 = plot_one(30,4,0)
+    plot(p1,p2,p3,p4,p5,p6,layout=(2,3),size=(1100,600))
+end
+plot_all()
+
+
 
 Attribute = 0.55
 P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
@@ -261,17 +280,20 @@ plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of p
 Attribute = 1.0
 plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of products", ylabel = "\n Probability",label=Attribute)
 
-
-x1 = 20
-x2 = 6
-check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/$(x1)-$(x2).csv",',')[2:end,:]
-plot!(0:N-1,vec(check_sol),linewidth = 3,label=[x1,x2],line=:dash)
-
+# Erlang(a,b)
+# a = 30;b = 4   # var = 480   [0]
+# a = 20;b = 6   # var = 720   [0.1]
+# a = 10;b = 12  # var = 1440  [0.2]
+# a = 5; b = 24  # var = 2880  [0.4]
+# a = 2; b = 60  # var = 7200  [0.8]
+# a = 1; b = 120 # var = 14400 [1]
 
 x_temp = [1,2,5,10,20,30]
-x_temp.^-0.5
+x_temp = x_temp.^-1
 y_temp = [1,0.8,0.4,0.2,0.1,0]
-plot(x_temp.^-0.5,y_temp)
+
+plot(x_temp,y_temp,xlabel="a^-1",ylabel="Attribute")
+scatter!(x_temp,y_temp)
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
 b_list_pre = [1.46,1.96,2.46,2.96,3.46]

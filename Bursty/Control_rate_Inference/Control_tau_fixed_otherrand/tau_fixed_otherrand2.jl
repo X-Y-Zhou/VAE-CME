@@ -52,8 +52,8 @@ function bursty(N,a,b,τ)
     return P
 end;
 
-a = 0.0082;
-b = 3.46;
+a = 0.0282;
+b = 1.46;
 τ = 120;
 
 N = 65
@@ -141,11 +141,11 @@ function loss_func_2(p1,p2,ϵ)
 end
 
 function loss_func(p1,p2,ϵ)
-    loss = loss_func_1(p1,p2,ϵ) + loss_func_2(p1,p2,ϵ)
+    loss = loss_func_1(p1,p2,ϵ) + 2*loss_func_2(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000000
+λ = 50000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -157,7 +157,7 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.002;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 opt= ADAM(lr);
 epochs = 40
 epochs_all = epochs_all + epochs
