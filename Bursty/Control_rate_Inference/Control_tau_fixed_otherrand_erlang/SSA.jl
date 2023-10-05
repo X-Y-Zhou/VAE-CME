@@ -34,6 +34,7 @@ L = 200
 # ab_list = [[1200,0.1],[600,0.2],[150,0.8],[75,1.6],[30,4],[10,12],[1,120]]
 
 ab_list = [[20,6],[10,12],[5,24],[2,60]]
+ab_list = [[25,4.8],[15,8],[8,15],[4,30],[3,40]]
 
 for temp_ab in ab_list
 print(temp_ab,"\n")
@@ -148,7 +149,7 @@ tmax = maximum(saveat)
 n_cars_timepoints = [[] for i=1:length(saveat)]
 n_people_timepoints = [[] for i=1:length(saveat)]
 
-trajectories = 5000
+trajectories = 500000
 @time for i =1:trajectories
     if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
@@ -193,7 +194,7 @@ train_sol_people
 using DataFrames,CSV
 title = [join([a,"-",b])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(a)-$(b).csv",df)
+CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(a)-$(b).csv",df)
 end
 
 

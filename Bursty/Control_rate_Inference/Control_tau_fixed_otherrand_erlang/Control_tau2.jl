@@ -18,6 +18,16 @@ include("../../../utils.jl")
 # a = 2; b = 60  # var = 7200      [0.7962]
 # a = 1; b = 120 # var = 14400     [1]
 
+# a = 25; b = 4.8  # var = 576    [0.0536]
+# a = 15; b = 8  # var = 960      [0.2038]
+# a = 8;  b = 15 # var = 1800     [0.3886]
+# a = 4;  b = 30 # var = 3600     [0.5924]
+# a = 3;  b = 40 # var = 4800     [0.6770]
+
+a = 3
+Attribute = (-1/log(30))*(log(a)).+1
+
+
 # exact solution
 function bursty(N,a,b,τ)
     f(u) = exp(a*b*τ*u/(1-b*u));
@@ -150,7 +160,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 5000000000
+λ = 50000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -162,7 +172,7 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.01;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 opt= ADAM(lr);
 epochs = 40
 epochs_all = epochs_all + epochs
@@ -198,10 +208,10 @@ end
 mse_list
 mse_min 
 
-mse_min = [1.9496225655717726e-6]
+# mse_min = [1.9496225655717726e-6]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -278,7 +288,7 @@ function plot_one(x1,x2,Attribute)
     P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
     check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/$(x1)-$(x2).csv",',')[2:end,:]
 
-    p = plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    p = plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
     plot!(0:N-1,vec(check_sol),linewidth = 3,label="SSA",line=:dash,title=join(["Erlang(",x1,",",x2,")"," Attribute=",Attribute]))
     return p
 end
@@ -286,11 +296,15 @@ end
 function plot_all()
     p1 = plot_one(1,120,1)
     p2 = plot_one(2,60,0.79)
-    p3 = plot_one(5,24,0.52)
-    p4 = plot_one(10,12,0.32)
-    p5 = plot_one(20,6,0.12)
-    p6 = plot_one(30,4,0)
-    plot(p1,p2,p3,p4,p5,p6,layout=(2,3),size=(1100,600))
+    p3 = plot_one(3,40,0.68)
+    p4 = plot_one(4,30,0.59)
+    p5 = plot_one(5,24,0.52)
+    p6 = plot_one(8,15,0.39)
+    p7 = plot_one(10,12,0.32)
+    p8 = plot_one(15,8,0.20)
+    p9 = plot_one(20,6,0.12)
+    p10 = plot_one(30,4,0)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layout=(2,5),size=(1500,600))
 end
 plot_all()
 
