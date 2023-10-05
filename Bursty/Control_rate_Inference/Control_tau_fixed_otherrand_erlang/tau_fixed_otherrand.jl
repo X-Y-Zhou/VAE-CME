@@ -14,33 +14,6 @@ include("../../../utils.jl")
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0     [0]
 
-# set2
-# mean = 120
-# α = 0.0082 β = 1.46 
-# Uniform(0,240)   var = 4800  [1]
-# Uniform(30,210)  var = 2700
-# Uniform(60,180)  var = 1200
-# Uniform(90,150)  var = 300
-# Uniform(120,120) var = 0     [0]
-
-# set6
-# mean = 120
-# α = 0.0082 β = 3.46 
-# Uniform(0,240)   var = 4800  [1]
-# Uniform(30,210)  var = 2700
-# Uniform(60,180)  var = 1200
-# Uniform(90,150)  var = 300
-# Uniform(120,120) var = 0     [0]
-
-# set7
-# mean = 120
-# α = 0.0282 β = 1.46 
-# Uniform(0,240)   var = 4800  [1]
-# Uniform(30,210)  var = 2700
-# Uniform(60,180)  var = 1200
-# Uniform(90,150)  var = 300
-# Uniform(120,120) var = 0     [0]
-
 #exact solution
 function bursty(N,a,b,τ)
     f(u) = exp(a*b*τ*u/(1-b*u));
@@ -52,11 +25,27 @@ function bursty(N,a,b,τ)
     return P
 end;
 
-a = 0.0282;
-b = 3.46;
+a = 0.1
+b = 140
 τ = 120;
 
-N = 65
+N = 1000
+
+P_temp = bursty(N,a,b,τ)
+plot(0:N-1,P_temp)
+
+
+plot(0:N-1,bursty(1000,0.001,140,τ))
+plot!(0:N-1,bursty(1000,0.005,b,τ))
+plot(0:N-1,bursty(1000,0.01,b,τ))
+plot(0:N-1,bursty(1000,0.05,b,τ))
+plot(0:4999,bursty(5000,0.1,b,τ))
+
+plot(0:N-1,bursty(1000,0.05,3,τ))
+plot!(0:N-1,bursty(1000,0.05,10,τ))
+plot!(0:N-1,bursty(1000,0.05,50,τ))
+plot!(0:N-1,bursty(1000,0.05,70,τ))
+
 
 ab_list = [[0.0001,0.5],[0.0001,2.5],[0.01,0.5],[0.01,2.5]]
 i = 4

@@ -11,7 +11,7 @@ N = 81
 τ = 120
 
 # Simulation data
-# SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set1/30-210_1.csv",',')[2:end,:]
+# SSA_data = readdlm("Inference_data/set1/30-210_1.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -38,7 +38,7 @@ function f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ)
 end
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+df = CSV.read("params_ct2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -58,11 +58,11 @@ log_value = log.(solution)
 # SSA data
 result_list = []
 set = 1
-width = "2-60"
+width = "20-6"
 
 for dataset = 1:5
 print(dataset,"\n")
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
 SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
 
 # Ex = P2mean(SSA_data)
@@ -76,7 +76,7 @@ function LogLikelihood(kinetic_params)
     b = 3.46
     Attribute = kinetic_params[1]
 
-    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+    df = CSV.read("params_ct2.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
@@ -96,7 +96,7 @@ end
 
 # LogLikelihood(kinetic_params0)
 
-kinetic_params0 = [0.8]
+kinetic_params0 = [0.1]
 SRange = [(0,1)]
 res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
 SearchRange = SRange, NumDimensions = 1, MaxSteps = 150) #参数推断求解
@@ -123,7 +123,7 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/temp_1.csv",df)
+CSV.write("temp_4.csv",df)
 
 function check_inference(kinetic_params)
     a = kinetic_params[1]
@@ -131,7 +131,7 @@ function check_inference(kinetic_params)
     Attribute = kinetic_params[3]
     # Attribute = 0.75
 
-    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+    df = CSV.read("params_ct2.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
@@ -150,7 +150,7 @@ dataset = 1
 result_list[dataset]
 solution_inference = check_inference(result_list[dataset])
 solution_theoty = check_inference([0.0232,2.96,0.75])
-SSA_data = vec(readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:])
+SSA_data = vec(readdlm("data/set$set/$(width).csv",',')[2:end,:])
 
 using Flux
 Flux.mse(solution_inference,SSA_data)

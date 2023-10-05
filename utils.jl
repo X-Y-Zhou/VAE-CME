@@ -64,6 +64,8 @@ P2sm(P) = [P[i] * (i-1)^2 for i in 1:length(P)] |> sum
 # normalization
 function set_one(vec)
     vec = abs.(vec)
-    vec = vec./sum(vec)
+    while sum(vec)>1
+        vec = vec./sum(vec)
+    end
     return vec
 end

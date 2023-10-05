@@ -1,7 +1,7 @@
 using Flux, DiffEqSensitivity, DifferentialEquations
 using Distributions, Distances
 using DelimitedFiles, Plots,CSV,DataFrames
-using BlackBoxOptim
+using BlackBoxOptim,OptimalTransport
 
 include("../../../utils.jl")
 
@@ -9,9 +9,6 @@ a = 0.0282
 b = 3.46
 N = 81
 τ = 120
-
-# Simulation data
-# SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set1/30-210_1.csv",',')[2:end,:]
 
 # model initialization
 latent_size = 10;
@@ -40,8 +37,7 @@ end
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
 params1 = df.params1
-params2 = df.params2[1:length(params2)]
-ps = Flux.params(params1,params2);
+params2 = df.params2[1:length_2]
 
 P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
 P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
@@ -51,66 +47,71 @@ Attribute = 0
 ϵ = zeros(latent_size)
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-sample_size = 5000
-solution = set_one(solution)
-log_value = log.(solution)
+# sample_size = 5000
+# solution = set_one(solution)
+# log_value = log.(solution)
 
-# SSA data
-result_list = []
-set = 1
-width = "20-6"
-
-@time for dataset = [1,2,3,4,5]
-print(dataset,"\n")    
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
-SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
-
-function LogLikelihood(kinetic_params)
+function Objective_func(kinetic_params)
     a = kinetic_params[1]
     b = kinetic_params[2]
-    Attribute = kinetic_params[3]
-
-    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
-    params1 = df.params1
-    params2 = df.params2[1:length_2]
+    Attribute = 0.3230
 
     ϵ = zeros(latent_size)
     P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
     P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
     solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
-    # loglikelihood_value = Flux.mse(solution,SSA_data[:,i])
+    # solution = set_one(solution)
+    # SSA_data1 = vec(Float64.(SSA_data))
+    # μ = Categorical(vcat(SSA_data1,1-sum(SSA_data1)))
+    # ν = Categorical(vcat(solution,1-sum(solution)))
+    # Objective_value = ot_cost(sqeuclidean, μ, ν)
 
-    solution = set_one(solution)
-    log_value = log.(solution)
-    loglikelihood_value = -sum(SSA_timepoints.*log_value)/sample_size
+    Objective_value = Flux.mse(solution,SSA_data)
 
-    return loglikelihood_value
+    # solution = set_one(solution)
+    # log_value = log.(solution)
+    # loglikelihood_value = -sum(SSA_timepoints.*log_value)/sample_size
+
+    return Objective_value
 end
 
-Ex = P2mean(SSA_data)
-Dx = P2var(SSA_data)
+# SSA data
+result_list = []
+set = 1
+width = "10-12"
 
-a_0 = 2Ex^2/(Dx-Ex)τ
-b_0 = (Dx-Ex)/2Ex
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
 
-kinetic_params0 = [a_0,b_0,0.12]
-SRange = [(0,0.06),(0,6),(0,1)]
-res = bboptimize(LogLikelihood,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 3, MaxSteps = 200) #参数推断求解
+@time for dataset = [3,3,3,3,3]
+print(dataset,"\n")    
+# SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
+# SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
+
+# Ex = P2mean(SSA_data)
+# Dx = P2var(SSA_data)
+
+# a_0 = 2Ex^2/(Dx-Ex)τ
+# b_0 = (Dx-Ex)/2Ex
+
+kinetic_params0 = [0.0282,3.46]
+SRange = [(0,0.06),(0,6)]
+res = bboptimize(Objective_func,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
+SearchRange = SRange, NumDimensions = 2, MaxSteps = 200) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
-# best_fitness(res)
 
 α = thetax[1]
 β = thetax[2]
-Attribute = thetax[3]
+Attribute = 0.3230
 
-x1 = exp((1-Attribute)*log(30))
+x1 = Int(round(exp((1-Attribute)*log(30)),digits=0))
 x2 = τ/x1
-distribution = Erlang(Int(round(x1,digits=0)),x2)
+distribution = Erlang(x1,x2)
 variance = var(distribution)
+bestfitness = best_fitness(res)
 
-push!(result_list,[α,β,Attribute,x1,x2,variance])
+push!(result_list,[α,β,Attribute,x1,x2,variance,bestfitness])
 end
 
 result_list
@@ -122,7 +123,7 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/temp_1.csv",df)
+CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/temp_2.csv",df)
 
 function check_inference(kinetic_params)
     a = kinetic_params[1]
@@ -139,31 +140,21 @@ function check_inference(kinetic_params)
     solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
     return solution
 end
-using Flux
 
+using Flux
 set
 width
 result_list
 
-dataset = 5
+dataset = 2
 result_list[dataset]
 solution_inference = check_inference(result_list[dataset])
 SSA_data = vec(readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:])
-Flux.mse(solution_inference_1,SSA_data)
+Flux.mse(solution_inference,SSA_data)
 
 plot(0:N-1,solution_inference,lw=3,label="inference")
 plot!(0:N-1,SSA_data,lw=3,label="SSA",line=:dash)
 
-dataset = 4
-result_list[dataset]
-solution_inference_1 = check_inference(result_list[dataset])
-
-dataset = 1
-result_list[dataset]
-solution_inference_2 = check_inference(result_list[dataset])
-
-plot(0:N-1,solution_inference_1,lw=3,label="inference_1")
-plot!(0:N-1,solution_inference_2,lw=3,label="inference_2")
 
 # Erlang(a,b)
 # a = 30;b = 4   # var = 480   [0]    [0]
@@ -172,20 +163,5 @@ plot!(0:N-1,solution_inference_2,lw=3,label="inference_2")
 # a = 5; b = 24  # var = 2880  [0.4]  [0.5268]
 # a = 2; b = 60  # var = 7200  [0.8]  [0.7962]
 # a = 1; b = 120 # var = 14400 [1]    [1]
-
-ratio_1 = vec([0.109579055	0.556445614	0.326641891	0.307330316	0.015693066])
-ratio_2 = vec([0.075949743	1.714033248	0.294608006	2.32722465	1.970046557])
-ratio_3 = vec([0.674024417	13.6231843	0.448051408	1.888556556	0.239288549])
-x = [1,2,3,4,5]
-y = [1,1,1,1,1]
-
-p1 = plot(x,y,lw=3)
-plot!(x,ratio_1,line=:dash,lw=3,size=(1200,300),ylims=(0,3))
-
-p2 = plot(x,y,lw=3)
-plot!(x,ratio_2,line=:dash,lw=3,size=(1200,300),ylims=(0,3))
-
-p3 = plot(x,y,lw=3)
-plot!(x,ratio_3,line=:dash,lw=3,size=(1200,300),ylims=(0,3))
-
-plot(p1,p2,p3,layouts=(1,3))
+solution
+sum(set_one(solution))
