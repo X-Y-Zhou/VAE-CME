@@ -1,6 +1,8 @@
 分子截断数设置为81，params_ct是81的训练参数，训练代码是Control_tau, 仅有0和1的情况
 分子截断数设置为81，params_ct2是81的训练参数，训练代码是Control_tau2, 有0、1、0.5268的情况
-分子截断数设置为81，params_ct3是81的训练参数，训练代码是Control_tau3, 有0、1的情况,但是a最大设置为3000
+# 分子截断数设置为81，params_ct3是81的训练参数，训练代码是Control_tau3, 有0、1的情况,但是a最大设置为3000
+分子截断数设置为81，params_cto是81的训练参数，训练代码是tau_fixed_otherrand, 仅有0和1的情况,多组alpha和beta的情况
+
 
 # training data
 # set1

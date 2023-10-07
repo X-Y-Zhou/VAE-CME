@@ -7,12 +7,28 @@ include("../../../utils.jl")
 # training data
 # set1
 # mean = 120
-# α = 0.0282 β = 3.46 
-# Uniform(0,240)   var = 4800  [1]
-# Uniform(30,210)  var = 2700
-# Uniform(60,180)  var = 1200
-# Uniform(90,150)  var = 300
-# Uniform(120,120) var = 0     [0]
+# α = 0.0282 β = 3.46
+
+# Erlang(a,b)
+# a = 30;b = 4   # var = 480       [0]
+# a = 20;b = 6   # var = 720       [0.1192]
+# a = 10;b = 12  # var = 1440      [0.3230]
+# a = 5; b = 24  # var = 2880      [0.5268]
+# a = 2; b = 60  # var = 7200      [0.7962]
+# a = 1; b = 120 # var = 14400     [1]
+
+# set2
+# mean = 120
+# α = 0.0082 β = 1.46
+
+# Erlang(a,b)
+# a = 30;b = 4   # var = 480       [0]
+# a = 20;b = 6   # var = 720       [0.1192]
+# a = 10;b = 12  # var = 1440      [0.3230]
+# a = 5; b = 24  # var = 2880      [0.5268]
+# a = 2; b = 60  # var = 7200      [0.7962]
+# a = 1; b = 120 # var = 14400     [1]
+
 
 #exact solution
 function bursty(N,a,b,τ)
@@ -25,38 +41,17 @@ function bursty(N,a,b,τ)
     return P
 end;
 
-a = 0.1
-b = 140
+a = 0.0282
+b = 3.46
 τ = 120;
 
-N = 1000
+N = 81
 
-P_temp = bursty(N,a,b,τ)
-plot(0:N-1,P_temp)
+data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/training_data.csv",',')[2:end,:]
+train_sol_1 = data[:,[1,3]]
+train_sol_2 = data[:,[2,4]]
 
-
-plot(0:N-1,bursty(1000,0.001,140,τ))
-plot!(0:N-1,bursty(1000,0.005,b,τ))
-plot(0:N-1,bursty(1000,0.01,b,τ))
-plot(0:N-1,bursty(1000,0.05,b,τ))
-plot(0:4999,bursty(5000,0.1,b,τ))
-
-plot(0:N-1,bursty(1000,0.05,3,τ))
-plot!(0:N-1,bursty(1000,0.05,10,τ))
-plot!(0:N-1,bursty(1000,0.05,50,τ))
-plot!(0:N-1,bursty(1000,0.05,70,τ))
-
-
-ab_list = [[0.0001,0.5],[0.0001,2.5],[0.01,0.5],[0.01,2.5]]
-i = 4
-a,b = [ab_list[i][1],ab_list[i][2]]
-plot(bursty(N,a,b,τ),lw=3)
-
-data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/training_data.csv",',')[2:end,:]
-train_sol_1 = data[:,[1,6]]
-train_sol_2 = data[:,[5,10]]
-
-ab_list = [[0.0282,3.46],[0.0082,1.46],[0.0282,1.46],[0.0082,3.46]]
+ab_list = [[0.0282,3.46],[0.0082,1.46]]
 l_ablist = length(ab_list)
 
 # model initialization
@@ -137,10 +132,11 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 500000000
+λ = 100000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
+ϵ = rand(Normal(),latent_size)
 loss_func_1(params1,params2,ϵ)
 loss_func_2(params1,params2,ϵ)
 loss_func(params1,params2,ϵ)
@@ -172,7 +168,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",df)
         mse_min[1] = mse
     end
 
@@ -183,10 +179,10 @@ end
 mse_list
 mse_min 
 
-# mse_min = [2.6634592951590713e-6]
+# mse_min = [0.00021237512553756038]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/params_tfo.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -367,7 +363,7 @@ plot_all()
 # Uniform(90,150)  var = 300
 # Uniform(120,120) var = 0 
 
-check_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
+check_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/check_data.csv",',')[2:end,:]
 check_data[:,1:5]
 check_data[:,6:10]
 
