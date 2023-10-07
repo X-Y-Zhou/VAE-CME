@@ -271,15 +271,6 @@ function sol_Extenicity(τ,Attribute,a,b)
     return P_trained_Extenicity
 end
 
-τ = 120
-τ1 = 120
-Attribute = -τ1/τ+1
-
-# Uniform(τ1,2τ-τ1)
-a = 0.0282
-b = 3.46
-ϵ = zeros(latent_size)
-
 Attribute = 0.8
 x1 = 2
 x2 = 60

@@ -132,11 +132,11 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 100000
+λ = 50000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
-ϵ = rand(Normal(),latent_size)
+# ϵ = rand(Normal(),latent_size)
 loss_func_1(params1,params2,ϵ)
 loss_func_2(params1,params2,ϵ)
 loss_func(params1,params2,ϵ)
@@ -235,6 +235,33 @@ function sol_Extenicity(τ,Attribute,a,b)
     P_trained_Extenicity = sol_Extenicity(params1,params2,zeros(latent_size))
     return P_trained_Extenicity
 end
+
+function plot_one(x1,x2,Attribute)
+    P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
+    check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/$(x1)-$(x2).csv",',')[2:end,:]
+
+    p = plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N-1,vec(check_sol),linewidth = 3,label="SSA",line=:dash,title=join(["Erlang(",x1,",",x2,")"," Attribute=",Attribute]))
+    return p
+end
+
+plot_one(1,120,1)
+
+function plot_all()
+    p1 = plot_one(1,120,1)
+    p2 = plot_one(2,60,0.79)
+    p3 = plot_one(3,40,0.68)
+    p4 = plot_one(4,30,0.59)
+    p5 = plot_one(5,24,0.52)
+    p6 = plot_one(8,15,0.39)
+    p7 = plot_one(10,12,0.32)
+    p8 = plot_one(15,8,0.20)
+    p9 = plot_one(20,6,0.12)
+    p10 = plot_one(30,4,0)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layout=(2,5),size=(1500,600))
+end
+plot_all()
+
 
 τ = 120
 τ1 = 120
