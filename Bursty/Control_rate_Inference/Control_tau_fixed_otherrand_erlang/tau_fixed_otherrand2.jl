@@ -302,6 +302,29 @@ function plot_all()
 end
 plot_all()
 
+a = 0.0232
+b = 2.96
+function plot_one(x1,x2,Attribute)
+    P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
+    check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set4/$(x1)-$(x2).csv",',')[2:end,:]
+
+    p = plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
+    plot!(0:N-1,vec(check_sol),linewidth = 3,label="SSA",line=:dash,title=join(["Erlang(",x1,",",x2,")"," Attribute=",Attribute]))
+    return p
+end
+
+function plot_all()
+    p1 = plot_one(1,120,1)
+    p2 = plot_one(2,60,0.79)
+    p3 = plot_one(5,24,0.52)
+    p4 = plot_one(10,12,0.32)
+    p5 = plot_one(20,6,0.12)
+    p6 = plot_one(30,4,0)
+    plot(p1,p2,p3,p4,p5,p6,layout=(2,3),size=(900,600))
+end
+plot_all()
+
+
 
 τ = 120
 τ1 = 120

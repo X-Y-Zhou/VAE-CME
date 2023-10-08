@@ -46,17 +46,17 @@ b = temp_ab[2]
 # λ = 0.0282
 # β = 3.46
 
-set = 2
-λ = 0.0082
-β = 1.46
+# set = 2
+# λ = 0.0082
+# β = 1.46
 
 # set = 3
 # λ = 0.0182
 # β = 2.46
 
-# set = 4
-# λ = 0.0232
-# β = 2.96
+set = 4
+λ = 0.0232
+β = 2.96
 
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
