@@ -35,7 +35,7 @@ function f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ)
 end
 
 using CSV,DataFrames
-df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length_2]
 
@@ -54,7 +54,7 @@ solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 function Objective_func(kinetic_params)
     a = kinetic_params[1]
     b = kinetic_params[2]
-    Attribute = 0
+    Attribute = kinetic_params[3]
 
     ϵ = zeros(latent_size)
     P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
@@ -79,11 +79,11 @@ end
 # SSA data
 result_list = []
 set = 1
-width = "30-4"
+width = "5-24"
 
 SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
 
-@time for dataset = [3,3,3,3,3]
+@time for dataset = 1:5
 print(dataset,"\n")    
 # SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
 SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
@@ -95,15 +95,15 @@ SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/da
 # a_0 = 2Ex^2/(Dx-Ex)τ
 # b_0 = (Dx-Ex)/2Ex
 
-kinetic_params0 = [0.0282,3.46]
-SRange = [(0,0.06),(0,6)]
-res = bboptimize(Objective_func,kinetic_params0 ; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 2, MaxSteps = 200) #参数推断求解
+kinetic_params0 = [0.0282,3.46,0.5268]
+SRange = [(0,0.06),(0,6),(0,1)]
+res = bboptimize(Objective_func,kinetic_params0; Method = :adaptive_de_rand_1_bin_radiuslimited, 
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 400) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 
 α = thetax[1]
 β = thetax[2]
-Attribute = 0
+Attribute = thetax[3]
 
 x1 = Int(round(exp((1-Attribute)*log(30)),digits=0))
 x2 = τ/x1
@@ -130,7 +130,7 @@ function check_inference(kinetic_params)
     b = kinetic_params[2]
     Attribute = kinetic_params[3]
 
-    df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+    df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
