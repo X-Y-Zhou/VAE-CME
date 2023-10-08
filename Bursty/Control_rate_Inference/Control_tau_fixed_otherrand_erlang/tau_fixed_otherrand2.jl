@@ -48,8 +48,9 @@ b = 3.46
 N = 81
 
 data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/training_data.csv",',')[2:end,:]
-train_sol_1 = data[:,[1,4]]
-train_sol_2 = data[:,[3,6]]
+train_sol_1 = data[:,[1,4]] # 14400
+train_sol_2 = data[:,[2,5]] # 2880
+train_sol_3 = data[:,[3,6]] # 480
 
 ab_list = [[0.0282,3.46],[0.0082,1.46]]
 l_ablist = length(ab_list)
@@ -59,10 +60,12 @@ latent_size = 10;
 encoder = Chain(Dense(N, 20,tanh),Dense(20, latent_size * 2));
 decoder_1 = Chain(Dense(latent_size+1, 20),Dense(20 , N-1),x->0.03.* x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 decoder_2  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/τ  for i in 1:N-1],decoder_1[4]);
+decoder_3  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/τ  for i in 1:N-1],decoder_1[4]);
 
 params1, re1 = Flux.destructure(encoder);
 params2, re2_1 = Flux.destructure(decoder_1);
       _, re2_2 = Flux.destructure(decoder_2);
+      _, re2_3 = Flux.destructure(decoder_3);
 ps = Flux.params(params1,params2);
 
 #CME 4800~1
@@ -76,13 +79,22 @@ function f1!(x,p1,p2,a,b,ϵ)
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
 end
 
-# 0~0
 function f2!(x,p1,p2,a,b,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
-    z = vcat(z,0)
+    z = vcat(z,0.5268)
     NN = re2_2(p2)(z)
+    return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
+            (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+end
+
+function f3!(x,p1,p2,a,b,ϵ)
+    h = re1(p1)(x)
+    μ, logσ = split_encoder_result(h, latent_size)
+    z = reparameterize.(μ, logσ, ϵ)
+    z = vcat(z,0)
+    NN = re2_3(p2)(z)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
 end
@@ -94,6 +106,7 @@ P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for 
 ϵ = zeros(latent_size)
 sol_1(p1,p2,a,b,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,a,b,ϵ),P0).zero
 sol_2(p1,p2,a,b,ϵ,P0) = nlsolve(x->f2!(x,p1,p2,a,b,ϵ),P0).zero
+sol_3(p1,p2,a,b,ϵ,P0) = nlsolve(x->f3!(x,p1,p2,a,b,ϵ),P0).zero
 
 function loss_func_1(p1,p2,ϵ)
     sol_cme = [sol_1(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
@@ -127,18 +140,35 @@ function loss_func_2(p1,p2,ϵ)
     return loss
 end
 
-function loss_func(p1,p2,ϵ)
-    loss = loss_func_1(p1,p2,ϵ) + loss_func_2(p1,p2,ϵ)
+function loss_func_3(p1,p2,ϵ)
+    sol_cme = [sol_3(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+        
+    mse = sum(Flux.mse(sol_cme[i],train_sol_3[:,i]) for i=1:l_ablist)/l_ablist
+    print(mse," ")
+
+    μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[i]), latent_size) for i=1:l_ablist]
+    kl = sum([(0.5f0 * sum(exp.(2f0 .* μ_logσ_list[i][2]) + μ_logσ_list[i][1].^2 .- 1 .- (2 .* μ_logσ_list[i][2])))  
+        for i=1:l_ablist])/l_ablist
+    print(kl," ")
+
+    loss = λ*mse + kl
+    print(loss,"\n")
     return loss
 end
 
-λ = 500000000000
+function loss_func(p1,p2,ϵ)
+    loss = loss_func_1(p1,p2,ϵ) + loss_func_2(p1,p2,ϵ) + loss_func_3(p1,p2,ϵ)
+    return loss
+end
+
+λ = 50000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
 # ϵ = rand(Normal(),latent_size)
 loss_func_1(params1,params2,ϵ)
 loss_func_2(params1,params2,ϵ)
+loss_func_3(params1,params2,ϵ)
 loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 
@@ -161,14 +191,16 @@ mse_list = []
     ϵ = zeros(latent_size)
     solution_1 = [sol_1(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
     solution_2 = [sol_2(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+    solution_3 = [sol_3(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 
     mse_1 = sum(Flux.mse(solution_1[i],train_sol_1[:,i]) for i=1:l_ablist)/l_ablist
     mse_2 = sum(Flux.mse(solution_2[i],train_sol_2[:,i]) for i=1:l_ablist)/l_ablist
-    mse = mse_1+mse_2
+    mse_3 = sum(Flux.mse(solution_3[i],train_sol_3[:,i]) for i=1:l_ablist)/l_ablist
+    mse = mse_1+mse_2+mse_3
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo2.csv",df)
         mse_min[1] = mse
     end
 
@@ -179,10 +211,10 @@ end
 mse_list
 mse_min 
 
-# mse_min = [0.00021237512553756038]
+# mse_min = [1.8395388201540216e-6]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -190,26 +222,36 @@ ps = Flux.params(params1,params2);
 ϵ = zeros(latent_size)
 solution_1 = [sol_1(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 solution_2 = [sol_2(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+solution_3 = [sol_3(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 mse_1 = sum(Flux.mse(solution_1[i],train_sol_1[:,i]) for i=1:l_ablist)/l_ablist
 mse_2 = sum(Flux.mse(solution_2[i],train_sol_2[:,i]) for i=1:l_ablist)/l_ablist
-mse = mse_1+mse_2
+mse_3 = sum(Flux.mse(solution_3[i],train_sol_3[:,i]) for i=1:l_ablist)/l_ablist
+mse = mse_1+mse_2+mse_3
 
 function plot_distribution_1(set)
     plot(0:N-1,solution_1[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 4800"]),line=:dash)
+    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 14400"]),line=:dash)
 end
 
 function plot_distribution_2(set)
     plot(0:N-1,solution_2[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 0"]),line=:dash)
+    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 2880"]),line=:dash)
 end
+
+function plot_distribution_3(set)
+    plot(0:N-1,solution_3[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol_3[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 0"]),line=:dash)
+end
+
 
 function plot_all()
     p1 = plot_distribution_1(1)
-    p2 = plot_distribution_1(2)
-    p3 = plot_distribution_2(1)
-    p4 = plot_distribution_2(2)
-    plot(p1,p2,p3,p4,layouts=(2,2),size=(800,800))
+    p2 = plot_distribution_2(1)
+    p3 = plot_distribution_3(1)
+    p4 = plot_distribution_1(2)
+    p5 = plot_distribution_2(2)
+    p6 = plot_distribution_3(2)
+    plot(p1,p2,p3,p4,p5,p6,layouts=(2,3),size=(1200,800))
 end
 plot_all()
 
