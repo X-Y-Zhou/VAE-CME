@@ -35,7 +35,7 @@ function f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ)
 end
 
 using CSV,DataFrames
-df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length_2]
 
@@ -79,14 +79,14 @@ end
 # SSA data
 result_list = []
 set = 1
-width = "2-60"
+width = "5-24"
 
 SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
 
 @time for dataset = 1:5
 print(dataset,"\n")    
-SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
-# SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
+# SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
 # SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
 
 # Ex = P2mean(SSA_data)
@@ -95,7 +95,7 @@ SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/In
 # a_0 = 2Ex^2/(Dx-Ex)τ
 # b_0 = (Dx-Ex)/2Ex
 
-kinetic_params0 = [0.0282,3.46,0.7962]
+kinetic_params0 = [0.0282,3.46,0.5268]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(Objective_func,kinetic_params0; Method = :adaptive_de_rand_1_bin_radiuslimited, 
 SearchRange = SRange, NumDimensions = 3, MaxSteps = 400) #参数推断求解
@@ -123,14 +123,14 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/temp_1.csv",df)
+CSV.write("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/temp_2.csv",df)
 
 function check_inference(kinetic_params)
     a = kinetic_params[1]
     b = kinetic_params[2]
     Attribute = kinetic_params[3]
 
-    df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+    df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
