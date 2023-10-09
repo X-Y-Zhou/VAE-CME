@@ -35,7 +35,7 @@ function f_Extenicity!(x,p1,p2,a,b,Attribute,ϵ)
 end
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length_2]
 
@@ -78,15 +78,15 @@ end
 
 # SSA data
 result_list = []
-set = 1
+set = 4
 width = "2-60"
 
 SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
 
 @time for dataset = 1:5
 print(dataset,"\n")
-# SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
-SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
+SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+# SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:]
 # SSA_timepoints = round.(Int, vec(SSA_data).*sample_size)
 
 # Ex = P2mean(SSA_data)
@@ -95,10 +95,10 @@ SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_er
 # a_0 = 2Ex^2/(Dx-Ex)τ
 # b_0 = (Dx-Ex)/2Ex
 
-kinetic_params0 = [0.0282,3.46,0.7962]
+kinetic_params0 = [0.0232,2.96,0.7962]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(Objective_func,kinetic_params0; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 3, MaxSteps = 400) #参数推断求解
+SearchRange = SRange, NumDimensions = 3, MaxSteps = 300) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 
 α = thetax[1]
@@ -130,7 +130,7 @@ function check_inference(kinetic_params)
     b = kinetic_params[2]
     Attribute = kinetic_params[3]
 
-    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo.csv",DataFrame)
+    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo2.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
