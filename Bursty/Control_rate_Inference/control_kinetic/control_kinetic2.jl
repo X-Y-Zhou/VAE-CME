@@ -120,7 +120,7 @@ end
 mse_list
 mse_min
 
-# mse_min = [0.0005082707399849475]
+# mse_min = [1.9716314892421853e-5]
 
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",DataFrame)
@@ -146,7 +146,7 @@ function plot_all()
     plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
 end
 plot_all()
-savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
+# savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
 
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
