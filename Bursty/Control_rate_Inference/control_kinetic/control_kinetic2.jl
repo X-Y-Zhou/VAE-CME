@@ -22,8 +22,8 @@ b = 3.46;
 N = 64
 train_sol = bursty(N,a,b,τ)
 
-a_list = [0.0082,0.0132,0.0182,0.0232,0.0282]
-b_list = [1.46,1.96,2.46,2.96,3.46]
+a_list = [0.0082,0.0282]
+b_list = [1.46,3.46]
 # τ_list = [100,110,120,130,140]
 l_ablist = length(a_list)*length(b_list)
 
@@ -77,7 +77,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 5000000
+λ = 1000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -86,10 +86,13 @@ loss_func(params1,params2,ϵ)
 
 epochs_all = 0
 
+lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 # training
-lr = 0.006;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
+
+for lr in lr_list
 opt= ADAM(lr);
-epochs = 20
+epochs = 40
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -106,7 +109,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",df)
         mse_min[1] = mse
     end
 
@@ -115,15 +118,16 @@ mse_list = []
 end
 
 mse_list
-mse_min 
+mse_min
 
-mse_min = [3.656566158617185e-5]
+# mse_min = [0.0005082707399849475]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
+end
 
 ϵ = zeros(latent_size)
 solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
@@ -139,36 +143,14 @@ function plot_all()
     p2 = plot_distribution(2)
     p3 = plot_distribution(3)
     p4 = plot_distribution(4)
-    p5 = plot_distribution(5)
-    p6 = plot_distribution(6)
-    p7 = plot_distribution(7)
-    p8 = plot_distribution(8)
-    p9 = plot_distribution(9)
-    p10 = plot_distribution(10)
-    p11 = plot_distribution(11)
-    p12 = plot_distribution(12)
-    p13 = plot_distribution(13)
-    p14 = plot_distribution(14)
-    p15 = plot_distribution(15)
-    p16 = plot_distribution(16)
-    p17 = plot_distribution(17)
-    p18 = plot_distribution(18)
-    p19 = plot_distribution(19)
-    p20 = plot_distribution(20)
-    p21 = plot_distribution(21)
-    p22 = plot_distribution(22)
-    p23 = plot_distribution(23)
-    p24 = plot_distribution(24)
-    p25 = plot_distribution(25)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
-         p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
+    plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
 end
 plot_all()
 savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
 
 
-a_list_pre = [0.0107,0.0157,0.0207,0.0257]
-b_list_pre = [1.71,2.21,2.71,3.21]
+a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
+b_list_pre = [1.46,1.96,2.46,2.96,3.46]
 l_ablist_pre = length(a_list_pre)*length(b_list_pre)
 
 ab_list_pre = [[a_list_pre[i],b_list_pre[j]] for i=1:length(a_list_pre) for j=1:length(b_list_pre)]
@@ -208,8 +190,17 @@ function plot_all()
     p14 = plot_distribution(14)
     p15 = plot_distribution(15)
     p16 = plot_distribution(16)
+    p17 = plot_distribution(17)
+    p18 = plot_distribution(18)
+    p19 = plot_distribution(19)
+    p20 = plot_distribution(20)
+    p21 = plot_distribution(21)
+    p22 = plot_distribution(22)
+    p23 = plot_distribution(23)
+    p24 = plot_distribution(24)
+    p25 = plot_distribution(25)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
-         p16,size=(1200,1200),layout=(4,4))
+         p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
 savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")

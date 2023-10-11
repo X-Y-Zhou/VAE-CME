@@ -35,13 +35,16 @@ train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 
 
 # model initialization
-latent_size = 10;
-encoder = Chain(Dense(N, 20,tanh),Dense(20, latent_size * 2));
-decoder = Chain(Dense(latent_size, 20),Dense(20 , N-1),x->0.03.* x.+[i/τ  for i in 1:N-1],x ->relu.(x));
+latent_size = 50;
+encoder = Chain(Dense(N, 100,tanh),Dense(100, latent_size * 2));
+decoder = Chain(Dense(latent_size, 100),Dense(100 , N-1),x->0.03.* x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 
 params1, re1 = Flux.destructure(encoder);
 params2, re2 = Flux.destructure(decoder);
 ps = Flux.params(params1,params2);
+
+params1
+params2
 
 #CME
 function f1!(x,p1,p2,a,b,ϵ)
@@ -77,7 +80,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 1000000000
+λ = 100000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -87,10 +90,10 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
-# training
-lr = 0.001;  #lr需要操作一下的
 
-for lr in lr_list
+# training
+lr = 0.01;  #lr需要操作一下的
+# for lr in lr_list
 opt= ADAM(lr);
 epochs = 40
 epochs_all = epochs_all + epochs
@@ -109,7 +112,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",df)
+        CSV.write("Control_rate_Inference/control_kinetic/params_ck3.csv",df)
         mse_min[1] = mse
     end
 
@@ -120,14 +123,14 @@ end
 mse_list
 mse_min
 
-# mse_min = [0.0005082707399849475]
+mse_min = [0.0004226715121586373]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/control_kinetic/params_ck3.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
-end
+# end
 
 ϵ = zeros(latent_size)
 solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
@@ -146,7 +149,7 @@ function plot_all()
     plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
 end
 plot_all()
-savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
+savefig("Control_rate_Inference/control_kinetic/fitting.svg")
 
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
@@ -203,4 +206,4 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
-savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")
+savefig("Control_rate_Inference/control_kinetic/predicting.svg")
