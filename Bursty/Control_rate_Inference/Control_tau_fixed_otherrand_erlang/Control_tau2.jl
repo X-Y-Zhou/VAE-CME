@@ -27,6 +27,16 @@ include("../../../utils.jl")
 a = 3
 Attribute = (-1/log(30))*(log(a)).+1
 
+# 直接的线性关系
+a_list = [30,1]
+Attribute_list = [0,1]
+plot(a_list,Attribute_list)
+
+a = 15
+Attribute = -1/29 * a + 30/29
+
+Attribute = 0.5
+a = (30/29 - Attribute) * 29
 
 # exact solution
 function bursty(N,a,b,τ)
@@ -46,7 +56,7 @@ b = 3.46;
 N = 81
 
 train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/1-120.csv",',')[2:end,:] # 1
-train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/5-24.csv",',')[2:end,:]  # 0.5268
+train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/15-8.csv",',')[2:end,:]  # 0.5268
 train_sol_3 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/30-4.csv",',')[2:end,:]  # 0
 
 
@@ -82,7 +92,7 @@ function f2!(x,p1,p2,a,b,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
-    z = vcat(z,0.5268)
+    z = vcat(z,0.5172)
     NN = re2_2(p2)(z)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
@@ -160,12 +170,13 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 50000000000
+λ = 5000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
 loss_func_1(params1,params2,ϵ)
 loss_func_2(params1,params2,ϵ)
+loss_func_3(params1,params2,ϵ)
 loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 
@@ -197,7 +208,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct3.csv",df)
         mse_min[1] = mse
     end
 
@@ -206,12 +217,12 @@ mse_list = []
 end
 
 mse_list
-mse_min 
+mse_min
 
-# mse_min = [1.9496225655717726e-6]
+# mse_min = [8.616111520100654e-6]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct3.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);

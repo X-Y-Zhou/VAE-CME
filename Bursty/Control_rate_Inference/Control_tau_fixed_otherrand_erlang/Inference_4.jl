@@ -155,7 +155,6 @@ Flux.mse(solution_inference,SSA_data)
 plot(0:N-1,solution_inference,lw=3,label="inference")
 plot!(0:N-1,SSA_data,lw=3,label="SSA",line=:dash)
 
-
 # Erlang(a,b)
 # a = 30;b = 4   # var = 480   [0]    [0]
 # a = 20;b = 6   # var = 720   [0.1]  [0.1192]
