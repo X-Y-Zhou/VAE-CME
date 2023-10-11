@@ -1,0 +1,4 @@
+control_kinetic.jl 25组alpha和beta的训练
+control_kinetic2.jl 4组alpha和beta的训练
+control_kinetic3.jl 4组alpha和beta的训练，隐藏层增大的情况
+control_kinetic4.jl 4组alpha和beta的训练，增加0点权重的正则项

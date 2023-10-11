@@ -282,29 +282,37 @@ function sol_Extenicity(τ,Attribute,a,b)
     return P_trained_Extenicity
 end
 
-Attribute = 0.8
-x1 = 2
-x2 = 60
+# 直接的线性关系
+a_list = [30,1]
+Attribute_list = [0,1]
+plot(a_list,Attribute_list)
+scatter!(a_list,Attribute_list,xlabel="a",ylabel="Attribute",label=:false)
+
+a_list = [30,20,15,10,8,5,4,3,2,1]
+Attribute_list = -1/29 .* a_list .+ 30/29
+
+Attribute = 0.5
+a = (30/29 - Attribute) * 29
 
 function plot_one(x1,x2,Attribute)
     P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
     check_sol = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/$(x1)-$(x2).csv",',')[2:end,:]
 
     p = plot(0:N-1,vec(P_trained_Extenicity),linewidth = 3,label="VAE-CME", ylabel = "\n Probability")
-    plot!(0:N-1,vec(check_sol),linewidth = 3,label="SSA",line=:dash,title=join(["Erlang(",x1,",",x2,")"," Attribute=",Attribute]))
+    plot!(0:N-1,vec(check_sol),linewidth = 3,label="SSA",line=:dash,title=join(["Erlang(",x1,",",x2,")"," Attr=",Attribute]))
     return p
 end
 
 function plot_all()
     p1 = plot_one(1,120,1)
-    p2 = plot_one(2,60,0.79)
-    p3 = plot_one(3,40,0.68)
-    p4 = plot_one(4,30,0.59)
-    p5 = plot_one(5,24,0.52)
-    p6 = plot_one(8,15,0.39)
-    p7 = plot_one(10,12,0.32)
-    p8 = plot_one(15,8,0.20)
-    p9 = plot_one(20,6,0.12)
+    p2 = plot_one(2,60,0.965)
+    p3 = plot_one(3,40,0.931)
+    p4 = plot_one(4,30,0.896)
+    p5 = plot_one(5,24,0.862)
+    p6 = plot_one(8,15,0.758)
+    p7 = plot_one(10,12,0.689)
+    p8 = plot_one(15,8,0.517)
+    p9 = plot_one(20,6,0.344)
     p10 = plot_one(30,4,0)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layout=(2,5),size=(1500,600))
 end
