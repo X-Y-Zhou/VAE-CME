@@ -64,8 +64,7 @@ sol(p1,p2,a,b,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,a,b,ϵ),P0).zero
 function loss_func(p1,p2,ϵ)
     sol_cme = [sol(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
         
-    mse = sum(Flux.mse(sol_cme[i],train_sol[i]) for i=1:l_ablist)/l_ablist
-        + λ_zero * sum(Flux.mse(sol_cme[i][1],train_sol[i][1]) for i=1:l_ablist)/l_ablist
+    mse = sum(Flux.mse(sol_cme[i],train_sol[i]) for i=1:l_ablist)/l_ablist + λ_zero * sum(Flux.mse(sol_cme[i][1],train_sol[i][1]) for i=1:l_ablist)/l_ablist
     print(mse," ")
 
     μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[i]), latent_size) for i=1:l_ablist]
@@ -78,23 +77,23 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 100000000
-λ_zero = 10
+λ = 10000000
+λ_zero = 0.01
+# λ_zero = 0
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
-ϵ = rand(Normal(),latent_size)
+# ϵ = rand(Normal(),latent_size)
 loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
-Flux.update!(opt, ps, grads)
 
 epochs_all = 0
 
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 # training
-lr = 0.002;  #lr需要操作一下的
+lr = 0.01;  #lr需要操作一下的
 
-# for lr in lr_list
+for lr in lr_list
 opt= ADAM(lr);
 epochs = 40
 epochs_all = epochs_all + epochs
@@ -124,18 +123,20 @@ end
 mse_list
 mse_min
 
-mse_min = [1.9716314892483097e-5]
+# mse_min = [0.0005206056323428591]
 
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
-# end
+end
 
 ϵ = zeros(latent_size)
 solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
+
+# λ_zero * sum(Flux.mse(solution[i][1],train_sol[i][1]) for i=1:l_ablist)/l_ablist
 
 solution[3][1]
 Flux.mse(solution[3][1],train_sol[3][1])
