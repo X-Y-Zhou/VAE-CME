@@ -56,7 +56,7 @@ b = 3.46;
 N = 81
 
 train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/1-120.csv",',')[2:end,:] # 1
-train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/15-8.csv",',')[2:end,:]  # 0.5268
+train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/5-24.csv",',')[2:end,:]  # 0.5268
 train_sol_3 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set1/30-4.csv",',')[2:end,:]  # 0
 
 
@@ -92,7 +92,7 @@ function f2!(x,p1,p2,a,b,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
-    z = vcat(z,0.5172)
+    z = vcat(z,0.8620)
     NN = re2_2(p2)(z)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
@@ -170,7 +170,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 5000000000
+λ = 100000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -184,6 +184,9 @@ epochs_all = 0
 
 # training
 lr = 0.001;  #lr需要操作一下的
+lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
+
+for lr in lr_list
 opt= ADAM(lr);
 epochs = 40
 epochs_all = epochs_all + epochs
@@ -208,7 +211,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct3.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2-1.csv",df)
         mse_min[1] = mse
     end
 
@@ -219,13 +222,14 @@ end
 mse_list
 mse_min
 
-# mse_min = [8.616111520100654e-6]
+# mse_min = [0.00042479249989416936]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct3.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_ct2-1.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
+end
 
 ϵ = zeros(latent_size)
 solution_1 = [sol_1(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
@@ -243,7 +247,7 @@ end
 
 function plot_distribution_2(set)
     plot(0:N-1,solution_2[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 480"]),line=:dash)
+    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 2880"]),line=:dash)
 end
 
 function plot_distribution_3(set)
@@ -351,7 +355,7 @@ plot!(0:N-1,vec(sol_Extenicity(τ,Attribute,a,b)),linewidth = 3,xlabel = "# of p
 # a = 2; b = 60  # var = 7200  [0.8]
 # a = 1; b = 120 # var = 14400 [1]
 
-x_temp = [1,2,5,10,20,30]
+x_temp = [1,2,5,10,15,20,30]
 x_temp_log = log.(x_temp)
 y_temp = [1,0.8,0.4,0.2,0.1,0]
 y_temp_theory = (-1/log(30)).*(log.(x_temp)).+1
