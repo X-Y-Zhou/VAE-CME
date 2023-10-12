@@ -78,19 +78,21 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 1000000000
+λ = 100000000
 λ_zero = 10
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
+ϵ = rand(Normal(),latent_size)
 loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
+Flux.update!(opt, ps, grads)
 
 epochs_all = 0
 
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 # training
-lr = 0.008;  #lr需要操作一下的
+lr = 0.002;  #lr需要操作一下的
 
 # for lr in lr_list
 opt= ADAM(lr);
@@ -122,10 +124,10 @@ end
 mse_list
 mse_min
 
-# mse_min = [1.9716314892483097e-5]
+mse_min = [1.9716314892483097e-5]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck4.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
