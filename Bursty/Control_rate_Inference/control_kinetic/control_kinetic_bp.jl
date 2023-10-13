@@ -70,11 +70,11 @@ loss_func(p1)
 epochs_all = 0
 
 # training
-lr = 0.01;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
-for lr in lr_list
+# for lr in lr_list
 opt= ADAM(lr);
 epochs = 40
 epochs_all = epochs_all + epochs
@@ -106,7 +106,7 @@ using CSV,DataFrames
 df = CSV.read("Control_rate_Inference/control_kinetic/params_bp.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
-end
+# end
 
 solution = [sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist

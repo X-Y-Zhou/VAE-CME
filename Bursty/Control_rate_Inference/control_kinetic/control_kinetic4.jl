@@ -77,9 +77,9 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000000
-λ_zero = 0.01
-# λ_zero = 0
+λ = 50000000
+λ_zero = 0.05
+λ_zero = 0
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -123,10 +123,10 @@ end
 mse_list
 mse_min
 
-# mse_min = [0.0005206056323428591]
+# mse_min = [0.00047656361385600904]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck4.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -157,7 +157,7 @@ function plot_all()
     plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
 end
 plot_all()
-savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
+# savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
 
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
