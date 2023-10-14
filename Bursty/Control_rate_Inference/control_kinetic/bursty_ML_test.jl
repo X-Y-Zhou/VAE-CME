@@ -10,6 +10,7 @@ using LinearAlgebra
 using TaylorSeries
 using Plots:plot,plot!
 
+
 ## Generating function Taylor expansion
 function steady_prob(param)
     τ = param[3]
