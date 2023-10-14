@@ -170,7 +170,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 100000000
+λ = 500000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
