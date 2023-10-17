@@ -107,7 +107,7 @@ mse_list = []
     
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/params_ss2.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/steady-state/steady_state2.jl",df)
         mse_min[1] = mse
     end
 
@@ -121,7 +121,7 @@ mse_min
 mse_min = [0.00020908455295774216]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/params_ss2.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/steady-state/steady_state2.jl",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);

@@ -8,7 +8,7 @@ using LinearMaps
 #using SparseArrays
 using LinearAlgebra
 using TaylorSeries
-using Plots:plot,plot!
+using Plots: plot, plot!
 
 ## Generating function Taylor expansion
 function steady_prob(param)
@@ -32,12 +32,6 @@ plot(data)
 
 data = data/sum(data)
 
-param[3]=60
-data2 = steady_prob(param)
-plot(data2)
-
-data2 = data2/sum(data2)
-
 ## Define NLsolve adjoint
 @adjoint nlsolve(f, x0; kwargs...) =
     let result = nlsolve(f, x0; kwargs...)
@@ -57,8 +51,8 @@ data2 = data2/sum(data2)
     end
 
 ## Define neural network propensity
-param[3]=120
-NNet = Chain(Dense(NT, 1, tanh),Dense(1, NT-1),x->0.3.*x.+[i/param[3] for i in 1:NT-1], x->relu.(x))
+m = Chain(Dense(NT+1, 5, tanh),Dense(5, 1))
+NNet = SkipConnection(m, (mx,x)->relu(0.30f0*mx[1]+x[end]/param[3]))
 p1, re = Flux.destructure(NNet)
 ps = Flux.params(p1)
 
@@ -67,9 +61,9 @@ function Delay_eq(x,p,param)
     b = param[1]
     ρ = param[2]
     N = Int(param[4])-1
-    NN = re(p)(x)
+    NN = [re(p)(vcat(x,i))[1] for i in 1:N]
 
-    return vcat(-ρ*b/(1+b)*x[1]+NN[1]*x[2],
+    return vcat(-ρ*b/(1+b)*x[1] + NN[1]*x[2],
     [sum(ρ*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - (ρ*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N],
     sum(x)-1.0f0)
 end
@@ -81,7 +75,7 @@ solve_x(p1) = nlsolve(x -> f(x, p1), data, ftol=1e-10,method= :anderson,m=5).zer
 obj(p1) = sum(abs2,solve_x(p1)-data)
 opt = ADAM(0.001)
 
-for epoch = 1 : 30
+for epoch = 1 : 50
     grads = gradient(() -> obj(p1), ps)
     Flux.update!(opt,ps,grads)
     #print(p1[1])
@@ -89,56 +83,35 @@ for epoch = 1 : 30
     evalcb()
 end
 
-plot(solve_x(p1),lw=3,label="NN-CME")
-plot!(data,lw=3,label="SSA",line=:dash)
+solution = solve_x(p1)
+Flux.mse(solution,data)
 
-df = DataFrame(p1 = p1)
-CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ML.csv",df)
-
-using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ML.csv",DataFrame)
-p1 = df.p1
-ps = Flux.params(p1);
+plot(solve_x(p1))
+plot!(data)
 
 param = Float32[3.46, 0.0282, 120, 120]
 data = steady_prob(param)
+# x = data
 solution = solve_x(p1)
 Flux.mse(data,solution)
 
-# data = steady_prob(param)
+param = Float32[1.06, 0.0182, 120, 120]
+data = steady_prob(params1)
+# x = data
+solution = solve_x(p1)
+Flux.mse(data,solution)
+
 plot(solution,lw=3,label="NN-CME")
 plot!(data,lw=3,label="SSA",line=:dash)
 
 
-NNet2 = Chain(NNet[1],NNet[2],x->0.3.*x.+[i/120 for i in 1:NT-1], NNet[4])
-p2, re2 = Flux.destructure(NNet2)
-
-function Delay_eq2(x,p,param)
-    b = param[1]
-    ρ = param[2]
-    N = Int(param[4])-1
-    NN = re2(p)(x)
-
-    return vcat(-ρ*b/(1+b)*x[1]+NN[1]*x[2],
-    [sum(ρ*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - (ρ*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N],
-    sum(x)-1.0f0)
-end
-
-g(x,p) = Delay_eq2(x,p,param)
+df = DataFrame(p1 = p1)
+CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ML2.csv",df)
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ML.csv",DataFrame)
-p2 = df.p1
-
-param = Float32[1.46, 0.0082, 120, 120]
-y = data2
-data2 = steady_prob(param)
-
-solve_y(p1) = nlsolve(y -> g(y, p1), data2, ftol=1e-10,method= :anderson,m=5).zero
-
-plot(solve_y(p1))
-plot!(data2)
-
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ML2.csv",DataFrame)
+p1 = df.p1
+ps = Flux.params(p1);
 
 N = 120
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
@@ -147,6 +120,7 @@ l_ablist_pre = length(a_list_pre)*length(b_list_pre)
 
 ab_list_pre = [[a_list_pre[i],b_list_pre[j]] for i=1:length(a_list_pre) for j=1:length(b_list_pre)]
 
+τ = 120
 train_sol = [bursty(N,ab_list_pre[i][1],ab_list_pre[i][2],τ) for i=1:l_ablist_pre]
 
 solution_list = []
@@ -160,6 +134,13 @@ for i=1:l_ablist_pre
     solution = solve_x(p1)
     push!(solution_list,solution)
 end
+solution_list
+solution_list[24]
+solution_list[25]
+
+solution_list
+solution_list[24]
+solution_list[25]
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
