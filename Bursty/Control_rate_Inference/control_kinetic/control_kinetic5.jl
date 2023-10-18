@@ -39,9 +39,9 @@ train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 
 
 # model initialization
-latent_size = 10;
-encoder = Chain(Dense(N, 50,tanh),Dense(50, latent_size * 2));
-decoder = Chain(Dense(latent_size, 50),Dense(50 , 4),x ->exp.(x));
+latent_size = 25;
+encoder = Chain(Dense(N, 75,tanh),Dense(75, latent_size * 2));
+decoder = Chain(Dense(latent_size, 75),Dense(75 , 4),x ->exp.(x));
 
 params1, re1 = Flux.destructure(encoder);
 params2, re2 = Flux.destructure(decoder);
@@ -49,6 +49,16 @@ ps = Flux.params(params1,params2);
 
 params1
 params2
+
+# p1 = params1
+# p2 = params2
+# x = P_0_list[1]
+
+# h = re1(p1)(x)
+# μ, logσ = split_encoder_result(h, latent_size)
+# z = reparameterize.(μ, logσ, ϵ)
+# l,m,n,o = re2(p2)(z)
+# NN = f_NN.(1:N-1,l,m,n,o)
 
 #CME
 function f1!(x,p1,p2,a,b,ϵ)
@@ -85,7 +95,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 50000
+λ = 1000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -95,12 +105,22 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.005,0.0025,0.0015,0.001]
+lr_list = [0.006,0.004,0.002,0.001]
+
+
+using CSV,DataFrames
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck5.csv",DataFrame)
+params1 = df.params1
+params2 = df.params2[1:length(params2)]
+ps = Flux.params(params1,params2);
+
 # training
-lr = 0.01;  #lr需要操作一下的
+lr = 0.008;  #lr需要操作一下的
 
 # for lr in lr_list
 opt= ADAM(lr);
-epochs = 40
+epochs = 30
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -128,26 +148,20 @@ end
 mse_list
 mse_min
 
-mse_min = [0.007295098904261277]
+# mse_min = [0.006]
 
-using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck5.csv",DataFrame)
-params1 = df.params1
-params2 = df.params2[1:length(params2)]
-ps = Flux.params(params1,params2);
+
 # end
+
+params1
+params2
+
+mse_min = [0.006499091834932941]
+mse_min 
 
 ϵ = zeros(latent_size)
 solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
-
-# λ_zero * sum(Flux.mse(solution[i][1],train_sol[i][1]) for i=1:l_ablist)/l_ablist
-
-solution[3][1]
-Flux.mse(solution[3][1],train_sol[3][1])
-
-P2mean(solution[3])
-P2mean(train_sol[3])
 
 function plot_distribution(set)
     plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
