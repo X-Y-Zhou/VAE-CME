@@ -22,7 +22,7 @@ end
 
 a = 0.0282;
 b = 3.46;
-τ = 120;ß
+τ = 120;
 
 N = 64
 train_sol = bursty(N,a,b,τ)
@@ -98,24 +98,21 @@ mse_list = []
     mse = loss_func(p1)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Bursty/Control_rate_Inference/steady-state/params_bp_abcd4-1.csv",df)
+        CSV.write("Control_rate_Inference/steady-state/params_bp_abcd4-3.csv",df)
         mse_min[1] = mse
     end
     push!(mse_list,mse)
     print(mse,"\n")
 end
 
-mse_list
-mse_min
-
-# mse_min = [2.3349502263792985e-5]
-
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/steady-state/params_bp_abcd4-1.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/steady-state/params_bp_abcd4-3.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 end
 
+mse_min = [0.0068315257364105885]
+mse_list
 mse_min
 
 solution = [sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
