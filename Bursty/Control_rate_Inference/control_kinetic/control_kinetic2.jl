@@ -77,7 +77,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 1000000000
+λ = 50000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -109,7 +109,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck2-1.csv",df)
         mse_min[1] = mse
     end
 
@@ -120,7 +120,7 @@ end
 mse_list
 mse_min
 
-# mse_min = [1.9716314892421853e-5]
+# mse_min = [0.0005042402185510217]
 
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck2.csv",DataFrame)

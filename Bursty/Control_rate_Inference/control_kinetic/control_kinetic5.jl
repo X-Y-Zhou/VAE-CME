@@ -41,7 +41,7 @@ train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 # model initialization
 latent_size = 25;
 encoder = Chain(Dense(N, 75,tanh),Dense(75, latent_size * 2));
-decoder = Chain(Dense(latent_size, 75),Dense(75 , 4),x ->exp.(x));
+decoder = Chain(Dense(latent_size, 75, tanh),Dense(75 , 4),x ->exp.(x));
 
 params1, re1 = Flux.destructure(encoder);
 params2, re2 = Flux.destructure(decoder);
@@ -110,17 +110,17 @@ lr_list = [0.006,0.004,0.002,0.001]
 
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck5.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/control_kinetic/params_ck5.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
 # training
-lr = 0.008;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 
 # for lr in lr_list
 opt= ADAM(lr);
-epochs = 30
+epochs = 20
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -137,7 +137,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck5.csv",df)
+        CSV.write("Control_rate_Inference/control_kinetic/params_ck5.csv",df)
         mse_min[1] = mse
     end
 
@@ -156,7 +156,7 @@ mse_min
 params1
 params2
 
-mse_min = [0.006499091834932941]
+mse_min = [0.00025861948694923357]
 mse_min 
 
 ϵ = zeros(latent_size)
@@ -176,7 +176,7 @@ function plot_all()
     plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
 end
 plot_all()
-# savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
+# savefig("Control_rate_Inference/control_kinetic/fitting.svg")
 
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
@@ -233,4 +233,4 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
-savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")
+savefig("Control_rate_Inference/control_kinetic/predicting.svg")
