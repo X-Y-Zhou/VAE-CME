@@ -95,7 +95,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000000
+λ = 50000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -116,7 +116,7 @@ params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
 # training
-lr = 0.01;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 
 # for lr in lr_list
 opt= ADAM(lr);
