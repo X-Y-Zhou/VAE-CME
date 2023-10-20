@@ -31,7 +31,7 @@ P_0 = [pdf(NegativeBinomial(a*τ, 1/(1+b)),j) for j=0:N-1]
 sol(p,a,b,P0) = nlsolve(x->f1!(x,p,a,b),P0).zero
 
 using CSV,DataFrames
-df = CSV.read("Control_rate_Inference/steady-state/bp_inference/params_bp_abcd4-1.csv",DataFrame)
+df = CSV.read("steady-state/bp_inference/params_bp_abcd4-1.csv",DataFrame)
 p1 = df.p1
 
 solution = sol(p1,a,b,P_0)
@@ -57,19 +57,19 @@ end
 
 # SSA data
 result_list = []
-set = 1
-dataset = 1
-SSA_data = readdlm("Control_rate_Inference/steady-state/bp_inference/Inference_data/set$set/$dataset.csv",',')[2:end,:]
+set = 3
+dataset = 3
+SSA_data = readdlm("steady-state/bp_inference/Inference_data/set$set/$dataset.csv",',')[2:end,:]
 
 @time for dataset = 1:5
 print(dataset,"\n")
-SSA_data = readdlm("Control_rate_Inference/steady-state/bp_inference/Inference_data/set$set/$dataset.csv",',')[2:end,:]
-# SSA_data = readdlm("Control_rate_Inference/steady-state/bp_inference/data/set$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("steady-state/bp_inference/Inference_data/set$set/$dataset.csv",',')[2:end,:]
+# SSA_data = readdlm("steady-state/bp_inference/data/set$dataset.csv",',')[2:end,:]
 
 # kinetic_params0 = [0.0232,2.96]
 SRange = [(0,0.06),(0,6)]
 res = bboptimize(Objective_func; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 2, MaxSteps = 100) #参数推断求解
+SearchRange = SRange, NumDimensions = 2, MaxSteps = 300) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 
 α = thetax[1]
@@ -88,7 +88,7 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("Bursty/Control_rate_Inference/steady-state/bp_inference/temp_1.csv",df)
+CSV.write("steady-state/bp_inference/temp_3.csv",df)
 
 
 function check_inference(kinetic_params)
@@ -96,7 +96,7 @@ function check_inference(kinetic_params)
     b = kinetic_params[2]
     Attribute = kinetic_params[3]
 
-    df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/params_tfo2.csv",DataFrame)
+    df = CSV.read("Bursty/Control_tau_fixed_otherrand_erlang/params_tfo2.csv",DataFrame)
     params1 = df.params1
     params2 = df.params2[1:length_2]
 
@@ -115,7 +115,7 @@ result_list
 dataset = 2
 result_list[dataset]
 solution_inference = check_inference(result_list[dataset])
-SSA_data = vec(readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:])
+SSA_data = vec(readdlm("Bursty/Control_tau_fixed_otherrand_erlang/data/set$set/$(width).csv",',')[2:end,:])
 Flux.mse(solution_inference,SSA_data)
 
 plot(0:N-1,solution_inference,lw=3,label="inference")

@@ -57,7 +57,7 @@ end
 
 # SSA data
 result_list = []
-set = 1
+set = 2
 dataset = 1
 SSA_data = readdlm("Control_rate_Inference/steady-state/bp_inference/Inference_data/set$set/$dataset.csv",',')[2:end,:]
 
@@ -69,7 +69,7 @@ SSA_data = readdlm("Control_rate_Inference/steady-state/bp_inference/Inference_d
 # kinetic_params0 = [0.0232,2.96]
 SRange = [(0,0.06),(0,6)]
 res = bboptimize(Objective_func; Method = :adaptive_de_rand_1_bin_radiuslimited, 
-SearchRange = SRange, NumDimensions = 2, MaxSteps = 100) #参数推断求解
+SearchRange = SRange, NumDimensions = 2, MaxSteps = 300) #参数推断求解
 thetax = best_candidate(res) #优化器求解参数
 
 α = thetax[1]
@@ -88,7 +88,7 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("Control_rate_Inference/steady-state/bp_inference/temp_1.csv",df)
+CSV.write("Control_rate_Inference/steady-state/bp_inference/temp_2.csv",df)
 
 function check_inference(kinetic_params)
     a = kinetic_params[1]
