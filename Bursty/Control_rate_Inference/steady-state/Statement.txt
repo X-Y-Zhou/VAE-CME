@@ -3,3 +3,7 @@ bp.jl Control_rate_Inference/steady-state/params_bp_abcd.csv  1组alpha beta 4�
       Control_rate_Inference/steady-state/params_bp_abcd4.csv 4组alpha beta 4个参数 隐藏层为10
       Control_rate_Inference/steady-state/params_bp_abcd4-1.csv 4组alpha 四个参数第1次训练 隐藏层为100
       Control_rate_Inference/steady-state/params_bp_abcd4-2.csv 4组alpha 四个参数第2次训练 隐藏层为100
+      Control_rate_Inference/steady-state/params_bp_abcd4-3.csv 4组alpha 四个参数第3次训练 隐藏层为100
+      Control_rate_Inference/steady-state/params_bp_abcd4-4.csv 4组alpha 四个参数第4次训练 隐藏层为100
+      Control_rate_Inference/steady-state/params_bp_abcd4-5.csv 4组alpha 四个参数第5次训练 隐藏层为500
+      Control_rate_Inference/steady-state/params_bp_abcd4-6.csv 4组alpha 四个参数第6次训练 隐藏层为500
