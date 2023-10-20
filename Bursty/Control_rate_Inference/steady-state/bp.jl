@@ -42,7 +42,7 @@ train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 
 
 # model initialization
-model = Chain(Dense(N, 500, tanh), Dense(500, 4), x ->exp.(x));
+model = Chain(Dense(N, 100, tanh), Dense(100, 4), x ->exp.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 p1
@@ -98,7 +98,7 @@ mse_list = []
     mse = loss_func(p1)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Control_rate_Inference/steady-state/params_bp_abcd4-5.csv",df)
+        CSV.write("Control_rate_Inference/steady-state/params_bp_abcd4-6.csv",df)
         mse_min[1] = mse
     end
     push!(mse_list,mse)
@@ -106,12 +106,12 @@ mse_list = []
 end
 
 using CSV,DataFrames
-df = CSV.read("Control_rate_Inference/steady-state/params_bp_abcd4-5.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/steady-state/params_bp_abcd4-1.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 end
 
-mse_min = [0.007227712843467352]
+mse_min = [0.007068633093157385]
 mse_list
 mse_min
 
