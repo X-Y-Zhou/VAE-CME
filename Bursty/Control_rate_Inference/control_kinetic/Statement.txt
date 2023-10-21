@@ -10,3 +10,5 @@ control_kinetic5.jl 4组alpha和beta的训练，更改了网络结构，输出�
 control_kinetic6.jl 4组alpha和beta的训练，输出直接为NN，增大隐藏层数
                     params_ck6.csv 隐藏层75 latentsize = 25
                     params_ck6-1.csv 隐藏层100 latentsize = 5
+
+control_kinetic7.jl 4组alpha和beta的训练，输出为四个参数

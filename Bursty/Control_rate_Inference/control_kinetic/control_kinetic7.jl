@@ -19,7 +19,6 @@ function f_NN(x,l,m,n,o)
     return l*x^m/(n+x^o)
 end
 
-
 a = 0.0282;
 b = 3.46;
 τ = 120;
@@ -27,45 +26,47 @@ b = 3.46;
 N = 64
 train_sol = bursty(N,a,b,τ)
 
-a_list = [0.0282,0.0082]
-b_list = [3.46,1.46]
+a_list = [0.0082,0.0282]
+b_list = [1.46,3.46]
 # τ_list = [100,110,120,130,140]
+l_ablist = length(a_list)*length(b_list)
 
 ab_list = [[a_list[i],b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
 # abτ_list = [[a_list[i],b_list[j],τ_list[k]] for i=1:length(a_list) for j=1:length(b_list) for k=1:length(τ_list)]
-# ab_list = [[0.0282,3.46],[0.0082,1.46]]
 
-l_ablist = length(ab_list)
 train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 # train_sol = [bursty(N,abτ_list[i][1],abτ_list[i][2],abτ_list[i][3]) for i=1:length(abτ_list)]
 
 
-
 # model initialization
-model = Chain(Dense(N, 100, tanh), Dense(100, 4), x ->exp.(x));
-p1, re = Flux.destructure(model);
-ps = Flux.params(p1);
-p1
+latent_size = 5;
+encoder = Chain(Dense(N, 200,tanh),Dense(200, latent_size * 2));
+decoder = Chain(Dense(latent_size, 200),Dense(200 , 4),x ->exp.(x));
 
-p = p1
+params1, re1 = Flux.destructure(encoder);
+params2, re2 = Flux.destructure(decoder);
+ps = Flux.params(params1,params2);
+
+params1
+params2
+
+p1 = params1
+p2 = params2
 x = P_0_list[1]
-l,m,n,o = re(p)(x)
 
-x = P_0_list[2]
-l,m,n,o = re(p)(x)
-
-x = P_0_list[3]
-l,m,n,o = re(p)(x)
-
-x = P_0_list[4]
-l,m,n,o = re(p)(x)
-
-
+ϵ
+h = re1(p1)(x)
+μ, logσ = split_encoder_result(h, latent_size)
+z = reparameterize.(μ, logσ, ϵ)
+l,m,n,o = re2(p2)(z)
 NN = f_NN.(1:N-1,l,m,n,o)
 
 #CME
-function f1!(x,p,a,b)
-    l,m,n,o = re(p)(x)
+function f1!(x,p1,p2,a,b,ϵ)
+    h = re1(p1)(x)
+    μ, logσ = split_encoder_result(h, latent_size)
+    z = reparameterize.(μ, logσ, ϵ)
+    l,m,n,o = re2(p2)(z)
     NN = f_NN.(1:N-1,l,m,n,o)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
@@ -75,63 +76,84 @@ end
 P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
 P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for j=0:N-1] for i=1:l_ablist]
 
-sol(p,a,b,P0) = nlsolve(x->f1!(x,p,a,b),P0).zero
+ϵ = zeros(latent_size)
+sol(p1,p2,a,b,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,a,b,ϵ),P0).zero
 # sol(params1,params2,a,b,ϵ,P_0_list[25])
 
-function loss_func(p)
-    sol_cme = [sol(p,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
+function loss_func(p1,p2,ϵ)
+    sol_cme = [sol(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+        
     mse = sum(Flux.mse(sol_cme[i],train_sol[i]) for i=1:l_ablist)/l_ablist
-    loss = mse
-    # print(loss,"\n")
+    print(mse," ")
+
+    μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[i]), latent_size) for i=1:l_ablist]
+    kl = sum([(0.5f0 * sum(exp.(2f0 .* μ_logσ_list[i][2]) + μ_logσ_list[i][1].^2 .- 1 .- (2 .* μ_logσ_list[i][2])))  
+        for i=1:l_ablist])/l_ablist
+    print(kl," ")
+
+    loss = λ*mse + kl
+    print(loss,"\n")
     return loss
 end
 
-λ = 5000000
+λ = 50000000
 
 #check λ if is appropriate
-loss_func(p1)
-@time grads = gradient(()->loss_func(p1) , ps)
+ϵ = zeros(latent_size)
+loss_func(params1,params2,ϵ)
+@time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 
 epochs_all = 0
 
-# training
-lr = 0.01;  #lr需要操作一下的
-
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.005,0.0025,0.0015,0.001]
+lr_list = [0.006,0.004,0.002,0.001]
 
-for lr in lr_list
+
+using CSV,DataFrames
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck5-2.csv",DataFrame)
+params1 = df.params1
+params2 = df.params2[1:length(params2)]
+ps = Flux.params(params1,params2);
+
+# training
+lr = 0.001;  #lr需要操作一下的
+
+# for lr in lr_list
 opt= ADAM(lr);
-epochs = 60
+epochs = 20
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
 
 @time for epoch in 1:epochs
+    ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
-    grads = gradient(()->loss_func(p1) , ps)
+    grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
     Flux.update!(opt, ps, grads)
 
-    mse = loss_func(p1)
+    ϵ = zeros(latent_size)
+    solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+    mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
+
     if mse<mse_min[1]
-        df = DataFrame(p1 = p1)
-        CSV.write("Bursty/Control_rate_Inference/steady-state/params_bp_abcd4-6.csv",df)
+        df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
+        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck5-2.csv",df)
         mse_min[1] = mse
     end
+
     push!(mse_list,mse)
     print(mse,"\n")
 end
 
-using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/steady-state/params_bp_abcd4-1.csv",DataFrame)
-p1 = df.p1
-ps = Flux.params(p1);
-end
+params1
+params2
 
-mse_min = [0.007068633093157385]
-mse_list
-mse_min
+mse_min = [0.0072110871408849865]
+mse_min 
 
-solution = [sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
+ϵ = zeros(latent_size)
+solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
 
 function plot_distribution(set)
@@ -147,6 +169,7 @@ function plot_all()
     plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
 end
 plot_all()
+# savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
 
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
@@ -162,7 +185,9 @@ for i=1:l_ablist_pre
     b = ab_list_pre[i][2]
     P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
-    solution = sol(p1,a,b,P_0)
+
+    ϵ = zeros(latent_size)
+    solution = sol(params1,params2,a,b,ϵ,P_0)
     push!(solution_list,solution)
 end
 
@@ -201,3 +226,4 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
+savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")
