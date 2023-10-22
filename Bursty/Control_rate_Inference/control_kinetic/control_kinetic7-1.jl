@@ -39,7 +39,7 @@ train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 
 
 # model initialization
-latent_size = 2;
+latent_size = 1;
 encoder = Chain(Dense(N, 200,tanh),Dense(200, latent_size * 2));
 decoder = Chain(Dense(latent_size, 200),Dense(200 , 4),x ->exp.(x));
 
@@ -111,7 +111,7 @@ lr_list = [0.006,0.004,0.002,0.001]
 
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck7.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck7-1.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -138,7 +138,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck7.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck7-1.csv",df)
         mse_min[1] = mse
     end
 
