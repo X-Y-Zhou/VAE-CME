@@ -28,6 +28,7 @@ train_sol = bursty(N,a,b,τ)
 
 a_list = [0.0082,0.0282]
 b_list = [1.46,3.46,2.46]
+# b_list = [1.46,3.46]
 # τ_list = [100,110,120,130,140]
 l_ablist = length(a_list)*length(b_list)
 
@@ -96,7 +97,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 5000000000
+λ = 3000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -112,11 +113,11 @@ lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
 
 lr_list = [0.0008,0.0006,0.0004]
 
-lr = 0.0006;  #lr需要操作一下的
+lr = 0.0008;  #lr需要操作一下的
 
 for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck7.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck7_better.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -141,7 +142,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck7.csv",df)
+        CSV.write("Bursty/Control_rate_Inference/control_kinetic/params_ck7_better.csv",df)
         mse_min[1] = mse
     end
 
@@ -153,8 +154,14 @@ end
 params1
 params2
 
-mse_min = [0.007070376517433799]
+mse_min = [2.4828482327913556e-6]
 mse_min 
+
+using CSV,DataFrames
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck7_better.csv",DataFrame)
+params1 = df.params1
+params2 = df.params2[1:length(params2)]
+ps = Flux.params(params1,params2);
 
 ϵ = zeros(latent_size)
 solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
@@ -174,6 +181,18 @@ function plot_all()
 end
 plot_all()
 # savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
+
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    plot(p1,p2,p3,p4,p5,p6,size=(900,600),layout=(2,3))
+end
+plot_all()
+
 
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
