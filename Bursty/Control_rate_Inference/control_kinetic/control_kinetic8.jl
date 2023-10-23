@@ -96,7 +96,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000000
+λ = 50000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -108,8 +108,8 @@ epochs_all = 0
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.005,0.0025,0.0015,0.001]
 lr_list = [0.006,0.004,0.002,0.001]
-
-
+lr_list = [0.004,0.002,0.001,0.0008,0.0006,0.0004]
+lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
 
 
 # training
@@ -117,7 +117,7 @@ lr = 0.01;  #lr需要操作一下的
 
 for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Control_rate_Inference/control_kinetic/params_ck8.csv",DataFrame)
+df = CSV.read("Control_rate_Inference/control_kinetic/params_ck8-2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -140,7 +140,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Control_rate_Inference/control_kinetic/params_ck8.csv",df)
+        CSV.write("Control_rate_Inference/control_kinetic/params_ck8-2.csv",df)
         mse_min[1] = mse
     end
 
@@ -152,8 +152,8 @@ end
 params1
 params2
 
-mse_min = [0.006589900278427313]
-mse_min 
+mse_min = [0.0008059795817706274]
+mse_min
 
 ϵ = zeros(latent_size)
 solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]

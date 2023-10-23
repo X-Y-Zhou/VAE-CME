@@ -27,7 +27,7 @@ N = 64
 train_sol = bursty(N,a,b,τ)
 
 a_list = [0.0082,0.0282]
-b_list = [1.46,3.46]
+b_list = [1.46,3.46,2.46]
 # τ_list = [100,110,120,130,140]
 l_ablist = length(a_list)*length(b_list)
 
@@ -50,16 +50,16 @@ ps = Flux.params(params1,params2);
 params1
 params2
 
-# p1 = params1
-# p2 = params2
-# x = P_0_list[1]
+p1 = params1
+p2 = params2
+x = P_0_list[1]
 
-# ϵ
-# h = re1(p1)(x)
-# μ, logσ = split_encoder_result(h, latent_size)
-# z = reparameterize.(μ, logσ, ϵ)
-# l,m,n,o = re2(p2)(z)
-# NN = f_NN.(1:N-1,l,m,n,o)
+ϵ
+h = re1(p1)(x)
+μ, logσ = split_encoder_result(h, latent_size)
+z = reparameterize.(μ, logσ, ϵ)
+l,m,n,o = re2(p2)(z)
+NN = f_NN.(1:N-1,l,m,n,o)
 
 #CME
 function f1!(x,p1,p2,a,b,ϵ)
@@ -96,7 +96,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 1000000
+λ = 5000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -108,20 +108,23 @@ epochs_all = 0
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.005,0.0025,0.0015,0.001]
 lr_list = [0.006,0.004,0.002,0.001]
+lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
 
+lr_list = [0.0008,0.0006,0.0004]
 
+lr = 0.0006;  #lr需要操作一下的
+
+for lr in lr_list
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck7.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
-# training
-lr = 0.001;  #lr需要操作一下的
+# # training
 
-# for lr in lr_list
 opt= ADAM(lr);
-epochs = 30
+epochs = 100
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -144,6 +147,7 @@ mse_list = []
 
     push!(mse_list,mse)
     print(mse,"\n")
+end
 end
 
 params1
@@ -226,4 +230,4 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
-savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")
+# savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")
