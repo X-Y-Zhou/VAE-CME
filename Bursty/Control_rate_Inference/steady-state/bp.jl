@@ -42,26 +42,41 @@ train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 
 
 # model initialization
-model = Chain(Dense(N, 100, tanh), Dense(100, 4), x ->exp.(x));
+model = Chain(Dense(N, 500, tanh), Dense(500, 4), x ->exp.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 p1
 
+lmno_list = []
 p = p1
 x = P_0_list[1]
 l,m,n,o = re(p)(x)
+push!(lmno_list,[l,m,n,o])
 
 x = P_0_list[2]
 l,m,n,o = re(p)(x)
+push!(lmno_list,[l,m,n,o])
 
 x = P_0_list[3]
 l,m,n,o = re(p)(x)
+push!(lmno_list,[l,m,n,o])
 
 x = P_0_list[4]
 l,m,n,o = re(p)(x)
+push!(lmno_list,[l,m,n,o])
 
+
+lmno_list
+lmno_list
 
 NN = f_NN.(1:N-1,l,m,n,o)
+
+x_temp = -3:0.01:3
+y_temp = exp.(x_temp)
+y_temp = softplus.(x_temp)
+
+plot!(x_temp,y_temp)
+
 
 #CME
 function f1!(x,p,a,b)
@@ -99,7 +114,7 @@ lr = 0.01;  #lr需要操作一下的
 
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
-for lr in lr_list
+# for lr in lr_list
 opt= ADAM(lr);
 epochs = 60
 epochs_all = epochs_all + epochs
@@ -122,10 +137,10 @@ mse_list = []
 end
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/steady-state/params_bp_abcd4-1.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/steady-state/params_bp_abcd4-5.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
-end
+# end
 
 mse_min = [0.007068633093157385]
 mse_list

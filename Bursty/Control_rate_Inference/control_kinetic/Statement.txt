@@ -12,9 +12,9 @@ control_kinetic6.jl 4组alpha和beta的训练，输出直接为NN，增大隐藏
                     params_ck6-1.csv 隐藏层100 latentsize = 5
 
 control_kinetic7.jl 4组alpha和beta的训练，输出为四个参数，z的维数进一步减小
-                    params_ck7.csv z的维数为2
-                    params_ck7-1.csv z的维数为1（最小情况）
+                    params_ck7.csv z的维数为2 7-2为第二次训练
+                    params_ck7-1.csv z的维数为1（最小情况）7-3为第二次训练
 
 control_kinetic8.jl 4组alpha和beta的训练，输出为四个参数，神经网络尾巴用softplus
-                    params_ck8.csv z的维数为2
-                    params_ck8-1.csv z的维数为1（最小情况）
+                    params_ck8.csv z的维数为2 8-2为第二次训练
+                    params_ck8-1.csv z的维数为1（最小情况）8-3为第二次训练
