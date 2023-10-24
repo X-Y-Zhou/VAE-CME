@@ -1,0 +1,8 @@
+# set1
+# mean = 120
+# α = 0.0182 β = 2.46
+# Uniform(0,240)   var = 4800  [1]
+# Uniform(30,210)  var = 2700
+# Uniform(60,180)  var = 1200
+# Uniform(90,150)  var = 300
+# Uniform(120,120) var = 0     [0]
