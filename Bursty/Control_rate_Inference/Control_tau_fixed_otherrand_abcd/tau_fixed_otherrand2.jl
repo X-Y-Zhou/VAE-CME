@@ -99,7 +99,6 @@ end
 #solve P
 P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
 P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for j=0:N-1] for i=1:l_ablist]
-P_0_list[1]
 
 ϵ = zeros(latent_size)
 sol_1(p1,p2,a,b,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,a,b,ϵ),P0).zero
@@ -142,7 +141,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 5000
+λ = 500000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -156,8 +155,10 @@ epochs_all = 0
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.005,0.0025,0.0015,0.001]
 lr_list = [0.006,0.004,0.002,0.001]
-lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
-lr_list = [0.0008,0.0006,0.0004]
+lr_list = [0.0025,0.0015,0.0008,0.0006]
+lr_list = [0.001,0.0008,0.0006,0.0004]
+lr = 0.008
+lr_list
 
 for lr in lr_list
 using CSV,DataFrames
@@ -169,7 +170,7 @@ ps = Flux.params(params1,params2);
 # training
 # lr = 0.01;  #lr需要操作一下的
 opt= ADAM(lr);
-epochs = 40
+epochs = 60
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -201,7 +202,7 @@ end
 mse_list
 mse_min 
 
-mse_min = [0.01479437647870343]
+mse_min = [0.014965814660873076]
 
 using CSV,DataFrames
 df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/params_tfo2.csv",DataFrame)
