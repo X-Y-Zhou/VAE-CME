@@ -216,6 +216,9 @@ solution_2 = [sol_2(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) 
 mse_1 = sum(Flux.mse(solution_1[i],train_sol_1[:,i]) for i=1:l_ablist)/l_ablist
 mse_2 = sum(Flux.mse(solution_2[i],train_sol_2[:,i]) for i=1:l_ablist)/l_ablist
 mse = mse_1+mse_2
+mse = mse_1+mse_2
+mse = mse_1+mse_2
+mse = mse_1+mse_2
 
 function plot_distribution_1(set)
     plot(0:N-1,solution_1[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
@@ -336,6 +339,10 @@ plot_all()
 
 set = 4
 a = 0.0232
+b = 2.96
+
+set = 5
+a = 0.0182
 b = 2.96
 
 a_list = ["120-120","90-150","60-180","30-210","0-240",]
