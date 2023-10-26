@@ -142,7 +142,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000000
+λ = 10000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -157,8 +157,8 @@ lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.005,0.0025,0.0015,0.001]
 lr_list = [0.006,0.004,0.002,0.001]
 lr_list = [0.0025,0.0015,0.0008,0.0006]
-lr_list = [0.0008,0.0006,0.0004]
-lr = 0.01;  #lr需要操作一下的
+lr_list = [0.0006,0.0004,0.002]
+lr = 0.0008;  #lr需要操作一下的
 
 for lr in lr_list
 using CSV,DataFrames
@@ -170,7 +170,7 @@ ps = Flux.params(params1,params2);
 # training
 
 opt= ADAM(lr);
-epochs = 40
+epochs = 120
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -202,7 +202,7 @@ end
 mse_list
 mse_min 
 
-mse_min = [0.014464033829602353]
+mse_min = [2.369309669512181e-6]
 
 using CSV,DataFrames
 df = CSV.read("params_tfo4.csv",DataFrame)
