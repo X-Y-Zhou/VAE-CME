@@ -141,7 +141,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 300000000
+λ = 10000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -156,7 +156,7 @@ lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.005,0.0025,0.0015,0.001]
 lr_list = [0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.0025,0.0015,0.0008,0.0006]
-lr_list = [0.001,0.0008,0.0006,0.0004]
+lr_list = [0.0004,0.0002]
 lr = 0.008;  #lr需要操作一下的
 lr_list
 
@@ -169,7 +169,7 @@ ps = Flux.params(params1,params2);
 
 # training
 opt= ADAM(lr);
-epochs = 50
+epochs = 120
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -243,8 +243,9 @@ function plot_all()
 end
 plot_all()
 
+
 function sol_Extenicity(τ,Attribute,a,b)
-    decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/τ for i in 1:N-1],decoder_1[4]);
+    decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->exp.(x));
     _,re2_Extenicity = Flux.destructure(decoder_Extenicity);
 
     function f_Extenicity!(x,p1,p2,a,b,ϵ)
@@ -252,7 +253,8 @@ function sol_Extenicity(τ,Attribute,a,b)
         μ, logσ = split_encoder_result(h, latent_size)
         z = reparameterize.(μ, logσ, ϵ)
         z = vcat(z,Attribute)
-        NN = re2_Extenicity(p2)(z)
+        l,m,n,o = re2_Extenicity(p2)(z)
+        NN = f_NN.(1:N-1,l,m,n,o)
         return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
                 (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
     end
@@ -332,70 +334,20 @@ end
 plot_all()
 
 
-τ1_list = [0,30,60,90,120]
-Attribute_list = -τ1_list./τ.+1
-
-a = 0.0282
-b = 3.46
-solution_list = []
-for i=1:length(Attribute_list)
-    print(i,"\n")
-    Attribute = Attribute_list[i]
-    P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
-    P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
-
-    ϵ = zeros(latent_size)
-    solution = sol_Extenicity(τ,Attribute,a,b)
-    push!(solution_list,solution)
-end
-solution_list
-
-function  plot_distribution(set)
-    p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,data[:,set],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
-end
-
-function plot_all()
-    p1 = plot_distribution(1)
-    p2 = plot_distribution(2)
-    p3 = plot_distribution(3)
-    p4 = plot_distribution(4)
-    p5 = plot_distribution(5)
-    plot(p1,p2,p3,p4,p5,size=(1500,300),layout=(1,5))
-end
-plot_all()
-
-# check data
-# set3
-# mean = 120
-# α = 0.0182 β = 2.46 
-# Uniform(0,240)   var = 4800 
-
-# Uniform(120,120) var = 0 
-
-# set4
-# mean = 120
-# α = 0.0232 β = 2.96 
-# Uniform(0,240)   var = 4800 
-
-# Uniform(120,120) var = 0 
-
-# set5
-# mean = 120
-# α = 0.0182 β = 2.96 
-# Uniform(0,240)   var = 4800 
-
-# Uniform(120,120) var = 0 
-
-check_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand/data/check_data.csv",',')[2:end,:]
-check_data[:,1:5]
-check_data[:,6:10]
-
-τ1_list = [0,30,60,90,120]
-Attribute_list = -τ1_list./τ.+1
-
-a = 0.0182
+set = 4
+a = 0.0232
 b = 2.96
+
+a_list = ["120-120","90-150","60-180","30-210","0-240",]
+data_Extenicity = []
+for a in a_list
+    data_temp = Float64.(readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/data/set$set/$a.csv",',')[2:end,:])
+    push!(data_Extenicity,data_temp)
+end
+
+τ1_list = [120,90,60,60,0]
+Attribute_list = -τ1_list./τ.+1
+
 solution_list = []
 for i=1:length(Attribute_list)
     print(i,"\n")
@@ -411,7 +363,7 @@ solution_list
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,check_data[:,set+10],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
+    plot!(0:N-1,data_Extenicity[set],linewidth = 3,label="exact",line=:dash,title=join(["τ~Uniform(",τ1_list[set],",",2τ-τ1_list[set],")"]))
 end
 
 function plot_all()
@@ -423,6 +375,5 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,size=(1500,300),layout=(1,5))
 end
 plot_all()
-
 
 
