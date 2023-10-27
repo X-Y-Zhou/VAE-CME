@@ -29,7 +29,7 @@ a = 60;b = 180
 a = 90;b = 150
 a = 120;b = 120
 
-ab_list = [[0,240],[30,210],[60,180],[90,150]]
+ab_list = [[30,210],[60,180],[90,150]]
 ab_list = [[120,120]]
 
 for temp_ab in ab_list
@@ -74,18 +74,18 @@ L = 200
 # λ = 0.0082
 # β = 2.46
 
-# set = 9
-# λ = 0.0282
-# β = 2.46
-
-set = 10
-λ = 0.0232
+set = 9
+λ = 0.0282
 β = 2.46
+
+# set = 10
+# λ = 0.0232
+# β = 2.46
 
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
-    # temp = rand(Uniform(a,b))
-    temp = 120
+    temp = rand(Uniform(a,b))
+    # temp = 120
     velo = L/temp
     return velo
 end
