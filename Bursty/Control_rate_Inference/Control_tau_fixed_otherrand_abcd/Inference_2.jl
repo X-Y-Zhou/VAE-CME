@@ -79,8 +79,8 @@ SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/Infe
 
 @time for dataset = 1:5
 print(dataset,"\n")
-SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
-# SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(width).csv",',')[2:end,:]
+# SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/data/set$set/$(width).csv",',')[2:end,:]
 
 # Ex = P2mean(SSA_data)
 # Dx = P2var(SSA_data)
@@ -88,7 +88,7 @@ SSA_data = readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/Infe
 # a_0 = 2Ex^2/(Dx-Ex)τ
 # b_0 = (Dx-Ex)/2Ex
 
-# kinetic_params0 = [0.0232,2.96,0.5268]
+# kinetic_params0 = [0.0182,2.96,0.5]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(Objective_func; Method = :adaptive_de_rand_1_bin_radiuslimited, 
 SearchRange = SRange, NumDimensions = 3, MaxSteps = 300) #参数推断求解

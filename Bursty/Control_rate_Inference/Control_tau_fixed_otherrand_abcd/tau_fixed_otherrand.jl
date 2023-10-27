@@ -204,7 +204,7 @@ mse_min
 mse_min = [0.001055443060000617]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/params_tfo.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/params_tfo2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -242,7 +242,7 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,layouts=(4,3),size=(1200,1600))
 end
 plot_all()
-
+savefig("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/fitting.png")
 
 function sol_Extenicity(τ,Attribute,a,b)
     decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->exp.(x));
@@ -332,18 +332,19 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
+savefig("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/pre.png")
 
-
-set = 4
-a = 0.0232
-b = 2.96
+set = 7
+a = 0.0282
+b = 1.46
 
 a_list = ["120-120","90-150","60-180","30-210","0-240",]
 data_Extenicity = []
 for a in a_list
-    data_temp = Float64.(readdlm("Control_rate_Inference/Control_tau_fixed_otherrand_abcd/data/set$set/$a.csv",',')[2:end,:])
+    data_temp = Float64.(readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/data/set$set/$a.csv",',')[2:end,:])
     push!(data_Extenicity,data_temp)
 end
+data_Extenicity
 
 τ1_list = [120,90,60,60,0]
 Attribute_list = -τ1_list./τ.+1
@@ -375,5 +376,7 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,size=(1500,300),layout=(1,5))
 end
 plot_all()
+savefig("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/preset$set.png")
+
 
 
