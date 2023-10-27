@@ -121,9 +121,13 @@ L = 200
 # λ = 0.0232
 # β = 2.96
 
-set = 5
-λ = 0.0182
-β = 2.96
+# set = 5
+# λ = 0.0182
+# β = 2.96
+
+set = 10
+λ = 0.0232
+β = 2.46
 
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
@@ -182,5 +186,5 @@ end
 
 title = [join([a,"-",b])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand/Inference_data/set$set/$(a)-$(b)_$epoch.csv",df)
+CSV.write("Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(a)-$(b)_$epoch.csv",df)
 end

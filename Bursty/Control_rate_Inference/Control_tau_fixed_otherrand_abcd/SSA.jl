@@ -29,6 +29,14 @@ a = 60;b = 180
 a = 90;b = 150
 a = 120;b = 120
 
+ab_list = [[0,240],[30,210],[60,180],[90,150]]
+ab_list = [[120,120]]
+
+for temp_ab in ab_list
+print(temp_ab,"\n")
+a = Int(temp_ab[1])
+b = temp_ab[2]
+
 Ex = E(a,b)
 Dx = D(a,b)
 L = 200
@@ -62,18 +70,22 @@ L = 200
 # λ = 0.0282
 # β = 1.46
 
-set = 8
-λ = 0.0082
-β = 2.46
+# set = 8
+# λ = 0.0082
+# β = 2.46
 
-set = 9
-λ = 0.0282
+# set = 9
+# λ = 0.0282
+# β = 2.46
+
+set = 10
+λ = 0.0232
 β = 2.46
 
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
-    temp = rand(Uniform(a,b))
-    # temp = 120
+    # temp = rand(Uniform(a,b))
+    temp = 120
     velo = L/temp
     return velo
 end
@@ -206,7 +218,9 @@ train_sol_people
 
 title = [join([a,"-",b])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/data/set$set/$(a)-$(b).csv",df)
+CSV.write("Control_tau_fixed_otherrand_abcd/data/set$set/$(a)-$(b).csv",df)
+end
+
 
 bursty(N,0.0282,2.46,τ)
 
