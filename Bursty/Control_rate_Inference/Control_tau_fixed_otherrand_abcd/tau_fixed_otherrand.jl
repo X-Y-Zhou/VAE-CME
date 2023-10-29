@@ -334,9 +334,9 @@ end
 plot_all()
 savefig("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/pre.png")
 
-set = 7
-a = 0.0282
-b = 1.46
+set = 10
+a = 0.0232
+b = 2.46
 
 a_list = ["120-120","90-150","60-180","30-210","0-240",]
 data_Extenicity = []
@@ -346,7 +346,7 @@ for a in a_list
 end
 data_Extenicity
 
-τ1_list = [120,90,60,60,0]
+τ1_list = [120,90,60,30,0]
 Attribute_list = -τ1_list./τ.+1
 
 solution_list = []

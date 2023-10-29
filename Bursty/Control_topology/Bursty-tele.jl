@@ -123,6 +123,8 @@ problem = ODEProblem(CME, u0, tspan, params_all);
 solution = Array(solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat))
 solution = (solution[1:N, :] + solution[N+1:end, :])
 
+solution
+
 mean_exact = [sum([j for j=0:N].*train_sol[:,i]) for i=1:size(train_sol,2)]
 mean_trained = [sum([j for j=0:N-1].*solution[:,i]) for i=1:size(solution,2)]
 plot(mean_trained,linewidth = 3,label="VAE-CME",xlabel = "# t", ylabel = "mean value")

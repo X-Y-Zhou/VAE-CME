@@ -30,7 +30,7 @@ djprob = DelayJumpProblem(
 
 ensprob = EnsembleProblem(djprob)
 @time ens = solve(ensprob, SSAStepper(), EnsembleThreads(); trajectories=10^5,saveat=1.)
-last_slice = componentwise_vectors_timepoint(ens, 0.0)
+last_slice = componentwise_vectors_timepoint(ens, tf)
 
 Sample_size = 10^5
 using Catalyst.EnsembleAnalysis
@@ -56,6 +56,7 @@ for i =1:size(data,1)
         train_sol_SSA[1:N+1,i] = probability[1:N+1]
     end
 end
+train_sol_SSA
 train_sol_SSA
 
 train_sol
