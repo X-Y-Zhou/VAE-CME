@@ -61,6 +61,11 @@ P2var(P) = ([P[i] * (i-1)^2 for i in 1:length(P)] |> sum) - P2mean(P)^2
 # Calculate second moment sm
 P2sm(P) = [P[i] * (i-1)^2 for i in 1:length(P)] |> sum
 
+# NN function
+function f_NN(x,l,m,n,o)
+    return l*x^m/(n+x^o)
+end;
+
 # normalization
 function set_one(vec)
     vec = abs.(vec)
