@@ -118,6 +118,7 @@ result_list[3]
 result_list[4]
 result_list[5]
 
+
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
 CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/infer_two_params/temp_1.csv",df)
