@@ -69,7 +69,7 @@ end
 
 # SSA data
 result_list = []
-set = 5
+set = 1
 width = "30-210"
 width = "60-180"
 width = "90-150"
@@ -79,8 +79,8 @@ SSA_data = readdlm("Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(wi
 
 @time for dataset = 1:5
 print(dataset,"\n")
-# SSA_data = readdlm("Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
-SSA_data = readdlm("Control_tau_fixed_otherrand_abcd/data/set$set/$(width).csv",',')[2:end,:]
+SSA_data = readdlm("Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+# SSA_data = readdlm("Control_tau_fixed_otherrand_abcd/data/set$set/$(width).csv",',')[2:end,:]
 
 # Ex = P2mean(SSA_data)
 # Dx = P2var(SSA_data)
@@ -88,7 +88,7 @@ SSA_data = readdlm("Control_tau_fixed_otherrand_abcd/data/set$set/$(width).csv",
 # a_0 = 2Ex^2/(Dx-Ex)τ
 # b_0 = (Dx-Ex)/2Ex
 
-# kinetic_params0 = [0.0182,2.96,0.25]
+# kinetic_params0 = [0.0282,3.46,0.25]
 SRange = [(0,0.06),(0,6),(0,1)]
 res = bboptimize(Objective_func; Method = :adaptive_de_rand_1_bin_radiuslimited, 
 SearchRange = SRange, NumDimensions = 3, MaxSteps = 300) #参数推断求解

@@ -14,7 +14,7 @@ function birth_death(ρ,t,N)
     return P
 end;
 
-ρ = 0.0282
+ρ = 0.0282*3.46
 τ = 120
 
 exact_data = birth_death(ρ,τ,N)
@@ -34,6 +34,14 @@ df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/pa
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
+
+p1 = params1
+p2 = params2
+x = P_0 = [pdf(Poisson(ρ*τ),j) for j=0:N-1]
+h = re1(p1)(x)
+μ, logσ = split_encoder_result(h, latent_size)
+z = reparameterize.(μ, logσ, ϵ)
+l,m,n,o = re2(p2)(z)
 
 function f1!(x,p1,p2,ϵ)
     h = re1(p1)(x)

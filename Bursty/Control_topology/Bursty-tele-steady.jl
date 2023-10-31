@@ -83,8 +83,9 @@ end
 
 P_0_distribution = Poisson(rho_on*τ*sigma_on)
 P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
+# P_0 = exact_data
 P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off)]
-plot(P_0_split)
+# plot(P_0_split)
 
 ϵ = zeros(latent_size)
 sol(p1,p2,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,ϵ),P0).zero
@@ -94,4 +95,5 @@ solution = solution[1:N]+solution[N+1:2*N]
 
 plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,exact_data,linewidth = 3,label="exact",line=:dash)
+
 savefig("Bursty/Control_topology/tele_P0-P1.pdf")
