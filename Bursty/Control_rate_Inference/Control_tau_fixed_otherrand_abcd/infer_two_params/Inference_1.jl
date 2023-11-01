@@ -54,8 +54,8 @@ Attribute = 0
 solution = sol_Extenicity(params1,params2,a,b,Attribute,ϵ,P_0_Extenicity)
 
 function Objective_func(kinetic_params)
-    a = 0.0232
-    b = kinetic_params[1]
+    a = kinetic_params[1]
+    b = 2.46
     Attribute = kinetic_params[2]
 
     ϵ = zeros(latent_size)
@@ -77,7 +77,7 @@ width = "90-150"
 dataset = 2
 SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
 
-@time for dataset = 1:5
+@time for dataset = 1:1
 print(dataset,"\n")
 SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
 # SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_abcd/Inference_data/set$set/$(width).csv",',')[2:end,:]
@@ -88,8 +88,8 @@ SSA_data = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_ab
 # a_0 = 2Ex^2/(Dx-Ex)τ
 # b_0 = (Dx-Ex)/2Ex
 
-# kinetic_params0 = [0.0232,2.46,0.75]
-SRange = [(0,6),(0,1)]
+kinetic_params0 = [0.0232,0.5]
+SRange = [(0,0.06),(0,1)]
 res = bboptimize(Objective_func; Method = :adaptive_de_rand_1_bin_radiuslimited, 
 SearchRange = SRange, NumDimensions = 2, MaxSteps = 300) #参数推断求解
 
@@ -98,8 +98,8 @@ SearchRange = SRange, NumDimensions = 2, MaxSteps = 300) #参数推断求解
 
 thetax = best_candidate(res) #优化器求解参数
 
-α = 0.0232
-β = thetax[1]
+α = thetax[1]
+β = 2.46
 Attribute = thetax[2]
 
 τ1 = (1-Attribute)*τ

@@ -18,7 +18,8 @@ end;
 τ = 120
 
 exact_data = birth_death(ρ,τ,N)
-plot(exact_data)
+sum(exact_data)
+# plot(exact_data)
 
 # model 
 latent_size = 2;
@@ -37,11 +38,16 @@ ps = Flux.params(params1,params2);
 
 p1 = params1
 p2 = params2
-x = P_0 = [pdf(Poisson(ρ*τ),j) for j=0:N-1]
+x = [pdf(Poisson(ρ*τ),j) for j=0:N-1]
 h = re1(p1)(x)
 μ, logσ = split_encoder_result(h, latent_size)
 z = reparameterize.(μ, logσ, ϵ)
 l,m,n,o = re2(p2)(z)
+NN = f_NN.(1:N-1,l,m,n,o)
+
+plot(NN,label="NN")
+savefig("Bursty/Control_topology/birth-death-NN.pdf")
+
 
 function f1!(x,p1,p2,ϵ)
     h = re1(p1)(x)
@@ -51,14 +57,19 @@ function f1!(x,p1,p2,ϵ)
     NN = f_NN.(1:N-1,l,m,n,o)
     # NN = re2(p2)(z)
 
-    return vcat(-ρ*x[1] + NN[1]*x[2],
+    # return vcat(-ρ*x[1] + NN[1]*x[2],
+    #             [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
+    #             sum(x)-1)
+    return vcat(sum(x)-1,
                 [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
-                sum(x)-1)
+                ρ*x[N-1] + (-ρ-NN[N-1])*x[N])
 end
 
 N/τ
 P_0_distribution = Poisson(ρ*τ)
 P_0 = [pdf(Poisson(ρ*τ),j) for j=0:N-1]
+P_0 = set_one(P_0)
+sum(P_0)
 
 ϵ = zeros(latent_size)
 sol(p1,p2,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,ϵ),P0).zero
