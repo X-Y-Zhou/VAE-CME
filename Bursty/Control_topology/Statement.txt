@@ -1,0 +1,5 @@
+check_birth_death-origin.csv 网络结构为 x-> x.+[i/τ  for i in 1:N-1]
+check_birth_death-origin2.csv 网络结构为 x-> x.+[i/τ  for i in 2:N]
+
+check_birth_death1 or 2.csv 网络结构为 x-> x.+[i/τ  for i in 1:N-1]的两次独立重复试验
+check_birth_death3 网络结构为 x-> x.+[i/τ  for i in 2:N]

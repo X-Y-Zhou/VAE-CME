@@ -25,15 +25,22 @@ model = Chain(Dense(N, 500, tanh), Dense(500, 4), x ->exp.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
+x = P_0
+p = p1
+l,m,n,o = re(p)(x)
+NN = f_NN.(2:N,l,m,n,o)
+NN1 = NN
+
 function f1!(x,p)
-    l,m,n,o = re(p)(x)
-    NN = f_NN.(1:N-1,l,m,n,o)
-    # return vcat(-ρ*x[1] + NN[1]*x[2],
-    #             [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
-    #             sum(x)-1)
-    return vcat(sum(x)-1,
+    # l,m,n,o = re(p)(x)
+    # NN = f_NN.(2:N,l,m,n,o)
+    NN = NN1
+    return vcat(-ρ*x[1] + NN[1]*x[2],
                 [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
-                ρ*x[N-1] + (-ρ-NN[N-1])*x[N])
+                sum(x)-1)
+    # return vcat(sum(x)-1,
+    #             [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
+    #             ρ*x[N-1] + (-ρ-NN[N-1])*x[N])
 end
 
 P_0_distribution = Poisson(ρ*τ)
@@ -42,14 +49,11 @@ P_0 = [pdf(Poisson(ρ*τ),j) for j=0:N-1]
 sol(p1,P0) = nlsolve(x->f1!(x,p1),P0).zero
 solution = sol(p1,P_0)
 
-x = P_0
-p = p1
-l,m,n,o = re(p)(x)
-NN = f_NN.(1:N-1,l,m,n,o)
+
 
 plot(NN,label="NN")
 plot!([0,120],[0,1],label="y=x/tau")
-savefig("Control_topology/checkbd.pdf")
+savefig("Bursty/Control_topology/checkbd.pdf")
 
 # p1
 
@@ -64,7 +68,7 @@ loss_func(p1)
 @time grads = gradient(()->loss_func(p1) , ps)
 
 # training
-lr = 0.004;  #lr需要操作一下的
+lr = 0.008;  #lr需要操作一下的
 
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
@@ -82,7 +86,7 @@ mse_list = []
     mse = loss_func(p1)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Control_topology/check_birth_death2.csv",df)
+        CSV.write("Bursty/Control_topology/check_birth_death3.csv",df)
         mse_min[1] = mse
     end
     push!(mse_list,mse)
@@ -90,15 +94,15 @@ mse_list = []
 end
 
 using CSV,DataFrames
-df = CSV.read("Control_topology/check_birth_death.csv",DataFrame)
+df = CSV.read("Bursty/Control_topology/check_birth_death3.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 # end
 
-mse_min = [0.011540996741508231]
+mse_min = [0.012722801725253268]
 
 using CSV,DataFrames
-df = CSV.read("Control_topology/check_birth_death2.csv",DataFrame)
+df = CSV.read("Bursty/Control_topology/check_birth_death3.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -107,4 +111,4 @@ Flux.mse(solution,exact_data)
 
 plot(0:N-1,solution,linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,exact_data,linewidth = 3,label="exact",line=:dash)
-savefig("Control_topology/birth-death-check.pdf")
+savefig("Bursty/Control_topology/birth-death-check.pdf")

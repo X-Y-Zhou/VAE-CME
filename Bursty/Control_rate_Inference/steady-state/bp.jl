@@ -47,6 +47,15 @@ p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 p1
 
+x = P_0_list[1]
+p = p1
+l,m,n,o = re(p)(x)
+NN = f_NN.(1:N-1,l,m,n,o)
+
+plot(NN,label="NN")
+plot!([0,120],[0,1],label="y=x/tau")
+
+
 lmno_list = []
 p = p1
 x = P_0_list[1]

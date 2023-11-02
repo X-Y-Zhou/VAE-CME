@@ -50,7 +50,7 @@ function f1!(x,p1,p2,ϵ)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
     l,m,n,o = re2(p2)(z)
-    NN = f_NN.(list_temp,l,m,n,o)
+    NN = f_NN.(1:N-1,l,m,n,o)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
 end
@@ -121,7 +121,7 @@ mse_min
 mse_min = [0.00020908455295774216]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/steady-state/steady_state2.jl",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/steady-state/params_ss2.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);

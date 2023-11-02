@@ -2,7 +2,7 @@ using Flux, DiffEqSensitivity, DifferentialEquations
 using Distributions, Distances
 using DelimitedFiles, Plots
 
-include("../../utils.jl")
+include("../../../utils.jl")
 
 #exact solution
 function bursty(N,τ)
@@ -31,12 +31,27 @@ params1, re1 = Flux.destructure(encoder);
 params2, re2 = Flux.destructure(decoder);
 ps = Flux.params(params1,params2);
 
+# p1 = params1
+# p2 = params2
+# x = train_sol
+# x = P_0
+
+# h = re1(p1)(x)
+# μ, logσ = split_encoder_result(h, latent_size)
+# z = reparameterize.(μ, logσ, ϵ)
+# NN = re2(p2)(z)
+
+# plot(NN,label="NN")
+# plot!([0,60],[0,0.5],label="y=x/tau")
+# savefig("Bursty/Control_rate_Inference/steady-state/steady_state-NN.pdf")
+
 #CME
 function f1!(x,p1,p2,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
     NN = re2(p2)(z)
+
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
 end
@@ -44,6 +59,7 @@ end
 #solve P
 P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
 P_0 = [pdf(P_0_distribution,i) for i=0:N-1]
+# P_0 = train_sol
 
 ϵ = zeros(latent_size)
 sol(p1,p2,ϵ) = nlsolve(x->f1!(x,p1,p2,ϵ),P_0).zero
@@ -107,7 +123,7 @@ mse_min
 mse_min = [0.00012192452342102719]
 
 using CSV,DataFrames
-df = CSV.read("Bursty/Control_rate_Inference/params_ss.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/steady-state/params_ss.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -118,6 +134,7 @@ Flux.mse(solution,train_sol)
 
 plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,train_sol,linewidth = 3,label="exact",title="steady-state",line=:dash)
+savefig("Bursty/Control_rate_Inference/steady-state/steady_state.pdf")
 
 
 #test and check
