@@ -40,9 +40,9 @@ D(μ,σ)
 # LogNormal(0,sqrt(8))+70 [1]
 
 # reaction rate
-# set = 1
-# λ = 0.0282
-# β = 3.46
+set = 1
+λ = 0.0282
+β = 3.46
 
 set = 2
 λ = 0.0082
@@ -76,11 +76,13 @@ set = 9
 λ = 0.0282
 β = 2.46
 
-set = 10
-λ = 0.0232
-β = 2.46
+# set = 10
+# λ = 0.0232
+# β = 2.46
 
 μ_σ_list = [[3,sqrt(2)],[2,sqrt(4)],[1,sqrt(6)],[0,sqrt(8)]]
+μ_σ_list = [[3,sqrt(2)],[0,sqrt(8)]]
+μ_σ_list = [[2,sqrt(4)],[1,sqrt(6)]]
 
 for temp in μ_σ_list
 print(temp,"\n")
@@ -178,7 +180,7 @@ tmax = maximum(saveat)
 n_cars_timepoints = [[] for i=1:length(saveat)]
 n_people_timepoints = [[] for i=1:length(saveat)]
 
-trajectories = 100000
+trajectories = 500000
 @time for i =1:trajectories
     if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
@@ -216,13 +218,13 @@ df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
 CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/$(μ)-sqrt($(round(σ^2))).csv",df)
 end
 
-set = 7
+set = 1
 train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/3.0-sqrt(2.0).csv",',')[2:end,:]
 train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/2.0-sqrt(4.0).csv",',')[2:end,:]
 train_sol_3 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/1.0-sqrt(6.0).csv",',')[2:end,:]
 train_sol_4 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/0.0-sqrt(8.0).csv",',')[2:end,:]
 
-
+N = 64
 plot(0:N,vec(train_sol_1),lw=2,label="τ~LogNormal(3,sqrt(2))+70")
 plot!(0:N,vec(train_sol_2),lw=2,label="τ~LogNormal(2,sqrt(4))+70")
 plot!(0:N,vec(train_sol_3),lw=2,label="τ~LogNormal(1,sqrt(6))+70")

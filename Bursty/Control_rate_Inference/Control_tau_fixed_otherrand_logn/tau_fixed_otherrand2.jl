@@ -141,7 +141,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000
+λ = 5000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -156,8 +156,10 @@ lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.005,0.0025,0.0015,0.001]
 lr_list = [0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.0025,0.0015,0.0008,0.0006]
-lr_list = [0.0004,0.0002]
-lr = 0.008;  #lr需要操作一下的
+lr_list = [0.001,0.0008,0.0006]
+lr_list = [0.0006,0.0004,0.002]
+lr_list = [0.0008]
+lr = 0.0008;  #lr需要操作一下的
 lr_list
 
 for lr in lr_list
@@ -169,7 +171,7 @@ ps = Flux.params(params1,params2);
 
 # training
 opt= ADAM(lr);
-epochs = 120
+epochs = 100
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
@@ -201,7 +203,7 @@ end
 mse_list
 mse_min 
 
-mse_min = [0.012919943852381037]
+mse_min = [0.013457558835109431]
 
 using CSV,DataFrames
 df = CSV.read("Control_rate_Inference/Control_tau_fixed_otherrand_logn/params_tfo2.csv",DataFrame)
@@ -242,7 +244,7 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,layouts=(4,3),size=(1200,1600))
 end
 plot_all()
-savefig("Control_rate_Inference/Control_tau_fixed_otherrand_logn/fitting.png")
+# savefig("Control_rate_Inference/Control_tau_fixed_otherrand_logn/fitting.png")
 
 function sol_Extenicity(τ,Attribute,a,b)
     decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->exp.(x));
