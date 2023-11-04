@@ -14,3 +14,6 @@ initial_x = [2.0, 2.0]
 inner_optimizer = GradientDescent()
 results = optimize(f, g!, lower, upper, initial_x, Fminbox(inner_optimizer))
 results = optimize(f, g!, lower, upper, initial_x, Fminbox(GradientDescent()), Optim.Options(outer_iterations = 2))
+
+f_univariate(x,y) = 2x^2+3(x-y)+1
+optimize(f_univariate, (-2.0,-2.0), (1.0,1.0))
