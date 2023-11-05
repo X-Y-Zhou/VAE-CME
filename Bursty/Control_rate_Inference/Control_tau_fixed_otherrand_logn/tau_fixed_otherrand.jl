@@ -141,13 +141,13 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 100000000
+λ = 5000000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
 loss_func_1(params1,params2,ϵ)
 loss_func_2(params1,params2,ϵ)
-                loss_func(params1,params2,ϵ)
+loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 
 epochs_all = 0
@@ -169,7 +169,7 @@ ps = Flux.params(params1,params2);
 
 # training
 opt= ADAM(lr);
-epochs = 50
+epochs = 100
 print("learning rate = ",lr)
 mse_list = []
 
@@ -200,7 +200,7 @@ end
 mse_list
 mse_min 
 
-mse_min = [8.279232416714589e-5]
+mse_min = [2.651110734354613e-6]
 
 using CSV,DataFrames
 df = CSV.read("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/params_tfo.csv",DataFrame)
