@@ -141,7 +141,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000
+λ = 500000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -154,7 +154,7 @@ epochs_all = 0
 
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.005,0.0025,0.0015,0.001]
-lr_list = [0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.006,0.004,0.002,0.001]
 lr_list = [0.0025,0.0015,0.0008,0.0006]
 lr_list = [0.0004,0.0002]
 lr = 0.008;  #lr需要操作一下的
@@ -169,8 +169,7 @@ ps = Flux.params(params1,params2);
 
 # training
 opt= ADAM(lr);
-epochs = 120
-epochs_all = epochs_all + epochs
+epochs = 50
 print("learning rate = ",lr)
 mse_list = []
 
@@ -201,7 +200,7 @@ end
 mse_list
 mse_min 
 
-mse_min = [0.012919943852381037]
+mse_min = [0.013069133484145741]
 
 using CSV,DataFrames
 df = CSV.read("Control_tau_fixed_otherrand_logn/params_tfo3.csv",DataFrame)
