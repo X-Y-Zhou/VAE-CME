@@ -1,4 +1,4 @@
-using Distributions,StatsPlots,StatsBase,DelimitedFiles,DataFrames,CSV
+using Distributions,StatsBase,DelimitedFiles,DataFrames,CSV
 
 function convert_histo(data::Vector)
     # Define histogram edge set (integers)
@@ -40,45 +40,21 @@ D(μ,σ)
 # LogNormal(0,sqrt(8))+70 [1]
 
 # reaction rate
-set = 1
-λ = 0.0282
-β = 3.46
+set = 1;λ = 0.0282;β = 3.46
+set = 2;λ = 0.0082;β = 1.46
+set = 3;λ = 0.0182;β = 2.46
+set = 4;λ = 0.0232;β = 2.96
+set = 5;λ = 0.0182;β = 2.96
+set = 6;λ = 0.0082;β = 3.46
+set = 7;λ = 0.0282;β = 1.46
+set = 8;λ = 0.0082;β = 2.46
+set = 9;λ = 0.0282;β = 2.46
+set = 10;λ = 0.0232;β = 2.46
+set = 11;λ = 0.0282;β = 2.96
+set = 12;λ = 0.0282;β = 1.96
+set = 13;λ = 0.0232;β = 3.46
+set = 14;λ = 0.0232;β = 1.46
 
-set = 2
-λ = 0.0082
-β = 1.46
-
-# set = 3
-# λ = 0.0182
-# β = 2.46
-
-# set = 4
-# λ = 0.0232
-# β = 2.96
-
-# set = 5
-# λ = 0.0182
-# β = 2.96
-
-set = 6
-λ = 0.0082
-β = 3.46
-
-set = 7
-λ = 0.0282
-β = 1.46
-
-set = 8
-λ = 0.0082
-β = 2.46
-
-set = 9
-λ = 0.0282
-β = 2.46
-
-# set = 10
-# λ = 0.0232
-# β = 2.46
 
 μ_σ_list = [[3,sqrt(2)],[2,sqrt(4)],[1,sqrt(6)],[0,sqrt(8)]]
 μ_σ_list = [[3,sqrt(2)],[0,sqrt(8)]]
@@ -215,7 +191,7 @@ train_sol_people
 
 title = [join([μ,"-","sqrt(",round(σ^2),")"])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/$(μ)-sqrt($(round(σ^2))).csv",df)
+CSV.write("Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/$(μ)-sqrt($(round(σ^2))).csv",df)
 end
 
 set = 1

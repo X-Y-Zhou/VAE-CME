@@ -9,6 +9,11 @@ include("../../../utils.jl")
 # set2 α = 0.0082 β = 1.46 
 # set8 α = 0.0082 β = 2.46 
 # set6 α = 0.0082 β = 3.46 
+
+# set15 α = 0.0182 β = 1.46 
+# set16 α = 0.0182 β = 2.46 
+# set17 α = 0.0182 β = 3.46
+
 # set7 α = 0.0282 β = 1.46
 # set9 α = 0.0282 β = 2.46 
 # set1 α = 0.0282 β = 3.46 
@@ -37,7 +42,7 @@ b = 1.46;
 N = 65
 bursty(N,a,b,τ)
 
-a_list = [0.0082,0.0282]
+a_list = [0.0082,0.0182,0.0282]
 b_list = [1.46,2.46,3.46]
 l_ablist = length(a_list)*length(b_list)
 ab_list = [[a_list[i],b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
