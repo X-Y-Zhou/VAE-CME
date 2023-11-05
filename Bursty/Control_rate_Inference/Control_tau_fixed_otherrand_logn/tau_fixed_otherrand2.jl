@@ -171,7 +171,7 @@ ps = Flux.params(params1,params2);
 
 # training
 opt= ADAM(lr);
-epochs = 100
+epochs = 200
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []
