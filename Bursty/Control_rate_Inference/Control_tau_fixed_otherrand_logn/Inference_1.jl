@@ -64,9 +64,9 @@ end
 
 # SSA data
 result_list = []
-set = 1
-width = "1.0-sqrt(6.0)"
-# width = "2.0-sqrt(4.0)"
+set = 11
+# width = "1.0-sqrt(6.0)"
+width = "2.0-sqrt(4.0)"
 
 SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/$(width).csv",',')[2:end,:]
 
@@ -102,5 +102,5 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/infer_set$set.csv",df)
+CSV.write("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/infer_set$(set)_$(width).csv",df)
 
