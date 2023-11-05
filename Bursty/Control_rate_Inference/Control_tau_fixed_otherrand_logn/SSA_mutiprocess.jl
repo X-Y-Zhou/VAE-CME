@@ -1,4 +1,4 @@
-using Distributions,StatsPlots,StatsBase,DelimitedFiles
+using Distributions,StatsBase,DelimitedFiles
 
 function convert_histo(data::Vector)
     # Define histogram edge set (integers)
@@ -100,35 +100,26 @@ mean = exp(4)+70
 μ = 1;σ = sqrt(6) # var = 1199623
 μ = 0;σ = sqrt(2*μ_max) # var = 8883129
 
-
-
-# # reaction rate
-set = 1
-λ = 0.0282
-β = 3.46
-
-# # set = 2
-# λ = 0.0082
-# β = 1.46
-
-# set = 3
-# λ = 0.0182
-# β = 2.46
-
-# set = 4
-# λ = 0.0232
-# β = 2.96
-
-# set = 5
-# λ = 0.0182
-# β = 2.96
-
-set = 10
-λ = 0.0232
-β = 2.46
-
+# reaction rate
+set = 1;λ = 0.0282;β = 3.46
+set = 2;λ = 0.0082;β = 1.46
+set = 3;λ = 0.0182;β = 2.46
+set = 4;λ = 0.0232;β = 2.96
+set = 5;λ = 0.0182;β = 2.96
+set = 6;λ = 0.0082;β = 3.46
+set = 7;λ = 0.0282;β = 1.46
+set = 8;λ = 0.0082;β = 2.46
+set = 9;λ = 0.0282;β = 2.46
+set = 10;λ = 0.0232;β = 2.46
+set = 11;λ = 0.0282;β = 2.96
+set = 12;λ = 0.0282;β = 1.96
+set = 13;λ = 0.0232;β = 3.46
+set = 14;λ = 0.0232;β = 1.46
 
 μ_σ_list = [[2,sqrt(4)],[1,sqrt(6)]]
+L = 200
+n_cars_list = []
+n_people_list=[]
 
 for temp in μ_σ_list
 print(temp,"\n")
@@ -192,7 +183,7 @@ end
 
 title = [join([μ,"-","sqrt(",round(σ^2),")"])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/Inference_data/set$set/$(μ)-sqrt($(round(σ^2)))_$epoch.csv",df)
+CSV.write("Control_rate_Inference/Control_tau_fixed_otherrand_logn/Inference_data/set$set/$(μ)-sqrt($(round(σ^2)))_$epoch.csv",df)
 end
 end
 
