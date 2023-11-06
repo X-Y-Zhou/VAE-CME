@@ -31,10 +31,12 @@ l,m,n,o = re(p)(x)
 NN = f_NN.(2:N,l,m,n,o)
 NN1 = NN
 
+NN_list = []
 function f1!(x,p)
-    # l,m,n,o = re(p)(x)
-    # NN = f_NN.(2:N,l,m,n,o)
-    NN = NN1
+    l,m,n,o = re(p)(x)
+    NN = f_NN.(2:N,l,m,n,o)
+    push!(NN_list,NN)
+    # NN = NN1
     return vcat(-ρ*x[1] + NN[1]*x[2],
                 [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
                 sum(x)-1)
@@ -108,6 +110,9 @@ ps = Flux.params(p1);
 
 solution = sol(p1,P_0)
 Flux.mse(solution,exact_data)
+
+plot(NN_list[end],label="NN")
+plot!([0,60],[0,0.5],label="y=x/tau")
 
 plot(0:N-1,solution,linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,exact_data,linewidth = 3,label="exact",line=:dash)

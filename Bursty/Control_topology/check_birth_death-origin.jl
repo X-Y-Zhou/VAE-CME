@@ -26,10 +26,11 @@ p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
 # NN = [i/τ  for i in 1:N-1]
-
+NN_list = []
 function f1!(x,p)
-    # NN = re(p)(x)
-    NN = NN1
+    NN = re(p)(x)
+    push!(NN_list,NN)
+    # NN = NN1
     # NN = [i/τ  for i in 2:N]
     return vcat(-ρ*x[1] + NN[1]*x[2],
                 [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
@@ -104,6 +105,9 @@ ps = Flux.params(p1);
 
 solution = sol(p1,P_0)
 Flux.mse(solution,exact_data)
+
+plot(NN_list[end],label="NN")
+plot!([0,60],[0,0.5],label="y=x/tau")
 
 plot(0:N-1,solution,linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,exact_data,linewidth = 3,label="exact",line=:dash)

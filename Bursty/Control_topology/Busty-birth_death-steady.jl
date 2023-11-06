@@ -48,13 +48,14 @@ NN = f_NN.(1:N-1,l,m,n,o)
 plot(NN,label="NN")
 savefig("Bursty/Control_topology/birth-death-NN.pdf")
 
-
+NN_list = []
 function f1!(x,p1,p2,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
     l,m,n,o = re2(p2)(z)
     NN = f_NN.(1:N-1,l,m,n,o)
+    push!(NN_list,NN)
     # NN = re2(p2)(z)
 
     # return vcat(-ρ*x[1] + NN[1]*x[2],
@@ -65,7 +66,6 @@ function f1!(x,p1,p2,ϵ)
                 ρ*x[N-1] + (-ρ-NN[N-1])*x[N])
 end
 
-N/τ
 P_0_distribution = Poisson(ρ*τ)
 P_0 = [pdf(Poisson(ρ*τ),j) for j=0:N-1]
 P_0 = set_one(P_0)
@@ -75,6 +75,9 @@ sum(P_0)
 sol(p1,p2,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,ϵ),P0).zero
 
 solution = sol(params1,params2,ϵ,P_0)
+
+plot(NN_list[end],label="NN")
+plot!([0,60],[0,0.5],label="y=x/tau")
 
 plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,exact_data,linewidth = 3,label="exact",line=:dash)

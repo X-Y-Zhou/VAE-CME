@@ -73,13 +73,29 @@ function f1!(x,p1,p2,a,b,ϵ)
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
 end
 
+# NN_list = []
+# function f1!(x,p1,p2,a,b,ϵ)
+#     h = re1(p1)(x)
+#     μ, logσ = split_encoder_result(h, latent_size)
+#     z = reparameterize.(μ, logσ, ϵ)
+#     l,m,n,o = re2(p2)(z)
+#     NN = f_NN.(1:N-1,l,m,n,o)
+#     push!(NN_list,NN)
+#     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
+#             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+# end
+
 #solve P
 P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
 P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for j=0:N-1] for i=1:l_ablist]
 
 ϵ = zeros(latent_size)
 sol(p1,p2,a,b,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,a,b,ϵ),P0).zero
-# sol(params1,params2,a,b,ϵ,P_0_list[25])
+
+# i = 5
+# solution = sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i])
+# plot(solution)
+# plot(NN_list[end],label="NN")
 
 function loss_func(p1,p2,ϵ)
     sol_cme = [sol(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
