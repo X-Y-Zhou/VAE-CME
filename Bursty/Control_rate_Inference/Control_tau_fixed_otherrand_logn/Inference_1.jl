@@ -65,15 +65,15 @@ end
 # SSA data
 result_list = []
 set = 11
-# width = "1.0-sqrt(6.0)"
-width = "2.0-sqrt(4.0)"
+width = "1.0-sqrt(6.0)"
+# width = "2.0-sqrt(4.0)"
 
 SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/$(width).csv",',')[2:end,:]
 
 @time for dataset = 1:5
 print(dataset,"\n")
-SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
-# SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/$(width).csv",',')[2:end,:]
+# SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
+SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/data/set$set/$(width).csv",',')[2:end,:]
 
 # kinetic_params0 = [0.0232,2.96,0.7962]
 SRange = [(0,0.06),(0,6),(0,1)]
@@ -102,5 +102,5 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/infer_set$(set)_$(width).csv",df)
+CSV.write("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_logn/infer_set$(set)_$(width)_exact.csv",df)
 
