@@ -1,4 +1,4 @@
-using Distributions,StatsPlots,StatsBase,DelimitedFiles,DataFrames,CSV
+using Distributions,StatsBase,DelimitedFiles,DataFrames,CSV
 
 function convert_histo(data::Vector)
     # Define histogram edge set (integers)
@@ -13,79 +13,62 @@ function convert_histo(data::Vector)
     return saved[:,1], saved[:,2]
 end
 
-# mean = 120
-# Uniform(0,240)   var = 4800  
-# Uniform(30,210)  var = 2700
-# Uniform(60,180)  var = 1200
-# Uniform(90,150)  var = 300
-# Uniform(120,120) var = 0    
+E(μ,σ) = exp(μ+σ^2/2)
+D(μ,σ) = (exp(σ^2)-1)*exp(2*μ+σ^2)
 
-E(a,b) = (a+b)/2
-D(a,b) = (a-b)^2/12
+μ_max = 4
+mean = exp(4)+70
 
-a = 0;b = 240
-a = 30;b = 210
-a = 60;b = 180
-a = 90;b = 150
-a = 120;b = 120
+μ = μ_max;σ = sqrt(0) # var = 0
 
-ab_list = [[30,210],[60,180],[90,150]]
-ab_list = [[120,120]]
+μ = 3;σ = sqrt(2) # var = 19045
+μ = 2;σ = sqrt(4) # var = 159773
+μ = 1;σ = sqrt(6) # var = 1199623
+μ = 0;σ = sqrt(2*μ_max) # var = 8883129
 
-for temp_ab in ab_list
-print(temp_ab,"\n")
-a = Int(temp_ab[1])
-b = temp_ab[2]
+μ = 0.5;σ = sqrt(7) 
+μ = 3.5;σ = sqrt(1)
+μ = 3.7;σ = sqrt(0.6)
 
-Ex = E(a,b)
-Dx = D(a,b)
-L = 200
+E(μ,σ) 
+D(μ,σ)
+
+# mean = 70+e^4
+# LogNormal(3,sqrt(2))+70 [0]
+# LogNormal(2,sqrt(4))+70
+# LogNormal(1,sqrt(6))+70
+# LogNormal(0,sqrt(8))+70 [1]
 
 # reaction rate
-# set = 1
-# λ = 0.0282
-# β = 3.46
+set = 1;λ = 0.0282;β = 3.46
+set = 2;λ = 0.0082;β = 1.46
+set = 3;λ = 0.0182;β = 2.46
+set = 4;λ = 0.0232;β = 2.96
+set = 5;λ = 0.0182;β = 2.96
+set = 6;λ = 0.0082;β = 3.46
+set = 7;λ = 0.0282;β = 1.46
+set = 8;λ = 0.0082;β = 2.46
+set = 9;λ = 0.0282;β = 2.46
+set = 10;λ = 0.0232;β = 2.46
+set = 11;λ = 0.0282;β = 2.96
+set = 12;λ = 0.0282;β = 1.96
+set = 13;λ = 0.0232;β = 3.46
+set = 14;λ = 0.0232;β = 1.46
 
-# set2
-# λ = 0.0082
-# β = 1.46
 
-# set = 3
-# λ = 0.0182
-# β = 2.46
+μ_σ_list = [[2,sqrt(4)],[1,sqrt(6)],[0,sqrt(8)]]
+μ_σ_list = [[3,sqrt(2)],[0,sqrt(8)]]
+μ_σ_list = [[2,sqrt(4)],[1,sqrt(6)]]
+μ_σ_list = [[3,sqrt(2)]]
 
-# set = 4
-# λ = 0.0232
-# β = 2.96
-
-# set = 5
-# λ = 0.0182
-# β = 2.96
-
-# set = 6
-# λ = 0.0082
-# β = 3.46
-
-# set = 7
-# λ = 0.0282
-# β = 1.46
-
-# set = 8
-# λ = 0.0082
-# β = 2.46
-
-set = 9
-λ = 0.0282
-β = 2.46
-
-# set = 10
-# λ = 0.0232
-# β = 2.46
-
+for temp in μ_σ_list
+print(temp,"\n")
+μ = temp[1]
+σ = temp[2]
+L = 200
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
-    temp = rand(Uniform(a,b))
-    # temp = 120
+    temp = rand(LogNormal(μ,σ))+70
     velo = L/temp
     return velo
 end
@@ -174,7 +157,7 @@ tmax = maximum(saveat)
 n_cars_timepoints = [[] for i=1:length(saveat)]
 n_people_timepoints = [[] for i=1:length(saveat)]
 
-trajectories = 100000
+trajectories = 500000
 @time for i =1:trajectories
     if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
@@ -183,26 +166,17 @@ trajectories = 100000
     n_cars_list = []
     n_people_list=[]
     car_event(tmax,saveat,λ)
-    #print(n_cars_list,"\n")
+
     for i =1:length(saveat)
         push!(n_cars_timepoints[i],n_cars_list[i])
         push!(n_people_timepoints[i],n_people_list[i])
     end
 end
 
-# i = 150
-# t = saveat[i]+1
-# car_distribution_machi = convert_histo(n_cars_timepoints[i])
-# people_distribution_machi = convert_histo(n_people_timepoints[i])
-# plot(people_distribution_machi,linewidth=3,label="car")
-
 solnet_people = zeros(length(saveat),trajectories)
 for i=1:length(saveat)
     solnet_people[i,:] = n_people_timepoints[i]
 end
-solnet_people
-
-maximum(solnet_people)
 
 N = 64
 train_sol_people = zeros(N+1,size(solnet_people,1))
@@ -216,8 +190,19 @@ for i =1:size(solnet_people,1)
 end
 train_sol_people
 
-title = [join([a,"-",b])]
+title = [join([μ,"-","sqrt(",round(σ^2),")"])]
 df = DataFrame(reshape(train_sol_people[:,end],N+1,1),title)
-CSV.write("Control_tau_fixed_otherrand_nocollision/data/set$set/$(a)-$(b).csv",df)
+CSV.write("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/data/set$set/$(μ)-sqrt($(round(σ^2))).csv",df)
 end
 
+set = 1
+train_sol_1 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/data/set$set/3.0-sqrt(2.0).csv",',')[2:end,:]
+train_sol_2 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/data/set$set/2.0-sqrt(4.0).csv",',')[2:end,:]
+train_sol_3 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/data/set$set/1.0-sqrt(6.0).csv",',')[2:end,:]
+train_sol_4 = readdlm("Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/data/set$set/0.0-sqrt(8.0).csv",',')[2:end,:]
+
+N = 64
+plot(0:N,vec(train_sol_1),lw=2,label="τ~LogNormal(3,sqrt(2))+70")
+plot!(0:N,vec(train_sol_2),lw=2,label="τ~LogNormal(2,sqrt(4))+70")
+plot!(0:N,vec(train_sol_3),lw=2,label="τ~LogNormal(1,sqrt(6))+70")
+plot!(0:N,vec(train_sol_4),lw=2,label="τ~LogNormal(0,sqrt(8))+70")
