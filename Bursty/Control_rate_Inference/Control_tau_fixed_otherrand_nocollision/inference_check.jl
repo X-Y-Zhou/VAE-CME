@@ -59,16 +59,16 @@ function check_inference(kinetic_params)
     return solution
 end
 
-# width = "1.0-sqrt(6.0)" # 0.667
-width = "2.0-sqrt(4.0)" # 0.333
+width = "1.0-sqrt(6.0)" # 0.667
+# width = "2.0-sqrt(4.0)" # 0.333
 width
 set = 1
 
-kinetic_params_all = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/infer_set$(set)_$(width)_exact.csv",',')[2:end,:]
+kinetic_params_all = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/infer_set$(set)_$(width)_exact_aa.csv",',')[2:end,:]
 kinetic_params_all = kinetic_params_all[1:3,:]
 SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/data/set$set/$width.csv",',')[2:end,:]
 
-dataset = 2
+dataset = 1
 kinetic_params = kinetic_params_all[:,dataset]
 kinetic_params = [0.0282,3.46,0.667]
 solution_inference = check_inference(kinetic_params)
@@ -104,10 +104,10 @@ kinetic_params = kinetic_params_all[:,dataset]
 solution_inference_1 = check_inference(kinetic_params)
 
 dataset = 3
-kinetic_params = kinetic_params_all[:,dataset]
+kinetic_params = [0.0282,3.46,0.667]
 solution_inference_2 = check_inference(kinetic_params)
 
 Flux.mse(solution_inference_1,solution_inference_2)
 
-plot(0:N-1,solution_inference_1,lw=3,label="inference1")
-plot!(0:N-1,solution_inference_2,lw=3,label="inference2",line=:dash)
+plot(0:N-1,solution_inference_1,lw=3,label="a b attr=0.0183,3.46,0.438")
+plot!(0:N-1,solution_inference_2,lw=3,label="a b attr=0.0282,3.46,0.667",line=:dash)
