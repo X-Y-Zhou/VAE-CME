@@ -2,7 +2,37 @@ using Flux, DiffEqSensitivity, DifferentialEquations
 using Distributions, Distances
 using DelimitedFiles, Plots
 
-include("../../../utils.jl")
+include("../../utils.jl")
+
+function bursty(N,a,b,τ)
+    f(u) = exp(a*b*τ*u/(1-b*u));
+    taylorexpand = taylor_expand(x->f(x),-1,order=N);
+    P = zeros(N)
+    for j in 1:N
+        P[j] = taylorexpand[j-1]
+    end
+    return P
+end;
+
+a = 0.0282
+b = 3.46
+τ = 120
+f(u) = exp(a*b*τ*u/(1-b*u));
+taylorexpand = taylor_expand(x->f(x),0,order=N)
+taylorexpand[0]
+
+f(u) = a*b*u/(1-b*(u-1))
+g(u) = exp(a*b*τ*(u-1)/(1-b*(u-1)))
+fg(u) = f(u)*g(u)
+
+taylorexpand_fg = taylor_expand(x->fg(x),0,order=N)
+taylorexpand_g = taylor_expand(x->g(x),0,order=N)
+P = zeros(N)
+for j in 1:N
+    P[j] = taylorexpand_fg[j-1]/taylorexpand_g[j-1]
+end
+P
+
 
 #exact solution
 function bursty(N,a,b,τ)
@@ -51,17 +81,6 @@ ps = Flux.params(params1,params2);
 params1
 params2
 
-# p1 = params1
-# p2 = params2
-# x = P_0_list[1]
-
-# ϵ
-# h = re1(p1)(x)
-# μ, logσ = split_encoder_result(h, latent_size)
-# z = reparameterize.(μ, logσ, ϵ)
-# l,m,n,o = re2(p2)(z)
-# NN = f_NN.(1:N-1,l,m,n,o)
-
 #CME
 function f1!(x,p1,p2,a,b,ϵ)
     h = re1(p1)(x)
@@ -69,21 +88,11 @@ function f1!(x,p1,p2,a,b,ϵ)
     z = reparameterize.(μ, logσ, ϵ)
     l,m,n,o = re2(p2)(z)
     NN = f_NN.(1:N-1,l,m,n,o)
+    # NN = P
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
 end
 
-# NN_list = []
-# function f1!(x,p1,p2,a,b,ϵ)
-#     h = re1(p1)(x)
-#     μ, logσ = split_encoder_result(h, latent_size)
-#     z = reparameterize.(μ, logσ, ϵ)
-#     l,m,n,o = re2(p2)(z)
-#     NN = f_NN.(1:N-1,l,m,n,o)
-#     push!(NN_list,NN)
-#     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
-#             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
-# end
 
 #solve P
 P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
@@ -91,88 +100,6 @@ P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for 
 
 ϵ = zeros(latent_size)
 sol(p1,p2,a,b,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,a,b,ϵ),P0).zero
-
-# i = 5
-# solution = sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i])
-# plot(solution)
-# plot(NN_list[end],label="NN")
-# plot!(P[2:N+1],label="exact_NN")
-
-function loss_func(p1,p2,ϵ)
-    sol_cme = [sol(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
-        
-    mse = sum(Flux.mse(sol_cme[i],train_sol[i]) for i=1:l_ablist)/l_ablist
-    print(mse," ")
-
-    μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[i]), latent_size) for i=1:l_ablist]
-    kl = sum([(0.5f0 * sum(exp.(2f0 .* μ_logσ_list[i][2]) + μ_logσ_list[i][1].^2 .- 1 .- (2 .* μ_logσ_list[i][2])))  
-        for i=1:l_ablist])/l_ablist
-    print(kl," ")
-
-    loss = λ*mse + kl
-    print(loss,"\n")
-    return loss
-end
-
-λ = 3000000000
-
-#check λ if is appropriate
-ϵ = zeros(latent_size)
-loss_func(params1,params2,ϵ)
-@time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
-
-epochs_all = 0
-
-lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
-lr_list = [0.005,0.0025,0.0015,0.001]
-lr_list = [0.006,0.004,0.002,0.001]
-lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
-
-lr_list = [0.0008,0.0006,0.0004]
-
-lr = 0.0008;  #lr需要操作一下的
-
-for lr in lr_list
-using CSV,DataFrames
-df = CSV.read("Control_rate_Inference/control_kinetic/params_ck7_better.csv",DataFrame)
-params1 = df.params1
-params2 = df.params2[1:length(params2)]
-ps = Flux.params(params1,params2);
-
-# # training
-
-opt= ADAM(lr);
-epochs = 100
-epochs_all = epochs_all + epochs
-print("learning rate = ",lr)
-mse_list = []
-
-@time for epoch in 1:epochs
-    ϵ = rand(Normal(),latent_size)
-    print(epoch,"\n")
-    grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
-    Flux.update!(opt, ps, grads)
-
-    ϵ = zeros(latent_size)
-    solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
-    mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
-
-    if mse<mse_min[1]
-        df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
-        CSV.write("Control_rate_Inference/control_kinetic/params_ck7_better.csv",df)
-        mse_min[1] = mse
-    end
-
-    push!(mse_list,mse)
-    print(mse,"\n")
-end
-end
-
-params1
-params2
-
-mse_min = [2.4828482327913556e-6]
-mse_min 
 
 using CSV,DataFrames
 df = CSV.read("Control_rate_Inference/control_kinetic/params_ck7_better.csv",DataFrame)
@@ -189,15 +116,15 @@ function plot_distribution(set)
     plot!(0:N-1,train_sol[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
 end
 
-# function plot_all()
-#     p1 = plot_distribution(1)
-#     p2 = plot_distribution(2)
-#     p3 = plot_distribution(3)
-#     p4 = plot_distribution(4)
-#     plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
-# end
-# plot_all()
-# # savefig("Control_rate_Inference/control_kinetic/fitting.svg")
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
+end
+plot_all()
+# savefig("Bursty/Control_rate_Inference/control_kinetic/fitting.svg")
 
 function plot_all()
     p1 = plot_distribution(1)
@@ -266,4 +193,5 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
-savefig("Control_rate_Inference/control_kinetic/predicting.pdf")
+# savefig("Bursty/Control_rate_Inference/control_kinetic/predicting.svg")
+
