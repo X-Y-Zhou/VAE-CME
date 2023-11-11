@@ -75,10 +75,14 @@ print(dataset,"\n")
 # SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/Inference_data/set$set/$(width)_$dataset.csv",',')[2:end,:]
 SSA_data = readdlm("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/data/set$set/$(width).csv",',')[2:end,:]
 
-# kinetic_params0 = [0.0282,3.46,0.667]
+kinetic_params0 = [0.0282,3.46,0.333]
 SRange = [(0.025,0.035),(3,4),(0,1)]
-res = bboptimize(Objective_func; Method = :adaptive_de_rand_1_bin_radiuslimited, 
+# res = bboptimize(Objective_func; Method = :adaptive_de_rand_1_bin_radiuslimited, 
+# SearchRange = SRange, NumDimensions = 3, MaxSteps = 300) #参数推断求解
+
+res = bboptimize(Objective_func,kinetic_params0; Method = :adaptive_de_rand_1_bin_radiuslimited, 
 SearchRange = SRange, NumDimensions = 3, MaxSteps = 300) #参数推断求解
+
 thetax = best_candidate(res) #优化器求解参数
 
 α = thetax[1]
@@ -102,8 +106,9 @@ result_list[5]
 
 using DataFrames,CSV
 df = DataFrame(result_list,:auto)
-CSV.write("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/infer_sssrange_set$(set)_$(width)_exact.csv",df)
+CSV.write("/Users/x-y-zhou/Documents/GitHub/VAE-CME/Bursty/Control_rate_Inference/Control_tau_fixed_otherrand_nocollision/infer_sssrange_k0_set$(set)_$(width)_exact.csv",df)
 
 #srange  [(0.02,0.04),(2.5,5),(0,1)]
 #ssrange [(0.025,0.035),(2.5,5),(0,1)]
 #sssrange [(0.025,0.035),(3,4),(0,1)]
+#sssrange_k0 [(0.025,0.035),(3,4),(0,1)]
