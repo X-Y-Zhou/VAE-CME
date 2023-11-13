@@ -4,11 +4,11 @@ using Catalyst
 using DelaySSAToolkit
 
 rn = @reaction_network begin
-    # 0.01*N/(1+N), 0 --> N
-    0.01,0 --> N
-    0.001, N --> 0
-    0.001, N+N --> N
-    0.001, N+N --> 0
+    N/(1+N), 0 --> N
+    # 1,0 --> N
+    0.01, N --> 0
+    # 0.01, N+N --> N
+    # 0.01, N+N --> 0
 end
 
 # rn = @reaction_network begin
@@ -18,7 +18,7 @@ end
 jumpsys = convert(JumpSystem, rn, combinatoric_ratelaws = false)
 
 u0 = [1.]
-tf = 200
+tf = 400
 saveat = 1
 de_chan0 = [[]]
 
@@ -31,8 +31,8 @@ de_chan0 = [[]]
 tspan = (0.0, tf)
 # aggregatoralgo = DelayRejection()
 # aggregatoralgo = DelayMNRM()
-aggregatoralgo = DelayDirect()
-# aggregatoralgo = DelayDirectCR()
+# aggregatoralgo = DelayDirect()
+aggregatoralgo = DelayDirectCR()
 dprob = DiscreteProblem(jumpsys, u0, tspan)
 
 τ = 120.0
@@ -43,34 +43,48 @@ delay_trigger = Dict(1 => delay_trigger_affect!)
 delay_complete = Dict(1 => [1 => -1])
 
 delay_affect1! = function (integrator, rng)
-    i = rand(rng, 1:length(integrator.de_chan[1]))
-    return deleteat!(integrator.de_chan[1], i)
+    if length(integrator.de_chan[1])>0
+        i = rand(rng, 1:length(integrator.de_chan[1]))
+        deleteat!(integrator.de_chan[1], i)
+    end
+    return integrator.de_chan[1]
 end
 
-delay_affect2! = function (integrator, rng)
-    i = rand(rng, 1:length(integrator.de_chan[1]))
-    return deleteat!(integrator.de_chan[1], i)
-end
+# delay_affect2! = function (integrator, rng)
+#     i = rand(rng, 1:length(integrator.de_chan[1]))
+#     return deleteat!(integrator.de_chan[1], i)
+# end
 
-delay_affect3! = function (integrator, rng)
-    i = rand(rng, 1:length(integrator.de_chan[1]))
-    deleteat!(integrator.de_chan[1], i)
-    j = rand(rng, 1:length(integrator.de_chan[1]))
-    return deleteat!(integrator.de_chan[1], j)
-end
+# delay_affect3! = function (integrator, rng)
+#     i = rand(rng, 1:length(integrator.de_chan[1]))
+#     deleteat!(integrator.de_chan[1], i)
+#     j = rand(rng, 1:length(integrator.de_chan[1]))
+#     return deleteat!(integrator.de_chan[1], j)
+# end
 
-
-delay_interrupt = Dict(2 => delay_affect1!,3 => delay_affect2!,4 => delay_affect3!)
+# delay_interrupt = Dict(2 => delay_affect1!,3 => delay_affect2!,4 => delay_affect3!)
 # delay_interrupt = Dict(2 => delay_affect1!,3 => delay_affect2!)
+delay_interrupt = Dict(3 => delay_affect1!)
+# delay_interrupt = Dict()
 
-delay_interrupt = Dict()
 delaysets = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 djprob = DelayJumpProblem(jumpsys, dprob, aggregatoralgo, delaysets, de_chan0,
                           save_positions = (false, false), save_delay_channel = false)
 seed = 4
 solution = @time solve(djprob, SSAStepper(), seed = seed, saveat = 1)
 
-Sample_size = Int(2000)
+# Sample_size = 1000
+# tmax = Int(tf+1)
+# solnet = zeros(tmax,Sample_size)
+
+# for i = 1:Sample_size
+#     print(i,"\n")
+#     solution = solve(djprob, SSAStepper(), seed = i, saveat = 1)
+#     solnet[:,i] = [solution.u[j][1] for j=1:tf+1]
+# end
+
+
+Sample_size = Int(10000)
 ens_prob = EnsembleProblem(djprob)
 ens = @time solve(ens_prob, SSAStepper(), EnsembleThreads(), trajectories = Sample_size,
             saveat = 1)
@@ -83,7 +97,7 @@ for i =1:tmax
 end
 solnet
 
-N = 65
+N = 200
 train_sol = zeros(N+1,size(solnet,1))
 for i =1:size(solnet,1)
     probability = convert_histo(vec(solnet[i,:]))[2]
