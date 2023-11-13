@@ -3,12 +3,14 @@ using CSV,DataFrames,StatsBase
 using Catalyst
 using DelaySSAToolkit
 
+include("../../utils.jl")
+
 rn = @reaction_network begin
     N/(1+N), 0 --> N
     # 0.1,0 --> N
     0.001, N --> 0
-    0.001, N+N --> N
-    0.001, N+N --> 0
+    # 0.001, N+N --> N
+    # 0.001, N+N --> 0
 end
 
 # rn = @reaction_network begin
@@ -18,7 +20,7 @@ end
 jumpsys = convert(JumpSystem, rn, combinatoric_ratelaws = false)
 
 u0 = [1.]
-tf = 200
+tf = 400
 saveat = 1
 de_chan0 = [[]]
 
@@ -31,8 +33,8 @@ de_chan0 = [[]]
 tspan = (0.0, tf)
 # aggregatoralgo = DelayRejection()
 # aggregatoralgo = DelayMNRM()
-aggregatoralgo = DelayDirect()
-# aggregatoralgo = DelayDirectCR()
+# aggregatoralgo = DelayDirect()
+aggregatoralgo = DelayDirectCR()
 dprob = DiscreteProblem(jumpsys, u0, tspan)
 
 τ = 120.0
@@ -47,30 +49,31 @@ delay_affect1! = function (integrator, rng)
     return deleteat!(integrator.de_chan[1], i)
 end
 
-delay_affect2! = function (integrator, rng)
-    i = rand(rng, 1:length(integrator.de_chan[1]))
-    return deleteat!(integrator.de_chan[1], i)
-end
+# delay_affect2! = function (integrator, rng)
+#     i = rand(rng, 1:length(integrator.de_chan[1]))
+#     return deleteat!(integrator.de_chan[1], i)
+# end
 
-delay_affect3! = function (integrator, rng)
-    i = rand(rng, 1:length(integrator.de_chan[1]))
-    deleteat!(integrator.de_chan[1], i)
-    j = rand(rng, 1:length(integrator.de_chan[1]))
-    return deleteat!(integrator.de_chan[1], j)
-end
+# delay_affect3! = function (integrator, rng)
+#     i = rand(rng, 1:length(integrator.de_chan[1]))
+#     deleteat!(integrator.de_chan[1], i)
+#     j = rand(rng, 1:length(integrator.de_chan[1]))
+#     return deleteat!(integrator.de_chan[1], j)
+# end
 
 
-delay_interrupt = Dict(2 => delay_affect1!,3 => delay_affect2!,4 => delay_affect3!)
+# delay_interrupt = Dict(2 => delay_affect1!,3 => delay_affect2!,4 => delay_affect3!)
 # delay_interrupt = Dict(2 => delay_affect1!,3 => delay_affect2!)
+delay_interrupt = Dict(2 => delay_affect1!)
 
-delay_interrupt = Dict()
+# delay_interrupt = Dict()
 delaysets = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 djprob = DelayJumpProblem(jumpsys, dprob, aggregatoralgo, delaysets, de_chan0,
                           save_positions = (false, false), save_delay_channel = false)
 seed = 4
 solution = @time solve(djprob, SSAStepper(), seed = seed, saveat = 1)
 
-Sample_size = 100
+Sample_size = 1000
 tmax = Int(tf+1)
 solnet = zeros(tmax,Sample_size)
 
