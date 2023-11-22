@@ -5,17 +5,11 @@ using DelaySSAToolkit
 
 include("../../utils.jl")
 
-rn = @reaction_network begin
-    N/(1+N), 0 --> N
-    # 1,0 --> N
-    0.0025, N --> 0
-    0.0025, N+N --> N
-    0.0025, N+N --> 0
-end
+train_sol_end_list = []
 
-# rn = @reaction_network begin
-#     ρ, 0 --> N
-# end ρ
+rn = @reaction_network begin
+    0.282*N^α/(k+N^α), 0 --> N
+end α k
 
 jumpsys = convert(JumpSystem, rn, combinatoric_ratelaws = false)
 
@@ -23,19 +17,16 @@ u0 = [1.]
 tf = 800
 saveat = 1
 de_chan0 = [[]]
+p_list = [[2,5],[1,5]] # α k
 
-# ρ = 0.0282*3.46
-# α = 0.0282
-# k = 0
-# p = [ρ,α,k]
-
-# p = [ρ]
+for p in p_list
+print(p)
 tspan = (0.0, tf)
 aggregatoralgo = DelayRejection()
 # aggregatoralgo = DelayMNRM()
 # aggregatoralgo = DelayDirect()
 # aggregatoralgo = DelayDirectCR()
-dprob = DiscreteProblem(jumpsys, u0, tspan)
+dprob = DiscreteProblem(jumpsys, u0, tspan, p)
 
 τ = 120.0
 delay_trigger_affect! = function (integrator, rng)
@@ -43,64 +34,44 @@ delay_trigger_affect! = function (integrator, rng)
 end
 delay_trigger = Dict(1 => delay_trigger_affect!)
 delay_complete = Dict(1 => [1 => -1])
-
-delay_affect1! = function (integrator, rng)
-    if length(integrator.de_chan[1])>0
-        i = rand(rng, 1:length(integrator.de_chan[1]))
-        return deleteat!(integrator.de_chan[1], i)
-    end
-end
-
-delay_affect2! = function (integrator, rng)
-    if length(integrator.de_chan[1])>0
-        i = rand(rng, 1:length(integrator.de_chan[1]))
-        return deleteat!(integrator.de_chan[1], i)
-    end
-end
-
-delay_affect3! = function (integrator, rng)
-    if length(integrator.de_chan[1])>0
-        if length(integrator.de_chan[1]) == 1
-            i = rand(rng, 1:length(integrator.de_chan[1]))
-            return deleteat!(integrator.de_chan[1], i)
-        end
-
-        if length(integrator.de_chan[1]) > 1
-            i = rand(rng, 1:length(integrator.de_chan[1]))
-            deleteat!(integrator.de_chan[1], i)
-            j = rand(rng, 1:length(integrator.de_chan[1]))
-            return deleteat!(integrator.de_chan[1], j)
-        end
-    end
-end
-
-
-delay_interrupt = Dict(2 => delay_affect1!,3 => delay_affect2!,4 => delay_affect3!)
-# delay_interrupt = Dict(2 => delay_affect1!,3 => delay_affect2!)
-# delay_interrupt = Dict(2 => delay_affect1!)
-# delay_interrupt = Dict()
-
+delay_interrupt = Dict()
 delaysets = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 djprob = DelayJumpProblem(jumpsys, dprob, aggregatoralgo, delaysets, de_chan0,
                           save_positions = (false, false), save_delay_channel = false)
-seed = 2
-solution = @time solve(djprob, SSAStepper(), seed = seed, saveat = 1)
+# seed = 2
+# solution = @time solve(djprob, SSAStepper(), seed = seed, saveat = 1)
 
-Sample_size = 100
-tmax = Int(tf+1)
-solnet = zeros(tmax,Sample_size)
-
-for i = 1:Sample_size
-    print(i,"\n")
-    solution = solve(djprob, SSAStepper(), seed = i, saveat = 1)
-    solnet[:,i] = [solution.u[j][1] for j=1:tf+1]
-end
-
-
-Sample_size = Int(10000)
+Sample_size = Int(50000)
 ens_prob = EnsembleProblem(djprob)
 ens = @time solve(ens_prob, SSAStepper(), EnsembleThreads(), trajectories = Sample_size,
             saveat = 1)
+sol_end = componentwise_vectors_timepoint(ens, tf)[1]
+
+N = 100
+train_sol_end = zeros(N+1)
+
+probability = convert_histo(vec(sol_end))[2]
+if length(probability)<N+1
+    train_sol_end[1:length(probability)] = probability
+else
+    train_sol_end[1:N+1] = probability[1:N+1]
+end
+push!(train_sol_end_list,train_sol_end)
+end
+train_sol_end_list[1]
+plot(train_sol_end_list[1])
+plot!(train_sol_end_list[2])
+
+train_solnet = zeros(N+1,length(p_list))
+for i = 1:length(p_list)
+    train_solnet[:,i] = train_sol_end_list[i]
+end
+train_solnet
+
+using DataFrames,CSV
+df = DataFrame(train_solnet,:auto)
+CSV.write("Birth-Death/Control_topology/train_data.csv",df)
+
 
 using Catalyst.EnsembleAnalysis
 tmax = Int(tf+1)
@@ -120,19 +91,16 @@ for i =1:size(solnet,1)
         train_sol[1:N+1,i] = probability[1:N+1]
     end
 end
-train_sol
-plot(0:N,train_sol[:,5])
 
+train_sol
+# plot(0:N,train_sol[:,200])
+
+# using StatsPlots
+# P_0_distribution = NegativeBinomial(0.5*120, 1/3.46);
+# plot(0:N,train_sol[:,200])
+# plot(P_0_distribution)
 
 using StatsBase,Plots
 mean_SSA_X = [mean(solnet[i,:]) for i=1:size(solnet,1)]
-plot(mean_SSA_X[1:tmax],label="X",linewidth = 3,legend=:bottomright)
+plot!(mean_SSA_X[1:tmax],label="X",linewidth = 3,legend=:bottomright)
 
-t = 8
-plot(birth_death(ρ,t,300),linewidth=3,label="exact")
-plot!(convert_histo(solnet[Int(t+1),:]),linewidth=3,line=:dash,label="SSA")
-
-temp = [3,4,5,6]
-i = 1
-j = 2
-deleteat!(temp, [i,j])
