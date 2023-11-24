@@ -5,8 +5,6 @@ using DelaySSAToolkit
 
 include("../../utils.jl")
 
-train_sol_end_list = []
-
 rn = @reaction_network begin
     0.282*N^α/(k+N^α), 0 --> N
 end α k
@@ -14,10 +12,16 @@ end α k
 jumpsys = convert(JumpSystem, rn, combinatoric_ratelaws = false)
 
 u0 = [1.]
-tf = 800
+tf = 400
 saveat = 1
 de_chan0 = [[]]
-p_list = [[2,5],[1,5]] # α k
+
+α_list = [0.25,0.5,1,2,3,4]
+k_list = [1,3,5,7,9,11]
+p_list = [[α_list[i],k_list[j]] for i=1:length(α_list) for j=1:length(k_list)]
+
+# p_list = [[2,5],[2,5]] # α k
+train_sol_end_list = []
 
 for p in p_list
 print(p)
@@ -58,13 +62,17 @@ else
 end
 push!(train_sol_end_list,train_sol_end)
 end
+plot(train_sol_end_list)
+
 train_sol_end_list[1]
 plot(train_sol_end_list[1])
 plot!(train_sol_end_list[2])
 
-train_solnet = zeros(N+1,length(p_list))
+
+
+train_solnet = zeros(75,length(p_list))
 for i = 1:length(p_list)
-    train_solnet[:,i] = train_sol_end_list[i]
+    train_solnet[:,i] = train_sol_end_list[i][1:75]
 end
 train_solnet
 
