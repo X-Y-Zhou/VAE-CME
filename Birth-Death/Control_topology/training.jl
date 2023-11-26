@@ -26,7 +26,8 @@ end;
 k_list = [1,3,5,7,9,11]
 p_list = [[α_list[i],k_list[j]] for i=1:length(α_list) for j=1:length(k_list)]
 l_p_list = length(p_list)
-# p_list[14]
+p_list[20]
+plot(train_sol[:,20])
 
 p_list = [[2.,3.]]
 l_p_list = length(p_list)
@@ -107,7 +108,7 @@ lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
 
 lr_list = [0.0008,0.0006,0.0004]
 
-lr = 0.01;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 
 # for lr in lr_list
 using CSV,DataFrames
@@ -147,7 +148,7 @@ end
 params1
 params2
 
-mse_min = [1.3175651540027838e-5]
+mse_min = [1.2896667246322093e-5]
 mse_min 
 
 using CSV,DataFrames
