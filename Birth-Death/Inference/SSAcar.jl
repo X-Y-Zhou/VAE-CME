@@ -1,4 +1,5 @@
-using Distributions,StatsBase,DelimitedFiles,DataFrames,CSV
+using Distributions,StatsBase,DelimitedFiles,DataFrames,CSV,Plots
+include("../../utils.jl")
 
 function convert_histo(data::Vector)
     # Define histogram edge set (integers)
@@ -21,20 +22,20 @@ exp(4)+70
 
 μ = μ_max;σ = sqrt(0) # var = 0
 
-μ = 3;σ = sqrt(2) # var = 19045
-μ = 2;σ = sqrt(4) # var = 159773
-μ = 1;σ = sqrt(6) # var = 1199623
-μ = 0;σ = sqrt(2*μ_max) # var = 8883129
-
 # mean = 70+e^4
-# LogNormal(3,sqrt(2))+70 [0]
-# LogNormal(2,sqrt(4))+70
-# LogNormal(1,sqrt(6))+70
-# LogNormal(0,sqrt(8))+70 [1]
+# LogNormal(3,sqrt(2))+70 [0]  # var = 19045
+# LogNormal(2,sqrt(4))+70      # var = 159773
+# LogNormal(1,sqrt(6))+70      # var = 1199623
+# LogNormal(0,sqrt(8))+70 [1]  # var = 8883129
 
 # reaction rate
-set = 1
-λ = 0.2
+set = 1; λ = 0.1
+set = 2; λ = 0.2
+
+set = 3; λ = 0.05
+set = 4; λ = 0.075
+
+
 
 μ_σ_list = [[3,sqrt(2)],[2,sqrt(4)],[1,sqrt(6)],[0,sqrt(8)]]
 μ_σ_list = [[3,sqrt(2)],[0,sqrt(8)]]
@@ -175,21 +176,15 @@ df = DataFrame(reshape(train_sol_car[:,end],N+1,1),title)
 CSV.write("Birth-Death/Inference/data/set$set/$(μ)-sqrt($(round(σ^2))).csv",df)
 end
 
-train_sol_car[:,end]
-using Plots
-plot!(0:N,train_sol_car[:,end])
+set = 1; λ = 0.1
+set = 2; λ = 0.2
+set = 3; λ = 0.05
+set = 4; λ = 0.075
 
-plot!(birth_death(ρ,120,N))
-
-set = 1
 train_sol_1 = readdlm("Birth-Death/Inference/data/set$set/3.0-sqrt(2.0).csv",',')[2:end,:]
 train_sol_2 = readdlm("Birth-Death/Inference/data/set$set/2.0-sqrt(4.0).csv",',')[2:end,:]
 train_sol_3 = readdlm("Birth-Death/Inference/data/set$set/1.0-sqrt(6.0).csv",',')[2:end,:]
 train_sol_4 = readdlm("Birth-Death/Inference/data/set$set/0.0-sqrt(8.0).csv",',')[2:end,:]
-
-P2mean(vec(train_sol_1))
-P2mean(vec(train_sol_car[:,end]))
-
 
 N = 100
 plot(0:N,vec(train_sol_1),lw=2,label="τ~LogNormal(3,sqrt(2))+70")
