@@ -6,7 +6,7 @@ include("../../utils.jl")
 
 # Load training data
 train_sol = readdlm("Birth-Death/Control_topology/train_data.csv", ',')[2:end,:]
-N = 75
+N = 80
 
 # Exact solution
 function birth_death(N,τ)
@@ -20,24 +20,25 @@ end;
 
 τ = 120
 ρ_0 = 0.282
-ρ(X,α,k) = ρ_0*X^α/(k+X^α)
+ρ(X,α,k) = ρ_0*X^α/(k+X^α)+0.1
 
 α_list = [0.25,0.5,1,2,3,4]
 k_list = [1,3,5,7,9,11]
 p_list = [[α_list[i],k_list[j]] for i=1:length(α_list) for j=1:length(k_list)]
 l_p_list = length(p_list)
-p_list[20]
-plot(train_sol[:,20])
 
-p_list = [[2.,3.]]
-l_p_list = length(p_list)
-train_sol = train_sol[:,20]
+# p_list[20]
+# plot(train_sol[:,20])
+
+# p_list = [[2.,3.]]
+# l_p_list = length(p_list)
+# train_sol = train_sol[:,20]
 
 # Model initialization
 latent_size = 2;
 encoder = Chain(Dense(N, 200,tanh),Dense(200, latent_size * 2));
-# decoder = Chain(Dense(latent_size, 200),Dense(200 , 4),x ->exp.(x));
-decoder = Chain(Dense(latent_size, 200),Dense(200 , N-1),x-> x.+[i/τ  for i in 1:N-1],x ->relu.(x));
+decoder = Chain(Dense(latent_size, 200),Dense(200 , 4),x ->exp.(x));
+# decoder = Chain(Dense(latent_size, 200),Dense(200 , N-1),x-> x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 
 params1, re1 = Flux.destructure(encoder);
 params2, re2 = Flux.destructure(decoder);
@@ -48,10 +49,10 @@ function f1!(x,p1,p2,α,k,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
-    # l,m,n,o = re2(p2)(z)
-    # NN = f_NN.(1:N-1,l,m,n,o)
+    l,m,n,o = re2(p2)(z)
+    NN = f_NN.(1:N-1,l,m,n,o)
 
-    NN = re2(p2)(z)
+    # NN = re2(p2)(z)
 
     return vcat(-ρ(0,α,k)*x[1] + NN[1]*x[2],
                 [ρ(i-1,α,k)*x[i-1] + (-ρ(i-1,α,k)-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
@@ -66,14 +67,15 @@ sol(p1,p2,α,k,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,α,k,ϵ),P0).zero
 p_list
 i = 1
 p_list[i]
+
 solution = sol(params1,params2,p_list[i][1],p_list[i][2],ϵ,P_0)
 solution = set_one(solution)
 # sum(solution)
 plot(solution)
-plot!(train_sol)
+plot!(train_sol[:,i])
 # train_sol
 
-Flux.mse(solution,train_sol)
+Flux.mse(solution,train_sol[:,i])
 
 function loss_func(p1,p2,ϵ)
     sol_cme = [sol(p1,p2,p_list[i][1],p_list[i][2],ϵ,P_0) for i=1:l_p_list]

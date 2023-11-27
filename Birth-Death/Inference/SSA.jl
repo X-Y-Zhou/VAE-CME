@@ -2,39 +2,30 @@ using Distributions,Plots,DelimitedFiles
 using CSV,DataFrames,StatsBase
 using Catalyst
 using DelaySSAToolkit
-
-include("../../utils.jl")
+using Distributions
 
 rn = @reaction_network begin
-    0.282*N^α/(k+N^α)+d, 0 --> N
-end α k d
+    ρ, 0 --> N
+end ρ
 
 jumpsys = convert(JumpSystem, rn, combinatoric_ratelaws = false)
 
 u0 = [0.]
-tf = 400
+tf = 200
 saveat = 1
 de_chan0 = [[]]
-
-α_list = [0.25,0.5,1,2,3,4]
-k_list = [1,3,5,7,9,11]
-d = 0.1
-p_list = [[α_list[i],k_list[j],d] for i=1:length(α_list) for j=1:length(k_list)]
-
-# p_list = [[2,5,d]] # α k d
-train_sol_end_list = []
-
-for p in p_list
-print(p)
+ρ = 0.5
+p = [ρ]
 tspan = (0.0, tf)
-aggregatoralgo = DelayRejection()
+# aggregatoralgo = DelayRejection()
 # aggregatoralgo = DelayMNRM()
-# aggregatoralgo = DelayDirect()
+aggregatoralgo = DelayDirect()
 # aggregatoralgo = DelayDirectCR()
-dprob = DiscreteProblem(jumpsys, u0, tspan, p)
+dprob = DiscreteProblem(u0, tspan, p)
 
 τ = 120.0
 delay_trigger_affect! = function (integrator, rng)
+    τ = rand(LogNormal(0,sqrt(8)))+70
     append!(integrator.de_chan[1], τ)
 end
 delay_trigger = Dict(1 => delay_trigger_affect!)
@@ -43,13 +34,18 @@ delay_interrupt = Dict()
 delaysets = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 djprob = DelayJumpProblem(jumpsys, dprob, aggregatoralgo, delaysets, de_chan0,
                           save_positions = (false, false), save_delay_channel = false)
-# seed = 2
-# solution = @time solve(djprob, SSAStepper(), seed = seed, saveat = 1)
+seed = 3
+sol = @time solve(djprob, SSAStepper(), seed = seed, saveat = 1)
 
-Sample_size = Int(50000)
+
+Sample_size = Int(1e5)
 ens_prob = EnsembleProblem(djprob)
-ens = @time solve(ens_prob, SSAStepper(), EnsembleThreads(), trajectories = Sample_size,
+ens = solve(ens_prob, SSAStepper(), EnsembleThreads(), trajectories = Sample_size,
             saveat = 1)
+
+using Catalyst.EnsembleAnalysis
+tmax = Int(tf+1)
+solnet = zeros(tmax,Sample_size)
 sol_end = componentwise_vectors_timepoint(ens, tf)[1]
 
 N = 100
@@ -61,19 +57,25 @@ if length(probability)<N+1
 else
     train_sol_end[1:N+1] = probability[1:N+1]
 end
-push!(train_sol_end_list,train_sol_end)
-end
 
-plot(train_sol_end_list)
+plot(train_sol_end)
 
-train_solnet = zeros(80,length(p_list))
-for i = 1:length(p_list)
-    train_solnet[:,i] = train_sol_end_list[i][1:80]
-end
-train_solnet
+plot!(birth_death(ρ,84,N))
 
-using DataFrames,CSV
-df = DataFrame(train_solnet,:auto)
-CSV.write("Birth-Death/Control_topology/train_data.csv",df)
+plot!(birth_death(ρ,exp(4)+70,N))
+
+function birth_death(ρ,t,N)
+    distribution = Poisson(ρ*t)
+    P = zeros(N)
+    for i=1:N
+        P[i] = pdf(distribution,i-1)
+    end
+    return P
+end;
+
+
+using StatsBase,Plots
+mean_SSA_X = [mean(solnet[i,:]) for i=1:size(solnet,1)]
+plot(mean_SSA_X[1:tmax],label="X",linewidth = 3,legend=:bottomright)
 
 
