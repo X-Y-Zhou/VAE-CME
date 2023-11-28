@@ -31,10 +31,9 @@ exp(4)+70
 # reaction rate
 set = 1; λ = 0.1
 set = 2; λ = 0.2
-
 set = 3; λ = 0.05
 set = 4; λ = 0.075
-
+set = 5; λ = 0.025
 
 
 μ_σ_list = [[3,sqrt(2)],[2,sqrt(4)],[1,sqrt(6)],[0,sqrt(8)]]
@@ -180,6 +179,7 @@ set = 1; λ = 0.1
 set = 2; λ = 0.2
 set = 3; λ = 0.05
 set = 4; λ = 0.075
+set = 5; λ = 0.025
 
 train_sol_1 = readdlm("Birth-Death/Inference/data/set$set/3.0-sqrt(2.0).csv",',')[2:end,:]
 train_sol_2 = readdlm("Birth-Death/Inference/data/set$set/2.0-sqrt(4.0).csv",',')[2:end,:]
@@ -187,11 +187,11 @@ train_sol_3 = readdlm("Birth-Death/Inference/data/set$set/1.0-sqrt(6.0).csv",','
 train_sol_4 = readdlm("Birth-Death/Inference/data/set$set/0.0-sqrt(8.0).csv",',')[2:end,:]
 
 N = 100
-plot(0:N,vec(train_sol_1),lw=2,label="τ~LogNormal(3,sqrt(2))+70")
+plot(0:N,vec(train_sol_1),lw=2,label="τ~LogNormal(3,sqrt(2))+70",title=λ)
 plot!(0:N,vec(train_sol_2),lw=2,label="τ~LogNormal(2,sqrt(4))+70")
 plot!(0:N,vec(train_sol_3),lw=2,label="τ~LogNormal(1,sqrt(6))+70")
 plot!(0:N,vec(train_sol_4),lw=2,label="τ~LogNormal(0,sqrt(8))+70")
-plot!(0:N,birth_death(λ,70+exp(4),N+1),lw=2,label="τ~exp(4)+70")
+plot!(0:N,birth_death(λ,N+1,70+exp(4)),lw=2,label="τ~exp(4)+70")
 
 plot!(0:N,P_exact,lw=3,line=:dash,label="exact-124")
 
