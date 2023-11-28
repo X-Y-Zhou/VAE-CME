@@ -43,8 +43,8 @@ l_p_list = length(p_list)
 
 # Model initialization
 latent_size = 2;
-encoder = Chain(Dense(N, 200,tanh),Dense(200, latent_size * 2));
-decoder = Chain(Dense(latent_size, 200),Dense(200 , 4),x ->exp.(x));
+encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
+decoder = Chain(Dense(latent_size, 10),Dense(10 , 4),x ->exp.(x));
 # decoder = Chain(Dense(latent_size, 200),Dense(200 , N-1),x-> x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 
 params1, re1 = Flux.destructure(encoder);
@@ -101,7 +101,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000
+λ = 10000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -110,16 +110,16 @@ loss_func(params1,params2,ϵ)
 
 epochs_all = 0
 
-lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.01,0.008,0.006]
 lr_list = [0.005,0.0025,0.0015,0.001]
 lr_list = [0.006,0.004,0.002,0.001]
 lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
 
 lr_list = [0.0008,0.0006,0.0004]
 
-lr = 0.001;  #lr需要操作一下的
+lr = 0.01;  #lr需要操作一下的
 
-# for lr in lr_list
+for lr in lr_list
 using CSV,DataFrames
 df = CSV.read("Birth-Death/Control_topology/params_trained.csv",DataFrame)
 params1 = df.params1
@@ -129,7 +129,7 @@ ps = Flux.params(params1,params2);
 # # training
 
 opt= ADAM(lr);
-epochs = 10
+epochs = 20
 print("learning rate = ",lr)
 mse_list = []
 
@@ -152,12 +152,12 @@ mse_list = []
     push!(mse_list,mse)
     print(mse,"\n")
 end
-# end
+end
 
 params1
 params2
 
-mse_min = [0.00879300682584202]
+mse_min = [0.008564308899002828]
 mse_min 
 
 using CSV,DataFrames
@@ -176,17 +176,6 @@ function plot_distribution(set)
 end
 plot_distribution(1)
 
-
-# function plot_all()
-#     p1 = plot_distribution(1)
-#     p2 = plot_distribution(2)
-#     p3 = plot_distribution(3)
-#     p4 = plot_distribution(4)
-#     plot(p1,p2,p3,p4,size=(600,600),layout=(2,2))
-# end
-# plot_all()
-# # savefig("Control_rate_Inference/control_kinetic/fitting.svg")
-
 function plot_all()
     p1 = plot_distribution(1)
     p2 = plot_distribution(2)
@@ -194,6 +183,18 @@ function plot_all()
     p4 = plot_distribution(4)
     p5 = plot_distribution(5)
     p6 = plot_distribution(6)
-    plot(p1,p2,p3,p4,p5,p6,size=(900,600),layout=(2,3))
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    p17 = plot_distribution(17)
+    p18 = plot_distribution(18)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+            p16,p17,p18,size=(1800,900),layout=(3,6))
 end
-plot_all()
