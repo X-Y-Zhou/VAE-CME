@@ -8,8 +8,14 @@ include("../../utils.jl")
 train_sol = readdlm("Birth-Death/Control_topology/train_data.csv", ',')[2:end,:]
 N = 80
 
+train_sol_list = []
+for i = 1:36
+    push!(train_sol_list,vec(train_sol[:,i]))
+end
+plot(train_sol_list[1:18])
+
 # Exact solution
-function birth_death(N,τ)
+function birth_death(ρ,N,τ)
     distribution = Poisson(ρ*τ)
     P = zeros(N)
     for i=1:N
@@ -22,7 +28,8 @@ end;
 ρ_0 = 0.282
 ρ(X,α,k) = ρ_0*X^α/(k+X^α)+0.1
 
-α_list = [0.25,0.5,1,2,3,4]
+train_sol = train_sol[:,1:18]
+α_list = [0.25,0.5,1]
 k_list = [1,3,5,7,9,11]
 p_list = [[α_list[i],k_list[j]] for i=1:length(α_list) for j=1:length(k_list)]
 l_p_list = length(p_list)
@@ -49,13 +56,14 @@ function f1!(x,p1,p2,α,k,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
+
     l,m,n,o = re2(p2)(z)
     NN = f_NN.(1:N-1,l,m,n,o)
 
     # NN = re2(p2)(z)
 
     return vcat(-ρ(0,α,k)*x[1] + NN[1]*x[2],
-                [ρ(i-1,α,k)*x[i-1] + (-ρ(i-1,α,k)-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
+                [ρ(i-2,α,k)*x[i-1] + (-ρ(i-1,α,k)-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
                 sum(x)-1)
 end
 
@@ -69,8 +77,7 @@ i = 1
 p_list[i]
 
 solution = sol(params1,params2,p_list[i][1],p_list[i][2],ϵ,P_0)
-solution = set_one(solution)
-# sum(solution)
+
 plot(solution)
 plot!(train_sol[:,i])
 # train_sol
@@ -79,7 +86,7 @@ Flux.mse(solution,train_sol[:,i])
 
 function loss_func(p1,p2,ϵ)
     sol_cme = [sol(p1,p2,p_list[i][1],p_list[i][2],ϵ,P_0) for i=1:l_p_list]
-    sol_cme = set_one.(sol_cme)
+    # sol_cme = set_one.(sol_cme)
 
     mse = sum(Flux.mse(sol_cme[i],train_sol[:,i]) for i=1:l_p_list)/l_p_list
     print(mse," ")
@@ -94,7 +101,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 100000
+λ = 10000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -150,7 +157,7 @@ end
 params1
 params2
 
-mse_min = [1.2896667246322093e-5]
+mse_min = [0.00879300682584202]
 mse_min 
 
 using CSV,DataFrames
