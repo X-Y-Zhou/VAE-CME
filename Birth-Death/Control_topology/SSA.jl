@@ -2,11 +2,16 @@ using Distributions,Plots,DelimitedFiles
 using CSV,DataFrames,StatsBase
 using Catalyst
 using DelaySSAToolkit
+using Catalyst.EnsembleAnalysis
 
 include("../../utils.jl")
 
+# rn = @reaction_network begin
+#     0.282*N^α/(k+N^α)+d, 0 --> N
+# end α k d
+
 rn = @reaction_network begin
-    0.282*N^α/(k+N^α)+d, 0 --> N
+    0.282*N/(k+N^α)+d, 0 --> N
 end α k d
 
 jumpsys = convert(JumpSystem, rn, combinatoric_ratelaws = false)
@@ -17,12 +22,14 @@ saveat = 1
 de_chan0 = [[]]
 
 α_list = [0.25,0.5,1,2,3,4]
-k_list = [1,3,5,7,9,11]
+k_list = [10,50,100,500]
 d = 0.1
 p_list = [[α_list[i],k_list[j],d] for i=1:length(α_list) for j=1:length(k_list)]
 
 # p_list = [[2,5,d]] # α k d
 train_sol_end_list = []
+
+# p = p_list[12]
 
 for p in p_list
 print(p)
@@ -64,16 +71,54 @@ end
 push!(train_sol_end_list,train_sol_end)
 end
 
+range = 21:24
+p_list[range]
+plot(train_sol_end_list[range])
 plot(train_sol_end_list)
 
-train_solnet = zeros(80,length(p_list))
+#write data 
+train_solnet = zeros(100,length(p_list))
 for i = 1:length(p_list)
-    train_solnet[:,i] = train_sol_end_list[i][1:80]
+    train_solnet[:,i] = train_sol_end_list[i][1:100]
 end
 train_solnet
 
 using DataFrames,CSV
 df = DataFrame(train_solnet,:auto)
-CSV.write("Birth-Death/Control_topology/train_data.csv",df)
+CSV.write("Birth-Death/Control_topology/train_data3.csv",df)
+
+# read data 
+
+train_sol = readdlm("Birth-Death/Control_topology/train_data2.csv", ',')[2:end,:]
+N = 100
+
+train_sol_list = []
+for i = 1:24
+    push!(train_sol_list,vec(train_sol[:,i]))
+end
+plot(train_sol_list)
+
+
+range = 1:4
+p_list[range]
+plot(train_sol_list[range])
+
+set = 1
+ave = P2mean(train_sol_list[set])
+
+distribution = Poisson(ave)
+P = zeros(N)
+for i=1:N
+    P[i] = pdf(distribution,i-1)
+end
+
+# distribution = NegativeBinomial(0.282*120,0.57)
+# P = zeros(N)
+# for i=1:N
+#     P[i] = pdf(distribution,i-1)
+# end
+
+plot(train_sol_list[set],label=join(["a,k=",p_list[set]]))
+plot!(P,label="Poisson")
 
 

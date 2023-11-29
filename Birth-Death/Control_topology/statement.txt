@@ -2,5 +2,12 @@
 
 train_data.csv
 α_list = [0.25,0.5,1,2,3,4]
-k_list = [1,3,5,7,9,11]
+k_list = [100,1000,10000,100000]
 p_list = [[α_list[i],k_list[j]] for i=1:length(α_list) for j=1:length(k_list)]
+
+train_data1.csv 分子中有alpha
+train_data2.csv 分子中无alpha
+
+α_list = [0.25,0.5,1,2,3,4]
+k_list = [10,50,100,500]
+train_data3.csv 分子中无alpha
