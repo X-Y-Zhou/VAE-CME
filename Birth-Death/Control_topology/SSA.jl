@@ -10,26 +10,29 @@ include("../../utils.jl")
 #     0.282*N^α/(k+N^α)+d, 0 --> N
 # end α k d
 
+# rn = @reaction_network begin
+#     0.282*N/(k+N^α)+d, 0 --> N
+# end α k d
+
 rn = @reaction_network begin
-    0.282*N/(k+N^α)+d, 0 --> N
-end α k d
+    1/(k+N^α), 0 --> N
+end α k
 
 jumpsys = convert(JumpSystem, rn, combinatoric_ratelaws = false)
 
 u0 = [0.]
-tf = 400
+tf = 300
 saveat = 1
 de_chan0 = [[]]
 
 α_list = [0.25,0.5,1,2,3,4]
-k_list = [10,50,100,500]
-d = 0.1
-p_list = [[α_list[i],k_list[j],d] for i=1:length(α_list) for j=1:length(k_list)]
+k_list = [1,5,10,50,100]
+p_list = [[α_list[i],k_list[j]] for i=1:length(α_list) for j=1:length(k_list)]
 
-# p_list = [[2,5,d]] # α k d
 train_sol_end_list = []
 
-# p = p_list[12]
+# p_list = [[0.25,50,0.1]]
+p = [0.25,1]
 
 for p in p_list
 print(p)
@@ -50,10 +53,10 @@ delay_interrupt = Dict()
 delaysets = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 djprob = DelayJumpProblem(jumpsys, dprob, aggregatoralgo, delaysets, de_chan0,
                           save_positions = (false, false), save_delay_channel = false)
-# seed = 2
+# seed = 3
 # solution = @time solve(djprob, SSAStepper(), seed = seed, saveat = 1)
 
-Sample_size = Int(50000)
+Sample_size = Int(10000)
 ens_prob = EnsembleProblem(djprob)
 ens = @time solve(ens_prob, SSAStepper(), EnsembleThreads(), trajectories = Sample_size,
             saveat = 1)
@@ -71,10 +74,10 @@ end
 push!(train_sol_end_list,train_sol_end)
 end
 
-range = 21:24
-p_list[range]
-plot(train_sol_end_list[range])
-plot(train_sol_end_list)
+# range = 1:4
+# p_list[range]
+# plot(train_sol_end_list[range])
+# plot(train_sol_end_list)
 
 #write data 
 train_solnet = zeros(100,length(p_list))
@@ -85,25 +88,25 @@ train_solnet
 
 using DataFrames,CSV
 df = DataFrame(train_solnet,:auto)
-CSV.write("Birth-Death/Control_topology/train_data3.csv",df)
+CSV.write("Birth-Death/Control_topology/train_data5.csv",df)
 
 # read data 
 
-train_sol = readdlm("Birth-Death/Control_topology/train_data2.csv", ',')[2:end,:]
+train_sol = readdlm("Birth-Death/Control_topology/train_data4.csv", ',')[2:end,:]
 N = 100
 
 train_sol_list = []
-for i = 1:24
+for i = 1:30
     push!(train_sol_list,vec(train_sol[:,i]))
 end
 plot(train_sol_list)
 
-
-range = 1:4
+range = 26:30
 p_list[range]
 plot(train_sol_list[range])
+# plot!(P_12,label="Poisson")
 
-set = 1
+set = 11
 ave = P2mean(train_sol_list[set])
 
 distribution = Poisson(ave)
@@ -121,4 +124,18 @@ end
 plot(train_sol_list[set],label=join(["a,k=",p_list[set]]))
 plot!(P,label="Poisson")
 
+
+
+# mean
+using Catalyst.EnsembleAnalysis
+tmax = Int(tf+1)
+solnet = zeros(tmax,Sample_size)
+for i =1:tmax
+    solnet[i,:] = componentwise_vectors_timepoint(ens, Int(i-1))[1]
+end
+solnet
+
+using StatsBase,Plots
+mean_SSA_X = [mean(solnet[i,:]) for i=1:size(solnet,1)]
+plot(mean_SSA_X[1:tmax],label="X",linewidth = 3,legend=:bottomright)
 
