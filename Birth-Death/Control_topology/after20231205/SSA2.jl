@@ -4,7 +4,7 @@ using Catalyst
 using DelaySSAToolkit
 using Catalyst.EnsembleAnalysis
 
-include("../../utils.jl")
+include("../../../utils.jl")
 
 train_sol_end_list = []
 
@@ -124,7 +124,7 @@ else
     train_sol_end[1:N+1] = probability[1:N+1]
 end
 plot(train_sol_end,title=join(["i=",burst_sup]))
-
+train_sol_end
 
 push!(train_sol_end_list,train_sol_end)
 # end
@@ -142,8 +142,8 @@ end
 train_solnet
 
 using DataFrames,CSV
-df = DataFrame(train_solnet,:auto)
-CSV.write("Birth-Death/Control_topology/train_data5.csv",df)
+df = DataFrame(reshape(p,10,1),:auto)
+CSV.write("Birth-Death/Control_topology/p.csv",df)
 
 # read data 
 
