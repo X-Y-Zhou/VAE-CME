@@ -29,7 +29,7 @@ de_chan0 = [[]]
 tf = 200.0
 tspan = (0, tf)
 # ps = [0.0282, 3.46]
-ps = [0.088]
+ps = [0.0083]
 dprob = DiscreteProblem(jumpsys, u0, tspan, ps)
 τ = 120.0
 
@@ -44,8 +44,8 @@ delay_trigger_affect!
 delay_trigger = Dict([Pair(i, delay_trigger_affect![i]) for i in 1:burst_sup])
 delay_complete = Dict(1 => [1 => -1])
 delay_interrupt = Dict()
-# alg = DelayRejection()
-alg = DelayCoevolve()
+alg = DelayRejection()
+# alg = DelayCoevolve()
 
 delayjumpset = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 jprob = DelayJumpProblem(

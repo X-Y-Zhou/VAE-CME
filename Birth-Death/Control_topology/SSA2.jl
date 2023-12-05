@@ -52,7 +52,9 @@ de_chan0 = [[]]
 using Random
 rng = Random.seed!(1)
 p = rand(rng,Uniform(0,0.75),10)
+# p = p./120
 p = sort(p,rev=true)./120
+sum(p)
 
 # p = [0.088,0.088/7]
 
