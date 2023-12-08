@@ -9,11 +9,11 @@ rn = @reaction_network begin
 end kon koff ρ
 jumpsys = convert(JumpSystem, rn; combinatoric_ratelaws=false)
 
-u0 = [1, 0, 0]
+u0 = [0, 1, 0]
 de_chan0 = [[]]
 tf = 200.
 tspan = (0, tf)
-p = [0.09317816451905206, 1., 2.2085360276790618]
+p = [0.0931, 1., 2.208]
 dprob = DiscreteProblem(u0, tspan, p)
 
 delay_trigger_affect! = function (integrator, rng)
@@ -26,16 +26,16 @@ delay_interrupt = Dict()
 delayjumpset = DelayJumpSet(delay_trigger, delay_complete, delay_interrupt)
 
 djprob = DelayJumpProblem(
-    jumpsys, dprob, DelayMNRM(), delayjumpset, de_chan0; save_positions=(false, false)
+    jumpsys, dprob, DelayRejection(), delayjumpset, de_chan0; save_positions=(false, false)
 )
 
 ensprob = EnsembleProblem(djprob)
-@time ens = solve(ensprob, SSAStepper(), EnsembleThreads(); trajectories=10^5,saveat=1.)
+@time ens = solve(ensprob, SSAStepper(), EnsembleThreads(); trajectories=10^6,saveat=1.)
 last_slice = componentwise_vectors_timepoint(ens, tf)
 
 sol_end = componentwise_vectors_timepoint(ens, tf)[3]
 
-N = 100
+N = 70
 train_sol_end = zeros(N+1)
 
 probability = convert_histo(vec(sol_end))[2]
@@ -46,12 +46,8 @@ else
 end
 
 train_sol_end[1:70]
-solution
 plot(solution,linewidth = 3,label="topo",xlabel = "# of products \n", ylabel = "\n Probability")
-plot!(0:69,train_sol_end[1:70],lw=3,label="SSA",line=:dash)
-
-plot(0:69,train_sol_end[1:70],lw=3)
-plot!(0:69,check_sol,linewidth = 3,label="exact",line=:dash)
+plot!(0:N,train_sol_end,lw=3,label="SSA",line=:dash)
 
 using DataFrames,CSV
 df = DataFrame(reshape(train_sol_end,N+1,1),:auto)
