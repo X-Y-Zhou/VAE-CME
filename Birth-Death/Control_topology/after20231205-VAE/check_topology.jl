@@ -177,7 +177,7 @@ solution = sol(params1,params2,ϵ,P_0_split)
 solution = solution[1:N]+solution[N+1:2*N]
 # mse = Flux.mse(solution,check_sol)
 
-plot(solution,linewidth = 3,label="topo-tele",xlabel = "# of products \n", ylabel = "\n Probability")
+plot(0:N-1,solution,linewidth = 3,label="topo-tele",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,check_sol,linewidth = 3,label="SSA",line=:dash)
 
 
