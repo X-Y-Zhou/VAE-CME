@@ -19,6 +19,7 @@ b_list = [2,2.25,2.4,2.5,2.75]
 p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
 
 train_sol_end_list = []
+p_list = [0.0282,1,3.46]
 for p in p_list
 print(p,"\n")
 # p = [0.08, 1., 2.3]

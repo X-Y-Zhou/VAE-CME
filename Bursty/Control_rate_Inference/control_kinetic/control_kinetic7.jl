@@ -175,7 +175,7 @@ mse_min = [2.4828482327913556e-6]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Control_rate_Inference/control_kinetic/params_ck7_better.csv",DataFrame)
+df = CSV.read("Bursty/Control_rate_Inference/control_kinetic/params_ck7_better.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
