@@ -11,7 +11,6 @@ train_sol = vec(readdlm("Birth-Death/Control_topology/after20231205-VAE/train_da
 Ex = P2mean(train_sol)
 Dx = P2var(train_sol)
 
-τ = 120
 a = 2Ex^2/(Dx-Ex)τ
 b = (Dx-Ex)/2Ex
 
