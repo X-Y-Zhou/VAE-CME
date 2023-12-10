@@ -75,6 +75,10 @@ b_list = [2,2.25,2.4,2.5,2.75]
 ab_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
 N = 70
 
+a_list = [0.0082,0.0132,0.0182,0.0232,0.0282]
+b_list = [1.46,1.96,2.46,2.96,3.46]
+ab_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
+
 solution_list = []
 
 for i = 1:length(ab_list)
@@ -118,12 +122,13 @@ function plot_all()
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
-
-sigma_on,sigma_off,rho_on = [0.0282,1,3.46]
+2.96*2
+sigma_on,sigma_off,rho_on = [0.0232,2,5.92]
 solution = solve_tele(sigma_on,sigma_off,rho_on)
-
+set
+N = 64
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,train_sol_end,linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list[set]]))
+plot!(0:N-1,train_sol_end_list[1][1:64],linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list[set]]))
 
 
 

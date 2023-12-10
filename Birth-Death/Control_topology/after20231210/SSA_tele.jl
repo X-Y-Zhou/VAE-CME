@@ -18,8 +18,12 @@ a_list = [0.04,0.06,0.07,0.08,0.1]
 b_list = [2,2.25,2.4,2.5,2.75]
 p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
 
+a_list = [0.0082,0.0132,0.0182,0.0232,0.0282]
+b_list = [1.46,1.96,2.46,2.96,3.46]
+ab_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
+
 train_sol_end_list = []
-p_list = [0.0282,1,3.46]
+# p_list = [[0.0232,2,5.92]]
 for p in p_list
 print(p,"\n")
 # p = [0.08, 1., 2.3]
@@ -59,7 +63,7 @@ train_sol_end_list
 
 train_sol_end[1:70]
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products \n", ylabel = "\n Probability")
-plot!(0:N-1,train_sol_end[1:70],lw=3,label="SSA",line=:dash)
+plot(0:N-1,train_sol_end_list,lw=3,label="SSA",line=:dash)
 
 using DataFrames,CSV
 df = DataFrame(reshape(train_sol_end,N+1,1),:auto)
