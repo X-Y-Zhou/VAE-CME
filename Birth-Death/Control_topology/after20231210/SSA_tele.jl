@@ -20,11 +20,12 @@ p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)
 
 a_list = [0.0082,0.0132,0.0182,0.0232,0.0282]
 b_list = [1.46,1.96,2.46,2.96,3.46]
-ab_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-
+p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
+train_sol_end_list
 train_sol_end_list = []
+p_list[11:12]
 # p_list = [[0.0232,2,5.92]]
-for p in p_list
+for p in p_list[11:12]
 print(p,"\n")
 # p = [0.08, 1., 2.3]
 dprob = DiscreteProblem(u0, tspan, p)
@@ -48,7 +49,7 @@ last_slice = componentwise_vectors_timepoint(ens, tf)
 
 sol_end = componentwise_vectors_timepoint(ens, tf)[3]
 
-N = 70
+N = 64
 train_sol_end = zeros(N)
 
 probability = convert_histo(vec(sol_end))[2]

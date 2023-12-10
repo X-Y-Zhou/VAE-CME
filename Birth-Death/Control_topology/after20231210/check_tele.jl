@@ -80,8 +80,9 @@ b_list = [1.46,1.96,2.46,2.96,3.46]
 ab_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
 
 solution_list = []
+solution_list
 
-for i = 1:length(ab_list)
+for i = 12:25
     print(i,"\n")
     solution = solve_tele(ab_list[i][1],ab_list[i][2],ab_list[i][3])
     push!(solution_list,solution)
@@ -89,8 +90,9 @@ end
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
-    # plot!(0:N-1,train_sol_end_list[set],linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list[set]]))
+    plot!(0:N-1,train_sol_end_list[set],linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list[set]]))
 end
+plot_distribution(1)
 
 function plot_all()
     p1 = plot_distribution(1)
@@ -103,27 +105,30 @@ function plot_all()
     p8 = plot_distribution(8)
     p9 = plot_distribution(9)
     p10 = plot_distribution(10)
-    p11 = plot_distribution(11)
-    p12 = plot_distribution(12)
-    p13 = plot_distribution(13)
-    p14 = plot_distribution(14)
-    p15 = plot_distribution(15)
-    p16 = plot_distribution(16)
-    p17 = plot_distribution(17)
-    p18 = plot_distribution(18)
-    p19 = plot_distribution(19)
-    p20 = plot_distribution(20)
-    p21 = plot_distribution(21)
-    p22 = plot_distribution(22)
-    p23 = plot_distribution(23)
-    p24 = plot_distribution(24)
-    p25 = plot_distribution(25)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+    # # p11 = plot_distribution(11)
+    p12 = plot_distribution(12-1)
+    p13 = plot_distribution(13-1)
+    p14 = plot_distribution(14-1)
+    p15 = plot_distribution(15-1)
+    p16 = plot_distribution(16-1)
+    p17 = plot_distribution(17-1)
+    p18 = plot_distribution(18-1)
+    p19 = plot_distribution(19-1)
+    p20 = plot_distribution(20-1)
+    p21 = plot_distribution(21-1)
+    p22 = plot_distribution(22-1)
+    p23 = plot_distribution(23-1)
+    p24 = plot_distribution(24-1)
+    p25 = plot_distribution(25-1)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p12,p13,p14,p15,
          p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
+    # plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
+    # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
 end
 plot_all()
 2.96*2
-sigma_on,sigma_off,rho_on = [0.0232,2,5.92]
+sigma_on,sigma_off,rho_on = [0.0182,1,1.56]
+sigma_on,sigma_off,rho_on = ab_list[11]
 solution = solve_tele(sigma_on,sigma_off,rho_on)
 set
 N = 64
