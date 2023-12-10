@@ -25,7 +25,6 @@ end
 
 lρ_list = length(ρ_list_all)
 
-
 # model initialization
 latent_size = 2;
 encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
@@ -54,17 +53,17 @@ function f1!(x,p1,p2,ρ_list,ϵ)
 end
 
 #solve P
-P_0_distribution_list = [Poisson(mean(ρ_list[i][1:10]*120)) for i=1:lρ_list]
+P_0_distribution_list = [Poisson(mean(ρ_list_all[i][1:10]*120)) for i=1:lρ_list]
 P_0_list = [[pdf(P_0_distribution_list[i],j) for j=0:N-1] for i =1:lρ_list]
 P_0_list[1]
 
 i = 1
 ϵ = zeros(latent_size)
 sol(p1,p2,ρ_list,ϵ,P_0) = nlsolve(x->f1!(x,p1,p2,ρ_list,ϵ),P_0).zero
-sol(params1,params2,ρ_list[i],ϵ,P_0_list[i])
+sol(params1,params2,ρ_list_all[i],ϵ,P_0_list[i])
 
 function loss_func(p1,p2,ϵ)
-    sol_cme = [sol(p1,p2,ρ_list[i],ϵ,P_0_list[i]) for i=1:lρ_list]
+    sol_cme = [sol(p1,p2,ρ_list_all[i],ϵ,P_0_list[i]) for i=1:lρ_list]
         
     mse = sum(Flux.mse(sol_cme[i],train_sol[i]) for i=1:lρ_list)/lρ_list
     print(mse," ")
@@ -79,7 +78,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 50000
+λ = 50000000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -89,7 +88,7 @@ end
 epochs_all = 0
 
 #training
-lr = 0.05;  #lr需要操作一下的
+lr = 0.002;  #lr需要操作一下的
 opt= ADAM(lr);
 epochs = 10
 epochs_all = epochs_all + epochs
@@ -103,7 +102,7 @@ mse_list = []
     Flux.update!(opt, ps, grads)
     
     ϵ = zeros(latent_size)
-    solution = [sol(params1,params2,ρ_list[i],ϵ,P_0_list[i]) for i=1:lρ_list]
+    solution = [sol(params1,params2,ρ_list_all[i],ϵ,P_0_list[i]) for i=1:lρ_list]
     mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:lρ_list)/lρ_list
 
     if mse<mse_min[1]
@@ -113,13 +112,13 @@ mse_list = []
     end
 
     push!(mse_list,mse)
-    print(mse,mse,"\n")
+    print(mse,"\n")
 end
 
 mse_list
 mse_min 
 
-mse_min = [0.00038168249677214273]
+mse_min = [6.3182213390165e-5]
 
 using CSV,DataFrames
 df = CSV.read("Birth-Death/Control_topology/after20231210/params_trained.csv",DataFrame)
@@ -128,10 +127,23 @@ params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
 ϵ = zeros(latent_size)
-solution = [sol(params1,params2,ρ_list[i],ϵ,P_0_list[i]) for i=1:lρ_list]
+solution = [sol(params1,params2,ρ_list_all[i],ϵ,P_0_list[i]) for i=1:lρ_list]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:lρ_list)/lρ_list
 
-plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,train_sol,linewidth = 3,label="exact",title="steady-state",line=:dash)
+function plot_distribution(set)
+    p = plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol[set],linewidth = 3,label="exact",line=:dash)
+    return p
+end
 
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    plot(p1,p2,p3,p4,p5,p6,size=(900,600),layout=(2,3))
+end
+plot_all()
 

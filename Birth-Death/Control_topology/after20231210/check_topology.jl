@@ -5,8 +5,16 @@ using DelimitedFiles, Plots
 include("../../../utils.jl")
 
 # check 
-train_sol = vec(readdlm("Birth-Death/Control_topology/after20231205-VAE/train_data_ssa2.csv", ',')[2:end,:])
-ρ_list = vec(readdlm("Birth-Death/Control_topology/after20231205-VAE/p.csv", ',')[2:end,:])
+train_solnet = readdlm("Birth-Death/Control_topology/after20231210/train_data_ssa2.csv", ',')[2:end,:]
+ρ_listnet = readdlm("Birth-Death/Control_topology/after20231210/p.csv", ',')[2:end,:]
+
+ab_list = []
+for i = 1:6
+N = 70
+τ = 120
+train_sol = train_solnet[:,i][1:N]
+ρ_list = vcat(ρ_listnet[:,i],zeros(N-length(ρ_listnet[:,i])))
+ρ_list
 
 Ex = P2mean(train_sol)
 Dx = P2var(train_sol)
@@ -14,11 +22,16 @@ Dx = P2var(train_sol)
 a = 2Ex^2/(Dx-Ex)τ
 b = (Dx-Ex)/2Ex
 
-N = 70
-τ = 120
-train_sol = train_sol[1:N]
-ρ_list = vcat(ρ_list,zeros(N-length(ρ_list)))
-ρ_list
+push!(ab_list,[a,b])
+end
+ab_list
+
+i = 5
+ρ_list = vcat(ρ_listnet[:,i],zeros(N-length(ρ_listnet[:,i])))
+train_sol = train_solnet[:,i][1:N]
+ab_list[i]
+ab_list
+# train_solnet[:,i][1:N]
 
 # model initialization
 latent_size = 2;
@@ -30,7 +43,7 @@ params2, re2 = Flux.destructure(decoder);
 ps = Flux.params(params1,params2);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231205-VAE/params_trained.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231210/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -60,6 +73,7 @@ mse = Flux.mse(solution,train_sol)
 plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,train_sol,linewidth = 3,label="SSA",title="steady-state",line=:dash)
 
+
 # topo bursty
 # exact
 function bursty(N,a,b,τ)
@@ -78,8 +92,64 @@ Dx = P2var(train_sol)
 a = 2Ex^2/(Dx-Ex)τ
 b = (Dx-Ex)/2Ex
 
+a_list = [0.04,0.06,0.07,0.08,0.1]
+b_list = [2,2.25,2.4,2.5,2.75]
+ab_list = [[a_list[i],b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
 N = 70
-check_sol = bursty(N,a,b,τ)
+
+check_sol_list = []
+solution_list = []
+
+for i = 1:length(ab_list)
+    print(i,"\n")
+    check_sol = bursty(N,ab_list[i][1],ab_list[i][2],τ)
+    solution = solve_bursty(ab_list[i][1],ab_list[i][2])
+    push!(check_sol_list,check_sol)
+    push!(solution_list,solution)
+end
+
+function  plot_distribution(set)
+    p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol_list[set],linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list[set]]))
+end
+
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    p17 = plot_distribution(17)
+    p18 = plot_distribution(18)
+    p19 = plot_distribution(19)
+    p20 = plot_distribution(20)
+    p21 = plot_distribution(21)
+    p22 = plot_distribution(22)
+    p23 = plot_distribution(23)
+    p24 = plot_distribution(24)
+    p25 = plot_distribution(25)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+         p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
+end
+plot_all()
+
+
+
+mse = Flux.mse(solution,check_sol)
+
+plot(0:N-1,solution,linewidth = 3,label="topo-bursty",xlabel = "# of products", ylabel = "\n Probability")
+plot!(0:N-1,check_sol,linewidth = 3,label="bursty-exact",title="steady-state",line=:dash)
 
 # model
 latent_size = 2;
@@ -91,11 +161,12 @@ params2, re2 = Flux.destructure(decoder);
 ps = Flux.params(params1,params2);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231205-VAE/params_trained.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231210/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
+function solve_bursty(a,b)
 function f1!(x,p1,p2,ϵ)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
@@ -113,10 +184,14 @@ P_0 = [pdf(P_0_distribution,i) for i=0:N-1]
 sol(p1,p2,ϵ,P_0) = nlsolve(x->f1!(x,p1,p2,ϵ),P_0).zero
 
 solution = sol(params1,params2,ϵ,P_0)
+return solution
+end
+
 mse = Flux.mse(solution,check_sol)
 
 plot(0:N-1,solution,linewidth = 3,label="topo-bursty",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,check_sol,linewidth = 3,label="bursty-exact",title="steady-state",line=:dash)
+
 
 # topo tele
 sigma_on = a
@@ -129,7 +204,56 @@ a = sigma_on
 b = rho_on/sigma_off
 N = 70
 
-check_sol = vec(readdlm("Birth-Death/Control_topology/after20231205-VAE/ssa_tele.csv", ',')[2:N+1,:])
+# check_sol = vec(readdlm("Birth-Death/Control_topology/after20231210/ssa_tele.csv", ',')[2:N+1,:])
+
+a_list = [0.04,0.06,0.07,0.08,0.1]
+b_list = [2,2.25,2.4,2.5,2.75]
+ab_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
+N = 70
+
+solution_list = []
+
+for i = 1:length(ab_list)
+    print(i,"\n")
+    solution = solve_tele(ab_list[i][1],ab_list[i][2],ab_list[i][3])
+    push!(solution_list,solution)
+end
+
+function  plot_distribution(set)
+    p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol_end_list[set],linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list[set]]))
+end
+
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    p17 = plot_distribution(17)
+    p18 = plot_distribution(18)
+    p19 = plot_distribution(19)
+    p20 = plot_distribution(20)
+    p21 = plot_distribution(21)
+    p22 = plot_distribution(22)
+    p23 = plot_distribution(23)
+    p24 = plot_distribution(24)
+    p25 = plot_distribution(25)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+         p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
+end
+plot_all()
 
 # model
 latent_size = 2;
@@ -141,12 +265,13 @@ params2, re2 = Flux.destructure(decoder);
 ps = Flux.params(params1,params2);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231205-VAE/params_trained.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231210/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
 # P0,P1
+function solve_tele(sigma_on,sigma_off,rho_on)
 function f1!(x,p1,p2,ϵ)
     h = re1(p1)(x[1:N])
     μ, logσ = split_encoder_result(h, latent_size)
@@ -175,10 +300,50 @@ P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off
 sol(p1,p2,ϵ,P_0) = nlsolve(x->f1!(x,p1,p2,ϵ),P_0).zero
 solution = sol(params1,params2,ϵ,P_0_split)
 solution = solution[1:N]+solution[N+1:2*N]
+return solution
+end
+
 # mse = Flux.mse(solution,check_sol)
 
 plot(0:N-1,solution,linewidth = 3,label="topo-tele",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,check_sol,linewidth = 3,label="SSA",line=:dash)
 
 
+
+function  plot_distribution(set)
+    p=plot(0:N-1,bursty(N,ab_list[set][1],ab_list[set][2],75),linewidth = 3,label="exact",title=join(["ab=",ab_list[set]]))
+end
+set = 1
+plot_distribution(set)
+
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    p17 = plot_distribution(17)
+    p18 = plot_distribution(18)
+    p19 = plot_distribution(19)
+    p20 = plot_distribution(20)
+    p21 = plot_distribution(21)
+    p22 = plot_distribution(22)
+    p23 = plot_distribution(23)
+    p24 = plot_distribution(24)
+    p25 = plot_distribution(25)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+         p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
+end
+plot_all()
 
