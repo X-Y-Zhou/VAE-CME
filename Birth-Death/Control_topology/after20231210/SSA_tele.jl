@@ -6,7 +6,7 @@ rn = @reaction_network begin
     kon, Goff --> Gon
     koff, Gon --> Goff
     ρ, Gon --> Gon + N
-end kon koff ρ
+end
 jumpsys = convert(JumpSystem, rn; combinatoric_ratelaws=false)
 
 u0 = [0, 1, 0]
@@ -14,18 +14,23 @@ de_chan0 = [[]]
 tf = 200.
 tspan = (0, tf)
 
-a_list = [0.04,0.06,0.07,0.08,0.1]
-b_list = [2,2.25,2.4,2.5,2.75]
+a_list = [0.04,0.06,0.08,0.1]
+b_list = [2,2.2,2.4,2.6,2.8,3]
 p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
 
 a_list = [0.0082,0.0132,0.0182,0.0232,0.0282]
 b_list = [1.46,1.96,2.46,2.96,3.46]
 p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-train_sol_end_list
+
+a_list = [0.0082,0.015,0.02,0.024,0.0282]
+b_list = [1.46,1.96,2.46,2.96,3.46]
+p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
+
 train_sol_end_list = []
-p_list[11:12]
-# p_list = [[0.0232,2,5.92]]
-for p in p_list[11:12]
+
+p_list = [ab_list[1]]
+
+for p in p_list
 print(p,"\n")
 # p = [0.08, 1., 2.3]
 dprob = DiscreteProblem(u0, tspan, p)
@@ -49,7 +54,7 @@ last_slice = componentwise_vectors_timepoint(ens, tf)
 
 sol_end = componentwise_vectors_timepoint(ens, tf)[3]
 
-N = 64
+N = 100
 train_sol_end = zeros(N)
 
 probability = convert_histo(vec(sol_end))[2]
