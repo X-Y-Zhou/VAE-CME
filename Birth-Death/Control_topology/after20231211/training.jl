@@ -87,7 +87,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 30000
+λ = 600000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -103,7 +103,7 @@ lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
 
 lr_list = [0.0008,0.0006,0.0004]
 
-lr = 0.05;  #lr需要操作一下的
+lr = 0.01;  #lr需要操作一下的
 
 # for lr in lr_list
 using CSV,DataFrames
@@ -130,7 +130,7 @@ mse_list = []
     mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
 
     if mse<mse_min[1]
-        df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
+        df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
         CSV.write("Birth-Death/Control_topology/after20231211/params_trained",df)
         mse_min[1] = mse
     end
@@ -143,12 +143,12 @@ end
 params1
 params2
 
-mse_min = [0.0007187073312389584]
+mse_min = [0.00013913982470445334]
 mse_min 
 
 using CSV,DataFrames
 df = CSV.read("Birth-Death/Control_topology/after20231211/params_trained",DataFrame)
-params1 = df.params1
+params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
@@ -178,7 +178,17 @@ function plot_all()
     p4 = plot_distribution(4)
     p5 = plot_distribution(5)
     p6 = plot_distribution(6)
-    plot(p1,p2,p3,p4,p5,p6,size=(900,600),layout=(2,3))
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,size=(1200,1200),layout=(4,4))
 end
 plot_all()
 
