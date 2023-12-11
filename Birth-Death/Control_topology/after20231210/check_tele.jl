@@ -127,9 +127,9 @@ function plot_all()
 end
 plot_all()
 2.96*2
-sigma_on,sigma_off,rho_on = [0.0182,1,1.56]
-sigma_on,sigma_off,rho_on = ab_list[11]
-solution = solve_tele(sigma_on,sigma_off,rho_on)
+sigma_on,sigma_off,rho_on = [0.0182,1,1.63]
+# sigma_on,sigma_off,rho_on = ab_list[11]
+@time solution = solve_tele(sigma_on,sigma_off,rho_on)
 set
 N = 64
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
