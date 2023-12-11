@@ -131,7 +131,7 @@ mse_list = []
 
     if mse<mse_min[1]
         df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-        CSV.write("Birth-Death/Control_topology/after20231211/params_trained",df)
+        CSV.write("Birth-Death/Control_topology/after20231211/params_trained.csv",df)
         mse_min[1] = mse
     end
 
@@ -147,7 +147,7 @@ mse_min = [0.00013913982470445334]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231211/params_trained",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231211/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
