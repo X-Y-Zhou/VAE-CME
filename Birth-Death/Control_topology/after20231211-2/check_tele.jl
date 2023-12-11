@@ -5,9 +5,9 @@ using DelimitedFiles, Plots
 include("../../../utils.jl")
 
 # topo tele
-# sigma_on = a
-# sigma_off = 1
-# rho_on = b
+sigma_on = 0.005
+sigma_off = 0.008
+rho_on = 0.3
 rho_off = 0.0
 gamma= 0.0
 
@@ -15,7 +15,7 @@ a = sigma_on
 b = rho_on/sigma_off
 # N = 70
 
-# check_sol = vec(readdlm("Birth-Death/Control_topology/after20231211/ssa_tele.csv", ',')[2:N+1,:])
+# check_sol = vec(readdlm("Birth-Death/Control_topology/after20231211-2/ssa_tele.csv", ',')[2:N+1,:])
 # model
 τ = 120
 N = 100
@@ -29,7 +29,7 @@ params2, re2 = Flux.destructure(decoder);
 ps = Flux.params(params1,params2);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231211/params_trainedwin.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231211-2/params_trained-2.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -130,16 +130,18 @@ function plot_all()
     # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
 end
 plot_all()
-2.96*2
-sigma_on,sigma_off,rho_on = [0.0282,1,3.46]
-sigma_on,sigma_off,rho_on = ab_list[10]
-sigma_on,sigma_off,rho_on = [0.02,1,1.46]
+
+sigma_on,sigma_off,rho_on = [0.01,1,10]
+
+sigma_on,sigma_off,rho_on = [0.01,0.015,0.15]
+# sigma_on,sigma_off,rho_on = ab_list[10]
+sigma_on,sigma_off,rho_on = p_list[1]
 @time solution = solve_tele(sigma_on,sigma_off,rho_on)
 
 set = 1
 N = 100
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
-plot!(0:N-1,train_sol_end_list[1],linewidth = 3,label="exact",line=:dash,title=join(["ab=",ab_list[set]]))
+plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="exact",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
 
 

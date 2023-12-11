@@ -28,8 +28,10 @@ p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)
 
 train_sol_end_list = []
 
-p_list = [[0.00582,0.008,0.3]]
+p_list = [[0.005,0.008,0.1]]
 
+p_list = [[0.03,1,4]]
+train_sol_end_list = []
 for p in p_list
 print(p,"\n")
 # p = [0.08, 1., 2.3]
@@ -65,9 +67,9 @@ else
 end
 push!(train_sol_end_list,train_sol_end)
 end
-train_sol_end_list
 
-plot(train_sol_end_list[end])
+train_sol_end_list
+plot(train_sol_end_list[end],lw=3)
 
 train_sol_end[1:70]
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products \n", ylabel = "\n Probability")
