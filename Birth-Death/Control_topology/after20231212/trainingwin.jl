@@ -41,25 +41,14 @@ plot(train_sol)
 
 
 # model initialization
-latent_size = 2;
-encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
-# decoder = Chain(Dense(latent_size, 200),Dense(200 , 4),x ->exp.(x));
-decoder = Chain(Dense(latent_size, 10),Dense(10 , N-1),x-> 0.03.*x.+[i/τ  for i in 1:N-1],x ->relu.(x));
-
-params1, re1 = Flux.destructure(encoder);
-params2, re2 = Flux.destructure(decoder);
-ps = Flux.params(params1,params2);
-
-params1
-params2
+model = Chain(Dense(N, 10, tanh), Dense(10, N-1), x -> 0.03.*x .+ [i/τ for i in 1:N-1], x -> relu.(x));
+p1, re = Flux.destructure(model);
+ps = Flux.params(p1)
 
 #CME
-function f1!(x,p1,p2,a,b,ϵ)
-    h = re1(p1)(x)
-    μ, logσ = split_encoder_result(h, latent_size)
-    z = reparameterize.(μ, logσ, ϵ)
-    NN = re2(p2)(z)
-    # l,m,n,o = re2(p2)(z)
+function f1!(x,p,a,b)
+    NN = re(p)(x)
+    # l,m,n,o = re(p)(z)
     # NN = f_NN.(1:N-1,l,m,n,o)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
@@ -70,47 +59,24 @@ P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
 P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for j=0:N-1] for i=1:l_ablist]
 
 ϵ = zeros(latent_size)
-sol(p1,p2,a,b,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,a,b,ϵ),P0).zero
+sol(p,a,b,P0) = nlsolve(x->f1!(x,p,a,b),P0).zero
 
-function loss_func(p1,p2,ϵ)
-    sol_cme = [sol(p1,p2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
-        
+function loss_func(p)
+    sol_cme = [sol(p,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
     mse = sum(Flux.mse(sol_cme[i],train_sol[i]) for i=1:l_ablist)/l_ablist
-    print(mse," ")
-
-    μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[i]), latent_size) for i=1:l_ablist]
-    kl = sum([(0.5f0 * sum(exp.(2f0 .* μ_logσ_list[i][2]) + μ_logσ_list[i][1].^2 .- 1 .- (2 .* μ_logσ_list[i][2])))  
-        for i=1:l_ablist])/l_ablist
-    print(kl," ")
-
-    loss = λ*mse + kl
+    loss = mse
     print(loss,"\n")
     return loss
 end
 
-λ = 3000000000
-
-#check λ if is appropriate
-ϵ = zeros(latent_size)
-loss_func(params1,params2,ϵ)
-@time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
-
-epochs_all = 0
-
-lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
-lr_list = [0.005,0.0025,0.0015,0.001]
-lr_list = [0.006,0.004,0.002,0.001]
-lr_list = [0.005,0.0025,0.0015,0.0008,0.0006]
-
-lr_list = [0.0008,0.0006,0.0004]
-
-lr_list = [0.01,0.008,0.006,0.004]
+loss_func(p1)
+@time grads = gradient(()->loss_func(p1) , ps)
 
 lr = 0.01;  #lr需要操作一下的
 
 for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231211-2/params_trained-5.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231212/params_trained-5.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -123,40 +89,32 @@ print("learning rate = ",lr)
 mse_list = []
 
 @time for epoch in 1:epochs
-    ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
-    grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
+    grads = gradient(()->loss_func(p1) , ps)
     Flux.update!(opt, ps, grads)
 
-    ϵ = zeros(latent_size)
-    solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
-    mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
-
+    mse = loss_func(p1)
     if mse<mse_min[1]
-        df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-        CSV.write("Birth-Death/Control_topology/after20231211-2/params_trained-5.csv",df)
+        df = DataFrame(p1 = p1)
+        CSV.write("Birth-Death/Control_topology/after20231212/params_trained_bp.csv",df)
         mse_min[1] = mse
     end
-
+    
     push!(mse_list,mse)
     print(mse,"\n")
 end
-end
 
-params1
-params2
 
 mse_min = [0.00010532661952546428]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231211-2/params_trained-5.csv",DataFrame)
-params1 = df.params1[1:length(params1)]
-params2 = df.params2[1:length(params2)]
-ps = Flux.params(params1,params2);
+df = CSV.read("Birth-Death/Control_topology/after20231212/params_trained_bp.csv",DataFrame)
+p1 = df.p1
+ps = Flux.params(p1);
 
 ϵ = zeros(latent_size)
-solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
+solution = [sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
 
 function plot_distribution(set)
@@ -208,7 +166,7 @@ for i=1:l_ablist_pre
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
 
     ϵ = zeros(latent_size)
-    solution = sol(params1,params2,a,b,ϵ,P_0)
+    solution = sol(p1,a,b,P_0)
     push!(solution_list,solution)
 end
 

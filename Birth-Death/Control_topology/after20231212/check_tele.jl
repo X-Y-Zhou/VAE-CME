@@ -19,33 +19,22 @@ b = rho_on/sigma_off
 # model
 τ = 120
 N = 100
-latent_size = 2;
-encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
-# decoder = Chain(Dense(latent_size, 200),Dense(200 , 4),x ->exp.(x));
-decoder = Chain(Dense(latent_size, 10),Dense(10 , N-1),x-> 0.03.*x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 
-params1, re1 = Flux.destructure(encoder);
-params2, re2 = Flux.destructure(decoder);
-ps = Flux.params(params1,params2);
+model = Chain(Dense(N, 10, tanh), Dense(10, N-1), x -> 0.03.*x .+ [i/τ for i in 1:N-1], x -> relu.(x));
+p1, re = Flux.destructure(model);
+ps = Flux.params(p1);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231211-2/params_trained-2.csv",DataFrame)
-params1 = df.params1[1:length(params1)]
-params2 = df.params2[1:length(params2)]
-ps = Flux.params(params1,params2);
+df = CSV.read("Birth-Death/Control_topology/after20231212/params_trained_bp.csv",DataFrame)
+p1 = df.p1
+ps = Flux.params(p1);
 
-function f1!(x,p1,p2,sigma_on,sigma_off,rho_on,ϵ)
-    h = re1(p1)(x[1:N])
-    μ, logσ = split_encoder_result(h, latent_size)
-    z = reparameterize.(μ, logσ, ϵ)
-    NN1 = re2(p2)(z)
-    # l,m,n,o = re2(p2)(z)
+function f1!(x,p,sigma_on,sigma_off,rho_on)
+    NN1 = re(p)(x[1:N])
+    # l,m,n,o = re(p)(z)
     # NN1 = f_NN.(1:N-1,l,m,n,o)
 
-    h = re1(p1)(x[N+1:2*N])
-    μ, logσ = split_encoder_result(h, latent_size)
-    z = reparameterize.(μ, logσ, ϵ)
-    NN2 = re2(p2)(z)
+    NN2 = re(p)(x[N+1:2*N])
     # l,m,n,o = re2(p2)(z)
     # NN2 = f_NN.(1:N-1,l,m,n,o)
 
@@ -65,8 +54,8 @@ function solve_tele(sigma_on,sigma_off,rho_on)
     P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off)]
 
     ϵ = zeros(latent_size)
-    sol(p1,p2,ϵ,P_0) = nlsolve(x->f1!(x,p1,p2,sigma_on,sigma_off,rho_on,ϵ),P_0).zero
-    solution = sol(params1,params2,ϵ,P_0_split)
+    sol(p,P_0) = nlsolve(x->f1!(x,p,sigma_on,sigma_off,rho_on),P_0).zero
+    solution = sol(p,P_0_split)
     solution = solution[1:N]+solution[N+1:2*N]
     return solution
 end
