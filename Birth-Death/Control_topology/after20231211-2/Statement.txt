@@ -1,3 +1,7 @@
 params_trained.csv a,b = [0.005,37.5]
 params_trained-2.csv a,b = [0.01,10]
-params_trained-2.csv a,b = [0.03,4]
+params_trained-3.csv a,b = [0.03,4]
+params_trained-4.csv a,b = [0.0282,3.46]
+params_trained-5.csv
+a_list = [0.02,0.03,0.04]
+b_list = [2,3,4]

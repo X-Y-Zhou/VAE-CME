@@ -32,7 +32,7 @@ de_chan0 = [[]]
 using Random
 i = 3
 rng = Random.seed!(i)
-p = rand(rng,Uniform(0,0.4),10)
+p = rand(rng,Uniform(0,0.05),10)
 # p = p./120
 p = sort(p,rev=true)./120
 sum(p)

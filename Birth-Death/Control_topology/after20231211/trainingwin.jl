@@ -19,8 +19,8 @@ a = 0.0282;
 b = 3.46;
 τ = 120;
 
-a = 0.1
-b = 4
+a = 0.5
+b = 0.5
 N = 100
 train_sol = bursty(N,a,b,τ)
 plot(train_sol)
