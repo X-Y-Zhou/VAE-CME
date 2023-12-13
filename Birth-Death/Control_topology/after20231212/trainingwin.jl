@@ -64,7 +64,7 @@ end
 @time loss_func(p1)
 @time grads = gradient(()->loss_func(p1) , ps)
 
-lr = 0.003;  #lr需要操作一下的
+lr = 0.001;  #lr需要操作一下的
 
 # for lr in lr_list
 using CSV,DataFrames
@@ -75,7 +75,7 @@ ps = Flux.params(p1);
 # # training
 
 opt= ADAM(lr);
-epochs = 10
+epochs = 5
 print("learning rate = ",lr)
 mse_list = []
 
@@ -96,7 +96,7 @@ mse_list = []
 end
 
 
-mse_min = [7.85185239155884e-6]
+mse_min = [7.43750855448281e-6]
 mse_min 
 
 using CSV,DataFrames
