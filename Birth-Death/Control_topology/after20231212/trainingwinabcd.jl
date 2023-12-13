@@ -18,6 +18,7 @@ end;
 a = 0.0282;
 b = 3.46;
 τ = 120;
+N = 100
 
 ab_list = [[0.01,3],[0.01,5],[0.025,2],[0.025,4],[0.05,3],[0.05,4],
                         [0.1,2],[0.1,3],[0.5,0.25],[0.5,0.5]]
@@ -25,22 +26,9 @@ l_ablist = length(ab_list)
 # a,b = ab_list[1]
 # train_sol = bursty(N,a,b,τ)
 
-train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:10]
-# plot(train_sol_end_list[end],lw=3)
-# plot(train_sol[9:10],lw=3,line=:dash,label="bursty")
-
-a_list = [0.02,0.03,0.04]
-b_list = [2,3,4]
-# b_list = [1.46,3.46]
-# τ_list = [100,110,120,130,140]
-
-
-ab_list = [[a_list[i],b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-l_ablist = length(ab_list)
-# abτ_list = [[a_list[i],b_list[j],τ_list[k]] for i=1:length(a_list) for j=1:length(b_list) for k=1:length(τ_list)]
-
 train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
-# train_sol = [bursty(N,abτ_list[i][1],abτ_list[i][2],abτ_list[i][3]) for i=1:length(abτ_list)]
+# plot(train_sol_end_list[end],lw=3)
+plot(train_sol[10],lw=3,line=:dash,label="bursty")
 plot(train_sol)
 
 
@@ -63,7 +51,6 @@ end
 P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
 P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for j=0:N-1] for i=1:l_ablist]
 
-ϵ = zeros(latent_size)
 sol(p,a,b,P0) = nlsolve(x->f1!(x,p,a,b),P0).zero
 
 function loss_func(p)
@@ -77,7 +64,7 @@ end
 @time loss_func(p1)
 @time grads = gradient(()->loss_func(p1) , ps)
 
-lr = 0.004;  #lr需要操作一下的
+lr = 0.006;  #lr需要操作一下的
 
 # for lr in lr_list
 using CSV,DataFrames
@@ -88,7 +75,7 @@ ps = Flux.params(p1);
 # # training
 
 opt= ADAM(lr);
-epochs = 30
+epochs = 20
 print("learning rate = ",lr)
 mse_list = []
 
@@ -108,7 +95,7 @@ mse_list = []
     print(mse,"\n")
 end
 
-mse_min = [0.00016295079211814818]
+mse_min = [0.005110365911531998]
 mse_min 
 
 using CSV,DataFrames
@@ -116,7 +103,6 @@ df = CSV.read("Control_topology/after20231212/params_trained_bpabcd.csv",DataFra
 p1 = df.p1
 ps = Flux.params(p1);
 
-ϵ = zeros(latent_size)
 solution = [sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
 
