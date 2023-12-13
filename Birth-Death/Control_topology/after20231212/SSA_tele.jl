@@ -31,7 +31,8 @@ train_sol_end_list = []
 p_list = [[0.07,0.680,2.],[0.3,5.3,11.3],[0.0282,0.609,2.11]]
 p_list
 
-p_list = [[0.002,0.003,0.3]]
+p_list = [[0.005,0.005,0.1]]
+# p_list = [[0.5,1,0.25]]
 train_sol_end_list = []
 
 for p in p_list
@@ -71,15 +72,17 @@ push!(train_sol_end_list,train_sol_end)
 end
 
 train_sol_end_list
+# plot(train_sol_end_list[end],lw=3,label=p_list[1])
 plot(train_sol_end_list,lw=3)
 
 train_sol_end[1:70]
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products \n", ylabel = "\n Probability")
 plot(0:N-1,train_sol_end_list,lw=3,label="SSA",line=:dash)
 
+train_sol_end = train_sol_end_list[1]
 using DataFrames,CSV
-df = DataFrame(reshape(train_sol_end,N+1,1),:auto)
-CSV.write("Birth-Death/Control_topology/after20231205-2/ssa_tele.csv",df)
+df = DataFrame(reshape(train_sol_end,N,1),:auto)
+CSV.write("Birth-Death/Control_topology/after20231212/ssa_tele.csv",df)
 
 
 function bursty(N,a,b,τ)

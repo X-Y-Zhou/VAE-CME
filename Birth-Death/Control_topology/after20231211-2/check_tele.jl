@@ -129,15 +129,9 @@ sigma_on,sigma_off,rho_on = [0.01,1,10]
 
 sigma_on,sigma_off,rho_on = [0.01,0.015,0.15]
 # sigma_on,sigma_off,rho_on = ab_list[10]
-sigma_on,sigma_off,rho_on = p_list[16]
+sigma_on,sigma_off,rho_on = p_list[1]
 @time solution = solve_tele(sigma_on,sigma_off,rho_on)
 
-a_list = [0.02,0.03,0.04]
-b_list = [2,3,4]
-
-
-set = 1
-N = 100
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="exact",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 

@@ -5,8 +5,8 @@ using DelimitedFiles, Plots
 include("../../../utils.jl")
 
 # topo tele
-sigma_on = 0.005
-sigma_off = 0.008
+sigma_on = 0.003
+sigma_off = 0.004
 rho_on = 0.3
 rho_off = 0.0
 gamma= 0.0
@@ -53,9 +53,8 @@ function solve_tele(sigma_on,sigma_off,rho_on)
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
     P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off)]
 
-    ϵ = zeros(latent_size)
     sol(p,P_0) = nlsolve(x->f1!(x,p,sigma_on,sigma_off,rho_on),P_0).zero
-    solution = sol(p,P_0_split)
+    solution = sol(p1,P_0_split)
     solution = solution[1:N]+solution[N+1:2*N]
     return solution
 end
@@ -116,21 +115,14 @@ plot_all()
 
 sigma_on,sigma_off,rho_on = [0.01,1,10]
 
-sigma_on,sigma_off,rho_on = [0.01,0.015,0.15]
-# sigma_on,sigma_off,rho_on = ab_list[10]
-sigma_on,sigma_off,rho_on = p_list[16]
+sigma_on,sigma_off,rho_on = [0.005,0.008,0.1]
+
+sigma_on,sigma_off,rho_on = p_list[1]
 @time solution = solve_tele(sigma_on,sigma_off,rho_on)
 
-a_list = [0.02,0.03,0.04]
-b_list = [2,3,4]
-
-
-set = 1
-N = 100
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="exact",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
-round(location_list[j], digits=4)
 
 a_list = [0.0225,0.025,0.035] # sigma_on
 b_list = [2.5,3.5] # rho_on/sigma_off
