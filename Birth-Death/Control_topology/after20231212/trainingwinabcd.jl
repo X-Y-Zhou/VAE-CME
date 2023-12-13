@@ -45,16 +45,16 @@ plot(train_sol)
 
 
 # model initialization
-model = Chain(Dense(N, 10, tanh), Dense(10, N-1), x -> 0.03.*x .+ [i/τ for i in 1:N-1], x -> relu.(x));
+model = Chain(Dense(N, 10, tanh), Dense(10, 4), x -> exp.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 p1
 
 #CME
 function f1!(x,p,a,b)
-    NN = re(p)(x)
-    # l,m,n,o = re(p)(z)
-    # NN = f_NN.(1:N-1,l,m,n,o)
+    # NN = re(p)(x)
+    l,m,n,o = re(p)(x)
+    NN = f_NN.(1:N-1,l,m,n,o)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
 end
@@ -81,7 +81,7 @@ lr = 0.004;  #lr需要操作一下的
 
 # for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231212/params_trained_bp.csv",DataFrame)
+df = CSV.read("Control_topology/after20231212/params_trained_bpabcd.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -100,7 +100,7 @@ mse_list = []
     mse = loss_func(p1)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Birth-Death/Control_topology/after20231212/params_trained_bp.csv",df)
+        CSV.write("Control_topology/after20231212/params_trained_bpabcd.csv",df)
         mse_min[1] = mse
     end
     
@@ -108,12 +108,11 @@ mse_list = []
     print(mse,"\n")
 end
 
-
 mse_min = [0.00016295079211814818]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231212/params_trained_bp.csv",DataFrame)
+df = CSV.read("Control_topology/after20231212/params_trained_bpabcd.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
