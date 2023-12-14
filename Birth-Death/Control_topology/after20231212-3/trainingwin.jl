@@ -129,7 +129,11 @@ function plot_all()
     p8 = plot_distribution(8)
     p9 = plot_distribution(9)
     p10 = plot_distribution(10)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,size=(1500,900),layout=(3,5))
 end
 plot_all()
 
