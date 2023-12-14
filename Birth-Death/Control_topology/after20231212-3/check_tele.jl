@@ -25,7 +25,7 @@ p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231212/params_trained_bp.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231212-3/params_trained_bp.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -77,7 +77,7 @@ solution_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
 
-for i = 1:4
+for i = 1:12
     print(i,"\n")
     solution = solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
     push!(solution_list,solution)
@@ -111,6 +111,26 @@ function plot_all()
     # plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
     # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
 end
+
+function plot_all()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    p7 = plot_distribution(7)
+    p8 = plot_distribution(8)
+    p9 = plot_distribution(9)
+    p10 = plot_distribution(10)
+    p11 = plot_distribution(11)
+    p12 = plot_distribution(12)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,
+         size=(1200,900),layout=(3,4))
+    # plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
+    # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
+end
+
 plot_all()
 
 sigma_on,sigma_off,rho_on = [0.01,1,10]
@@ -124,9 +144,13 @@ plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel 
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="SSA",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
 
-a_list = [0.0225,0.025,0.035] # sigma_on
-b_list = [2.5,3.5] # rho_on/sigma_off
-times_list = [1,4,20,100] # sigma_off/sigma_on
+a_list = [0.025,0.05] # sigma_on
+b_list = [3,6] # rho_on/sigma_off
+times_list = [1,1.6,2,10] # sigma_off/sigma_on
+
+a_list = [0.2,0.4] # sigma_on
+b_list = [1,3] # rho_on/sigma_off
+times_list = [1,3,5] # sigma_off/sigma_on
 
 p_list = [[a_list[i],round(a_list[i]*times_list[j],digits=6),round(a_list[i]*times_list[j]*b_list[k],digits=6)]
             for i=1:length(a_list) for k=1:length(b_list) for j=1:length(times_list)]

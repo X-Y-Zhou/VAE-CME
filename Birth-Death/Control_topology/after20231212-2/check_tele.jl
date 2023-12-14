@@ -77,7 +77,7 @@ solution_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
 
-for i = 1:4
+for i = 1:12
     print(i,"\n")
     solution = solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
     push!(solution_list,solution)
@@ -102,12 +102,8 @@ function plot_all()
     p10 = plot_distribution(10)
     p11 = plot_distribution(11)
     p12 = plot_distribution(12)
-    p13 = plot_distribution(13)
-    p14 = plot_distribution(14)
-    p15 = plot_distribution(15)
-    p16 = plot_distribution(16)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
-         p16,size=(1200,1200),layout=(4,4))
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,
+         size=(1200,900),layout=(3,4))
     # plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
     # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
 end
@@ -124,9 +120,13 @@ plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel 
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="exact",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
 
-a_list = [0.0225,0.025,0.035] # sigma_on
-b_list = [2.5,3.5] # rho_on/sigma_off
-times_list = [1,4,20,100] # sigma_off/sigma_on
+a_list = [0.1,0.3] # sigma_on
+b_list = [1,3] # rho_on/sigma_off
+times_list = [1,3,5] # sigma_off/sigma_on
+
+a_list = [0.005,0.01] # sigma_on
+b_list = [10,30] # rho_on/sigma_off
+times_list = [1,1.6,2,10] # sigma_off/sigma_on
 
 p_list = [[a_list[i],round(a_list[i]*times_list[j],digits=6),round(a_list[i]*times_list[j]*b_list[k],digits=6)]
             for i=1:length(a_list) for k=1:length(b_list) for j=1:length(times_list)]

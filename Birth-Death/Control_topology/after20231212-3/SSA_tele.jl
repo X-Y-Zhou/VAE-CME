@@ -6,7 +6,7 @@ rn = @reaction_network begin
     kon, Goff --> Gon
     koff, Gon --> Goff
     ρ, Gon --> Gon + N
-end
+end kon koff ρ
 jumpsys = convert(JumpSystem, rn; combinatoric_ratelaws=false)
 
 u0 = [0, 1, 0]
@@ -31,7 +31,7 @@ train_sol_end_list = []
 p_list = [[0.07,0.680,2.],[0.3,5.3,11.3],[0.0282,0.609,2.11]]
 p_list
 
-p_list = [[0.5,0.8,1]]
+p_list = [[0.006,0.01,0.1]]
 # p_list = [[0.5,1,0.25]]
 train_sol_end_list = []
 

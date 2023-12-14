@@ -77,7 +77,7 @@ solution_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
 
-for i = 1:4
+for i = 1:16
     print(i,"\n")
     solution = solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
     push!(solution_list,solution)
@@ -124,9 +124,13 @@ plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel 
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="exact",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
 
-a_list = [0.0225,0.025,0.035] # sigma_on
-b_list = [2.5,3.5] # rho_on/sigma_off
+a_list = [0.005,0.01,0.025,0.1,0.5] # sigma_on
+b_list = [0.5,1,5,10,30] # rho_on/sigma_off
 times_list = [1,4,20,100] # sigma_off/sigma_on
+
+a_list = [0.25,0.5] # sigma_on
+b_list = [0.3,0.6] # rho_on/sigma_off
+times_list = [1,1.6,2,10] # sigma_off/sigma_on
 
 p_list = [[a_list[i],round(a_list[i]*times_list[j],digits=6),round(a_list[i]*times_list[j]*b_list[k],digits=6)]
             for i=1:length(a_list) for k=1:length(b_list) for j=1:length(times_list)]
