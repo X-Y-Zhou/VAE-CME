@@ -77,11 +77,12 @@ solution_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
 
-for i = 1:12
+for i = 1:16
     print(i,"\n")
     solution = solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
     push!(solution_list,solution)
 end
+solution_list
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
@@ -111,6 +112,7 @@ function plot_all()
     # plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
     # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
 end
+plot_all()
 
 function plot_all()
     p1 = plot_distribution(1)
@@ -144,8 +146,8 @@ plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel 
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="SSA",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
 
-a_list = [0.025,0.05] # sigma_on
-b_list = [3,6] # rho_on/sigma_off
+a_list = [0.005,0.0075] # sigma_on
+b_list = [5,10] # rho_on/sigma_off
 times_list = [1,1.6,2,10] # sigma_off/sigma_on
 
 a_list = [0.2,0.4] # sigma_on
