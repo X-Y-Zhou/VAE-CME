@@ -105,8 +105,9 @@ mse = Flux.mse(solution,train_sol)
 plot(0:N-1,solution,linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,train_sol,linewidth = 3,label="exact",line=:dash)
 
-plot(NN1_list[end])
-plot(NN2_list[end])
+NN1_list
+plot(NN1_list[1:10])
+plot(NN2_list[1:10])
 NN1_list[end]
 
 function plot_distribution(set)
