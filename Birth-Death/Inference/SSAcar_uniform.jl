@@ -1,41 +1,30 @@
 using Distributions,StatsBase,DelimitedFiles,DataFrames,CSV,Plots
 include("../../utils.jl")
 
-E(μ,σ) = exp(μ+σ^2/2)
-D(μ,σ) = (exp(σ^2)-1)*exp(2*μ+σ^2)
+a = 0;b = 240
+a = 30;b = 210
+a = 60;b = 180
+a = 90;b = 150
+a = 120;b = 120
 
-μ_max = 4
-exp(4)+70
+ab_list = [[0,240],[30,210],[60,180],[90,150]]
+ab_list = [[0,400],[50,350],[100,300],[150,250]]
 
-μ = μ_max;σ = sqrt(0) # var = 0
+train_sol_car_end = []
+train_sol_car_end
 
-# mean = 70+e^4
-# LogNormal(3,sqrt(2))+70 [0]  # var = 19045
-# LogNormal(2,sqrt(4))+70      # var = 159773
-# LogNormal(1,sqrt(6))+70      # var = 1199623
-# LogNormal(0,sqrt(8))+70 [1]  # var = 8883129
+set = 1
+λ = 0.093037
 
-# reaction rate
-set = 1; λ = 0.1
-set = 2; λ = 0.2
-set = 3; λ = 0.05
-set = 4; λ = 0.075
-set = 5; λ = 0.025
-
-
-μ_σ_list = [[3,sqrt(2)],[2,sqrt(4)],[1,sqrt(6)],[0,sqrt(8)]]
-μ_σ_list = [[3,sqrt(2)],[0,sqrt(8)]]
-μ_σ_list = [[2,sqrt(4)],[1,sqrt(6)]]
-
-for temp in μ_σ_list
+for temp in ab_list
 # temp = [0,sqrt(8)]
 print(temp,"\n")
-μ = temp[1]
-σ = temp[2]
+a = temp[1]
+b = temp[2]
 L = 200
 struct MyDist <: ContinuousUnivariateDistribution end
 function Distributions.rand(d::MyDist)
-    temp = rand(LogNormal(μ,σ))+70
+    temp = rand(Uniform(a,b))
     # temp = exp(4)+70
     velo = L/temp
     return velo
@@ -119,13 +108,13 @@ end
 n_cars_list = []
 # n_people_list=[]
 
-saveat = 0:100:200
+saveat = 0:600:600
 length(saveat)
 tmax = maximum(saveat)
 n_cars_timepoints = [[] for i=1:length(saveat)]
 # n_people_timepoints = [[] for i=1:length(saveat)]
 
-trajectories = 100000
+trajectories = 10000
 @time for i =1:trajectories
     if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
@@ -156,11 +145,35 @@ for i =1:size(solnet_car,1)
         train_sol_car[1:N+1,i] = probability[1:N+1]
     end
 end
+push!(train_sol_car_end,train_sol_car[:,end])
+end
+train_sol_car_end
+
+plot(train_sol_car_end)
+
+plot(train_sol_car_end[1],lw=2,label="λ=0.075,τ~Uniform(0,400)")
+plot!(train_sol_car_end[2],lw=2,label="λ=0.075,τ~Uniform(50,350)")
+plot!(train_sol_car_end[3],lw=2,label="λ=0.075,τ~Uniform(100,300)")
+
+plot!(train_sol_car_end[5],lw=2,label="λ=0.09,τ~Uniform(0,400)")
+plot!(train_sol_car_end[6],lw=2,label="λ=0.09,τ~Uniform(50,350)")
+plot!(train_sol_car_end[7],lw=2,label="λ=0.09,τ~Uniform(100,300)",size=(1600,1200))
+
+plot!(train_sol_car_end[5:7])
+plot!(0:N-1,birth_death(N,λ,200))
+
+18.6074/200
+i = 3
+meanvalue = P2mean(train_sol_car_end[i])
+
+P_temp = [pdf(Poisson(meanvalue),i-1) for i=1:N+1]
+plot(0:N,train_sol_car_end[i])
+plot!(0:N,P_temp)
 
 title = [join([μ,"-","sqrt(",round(σ^2),")"])]
 df = DataFrame(reshape(train_sol_car[:,end],N+1,1),title)
 CSV.write("Birth-Death/Inference/data/set$set/$(μ)-sqrt($(round(σ^2))).csv",df)
-end
+# end
 
 set = 1; λ = 0.1
 set = 2; λ = 0.2

@@ -37,7 +37,8 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     NN2 = re(p)(x[N+1:2*N])
     # l,m,n,o = re2(p2)(z)
     # NN2 = f_NN.(1:N-1,l,m,n,o)
-
+    push!(NN1_list,NN1)
+    push!(NN2_list,NN2)
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
                 rho_off*x[N-1] + (-sigma_on-rho_off+N*gamma-NN1[N-1])*x[N] + sigma_off*x[2*N],
@@ -115,15 +116,20 @@ plot_all()
 
 sigma_on,sigma_off,rho_on = [0.01,1,10]
 
-sigma_on,sigma_off,rho_on = [0.005,0.008,0.1]
+sigma_on,sigma_off,rho_on = [0.003,0.004,0.3]
+sigma_on,sigma_off,rho_on = [0.5,5,1.5]
 
+NN1_list = []
+NN2_list = []
 sigma_on,sigma_off,rho_on = p_list[1]
 @time solution = solve_tele(sigma_on,sigma_off,rho_on)
 
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="exact",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
-
+plot(NN1_list[end])
+plot!(NN2_list[end])
+NN1_list[end]
 a_list = [0.005,0.01,0.025,0.1,0.5] # sigma_on
 b_list = [0.5,1,5,10,30] # rho_on/sigma_off
 times_list = [1,4,20,100] # sigma_off/sigma_on

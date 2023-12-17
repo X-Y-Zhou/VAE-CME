@@ -10,6 +10,8 @@ sigma_off = 0.004
 rho_on = 0.3
 rho_off = 0.0
 gamma= 0.0
+τ = 120
+N = 100
 
 # model initialization
 model = Chain(Dense(N, 10, tanh), Dense(10, N-1), x -> 0.03.*x .+ [i/τ for i in 1:N-1], x -> relu.(x));
@@ -18,9 +20,13 @@ ps = Flux.params(p1);
 p1
 
 #CME
+NN1_list = []
+NN2_list = []
 function f1!(x,p,sigma_on,sigma_off,rho_on)
     NN1 = re(p)(x[1:N])
     NN2 = re(p)(x[N+1:2*N])
+    push!(NN1_list,NN1)
+    push!(NN2_list,NN2)
     # l,m,n,o = re(p)(z)
     # NN = f_NN.(1:N-1,l,m,n,o)
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
@@ -98,6 +104,10 @@ mse = Flux.mse(solution,train_sol)
 
 plot(0:N-1,solution,linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,train_sol,linewidth = 3,label="exact",line=:dash)
+
+plot(NN1_list[end])
+plot(NN2_list[end])
+NN1_list[end]
 
 function plot_distribution(set)
     plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
