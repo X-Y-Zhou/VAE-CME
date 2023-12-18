@@ -58,6 +58,10 @@ function f1!(x,p1,p2,a,b,ϵ)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
     NN = re2(p2)(z)
+    # push!(NN_list,NN)
+    # push!(x_list,x)
+    # NN = NN_exact
+
     # l,m,n,o = re2(p2)(z)
     # NN = f_NN.(1:N-1,l,m,n,o)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
@@ -156,8 +160,24 @@ ps = Flux.params(params1,params2);
 solution = [sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i]) for i=1:l_ablist]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
 
+NN_list = []
+x_list = []
+i = 2
+ab_list[i]
+NN_exact = NN_bursty(N,ab_list[i][1],ab_list[i][2],τ)
+solution = sol(params1,params2,ab_list[i][1],ab_list[i][2],ϵ,P_0_list[i])
+
+plot(NN_exact)
+plot!(NN_list[end])
+
+plot_distribution(i)
+plot(x_list[1:30])
+
+plot!([0,120],[0,1])
+
+
 function plot_distribution(set)
-    plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot(0:N-1,solution,linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,train_sol[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
 end
 
@@ -250,3 +270,6 @@ function plot_all()
 end
 plot_all()
 savefig("Control_rate_Inference/control_kinetic/predicting.pdf")
+
+
+

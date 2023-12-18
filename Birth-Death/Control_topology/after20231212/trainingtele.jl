@@ -20,13 +20,12 @@ ps = Flux.params(p1);
 p1
 
 #CME
-NN1_list = []
-NN2_list = []
 function f1!(x,p,sigma_on,sigma_off,rho_on)
     NN1 = re(p)(x[1:N])
     NN2 = re(p)(x[N+1:2*N])
     push!(NN1_list,NN1)
     push!(NN2_list,NN2)
+    push!(x_list,x)
     # l,m,n,o = re(p)(z)
     # NN = f_NN.(1:N-1,l,m,n,o)
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
@@ -98,12 +97,32 @@ df = CSV.read("Birth-Death/Control_topology/after20231212/params_trained_tele.cs
 p1 = df.p1
 ps = Flux.params(p1);
 
+NN1_list = []
+NN2_list = []
+x_list = []
+
 solution = sol(p1,sigma_on,sigma_off,rho_on,P_0_split)
+sum(solution[1:N])
+sum(solution[N+1:end])
+3/7
+4/7
+
+plot(0:2N-1,solution)
+plot!(0:2N-1,x_list[end])
 solution = solution[1:N]+solution[N+1:2*N]
 mse = Flux.mse(solution,train_sol)
 
 plot(0:N-1,solution,linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
 plot!(0:N-1,train_sol,linewidth = 3,label="exact",line=:dash)
+
+x_list[end][1:N]
+x_list[end][N+1:2*N]
+plot(x_list[end])
+plot(x_list[end][1:N])
+plot(x_list[end][N+1:2*N])
+plot(x_list[end][1:N]+x_list[end][N+1:2*N])
+x_temp = x_list[end][1:N]+x_list[end][N+1:2*N]
+plot([x_temp*sigma_on/(sigma_on+sigma_off);x_temp*sigma_off/(sigma_on+sigma_off)])
 
 NN1_list
 plot(NN1_list[1:10])
@@ -199,3 +218,24 @@ function plot_all()
 end
 plot_all()
 savefig("Control_rate_Inference/control_kinetic/predicting.pdf")
+
+3.0/((1.0+2.0)*(1.0+2.0))
+
+sigma_on = 0.0282
+sigma_off = 1
+rho_on = 3.46
+w1(u) = (-(sigma_on+sigma_off+rho_on*(1-u))-sqrt((sigma_on+sigma_off+rho_on*(1-u))^2-4*sigma_on*rho_on*(1-u)))/2
+w2(u) = (-(sigma_on+sigma_off+rho_on*(1-u))+sqrt((sigma_on+sigma_off+rho_on*(1-u))^2-4*sigma_on*rho_on*(1-u)))/2
+G(u) = (w2(u)*exp(w1(u))-w1(u)*exp(w2(u)))/(w2(u)-w1(u))+rho_on*sigma_on*(u-1)*(exp(w2(u))-exp(w1(u)))/((sigma_off+sigma_on)*(w2(u)-w1(u)))
+
+taylorexpand = taylor_expand(x->G(x),0,order=N)
+P = zeros(N)
+for j in 1:N
+    P[j] = taylorexpand[j-1]
+end
+P
+plot(P)
+
+
+
+
