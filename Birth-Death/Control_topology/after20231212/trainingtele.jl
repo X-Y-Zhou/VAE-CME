@@ -236,6 +236,31 @@ end
 P
 plot(P)
 
+using Combinatorics
+factorial(5,3)
+factorial(5)
+
+k1 = sigma_off-sigma_on + 2*im*sqrt(sigma_off*sigma_on)
+k2 = sigma_off-sigma_on - 2*im*sqrt(sigma_off*sigma_on)
+
+l = 3
+i = 21
+s = 1
+
+# M(s,i) = 
+
+
+l = 3
+i = 1
+s = 1
+[sum([round(binomial(l,w)*binomial(l,i-w)*(-1)^i*factorial(big(i))/
+factorial(big(2*l+s))*((rho_on/2+k1/2)^(l-w))*((rho_on/2+k2/2)^(l-i+w)),digits=2) for w=maximum([0,i-l]):minimum([l,i])]) 
+for l=Int(ceil(i/2)):20]
+
+sum([round(binomial(l,w)*binomial(l,i-w)*(-1)^i*factorial(big(i))/factorial(big(2*l+s))*
+((rho_on/2+k1/2)^(l-w))*((rho_on/2+k2/2)^(l-i+w)),digits=10) for w=maximum([0,i-l]):minimum([l,i])])
+
+real( (1 + 2im) + 0.5)
 
 
 
