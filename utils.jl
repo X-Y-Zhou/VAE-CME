@@ -66,6 +66,41 @@ function f_NN(x,l,m,n,o)
     return l*x^m/(n+x^o)
 end;
 
+# exact solution of birth-death model
+function birth_death(N,ρ,τ)
+    distribution = Poisson(ρ*τ)
+    P = zeros(N)
+    for i=1:N
+        P[i] = pdf(distribution,i-1)
+    end
+    return P
+end;
+
+# exact solution of bursty model
+function bursty(N,a,b,τ)
+    f(u) = exp(a*b*τ*u/(1-b*u));
+    taylorexpand = taylor_expand(x->f(x),-1,order=N);
+    P = zeros(N)
+    for j in 1:N
+        P[j] = taylorexpand[j-1]
+    end
+    return P
+end;
+
+function NN_bursty(N,a,b,τ)
+    f(u) = a*b*u/(1-b*(u-1))
+    g(u) = exp(a*b*τ*(u-1)/(1-b*(u-1)))
+    fg(u) = f(u)*g(u)
+
+    taylorexpand_fg = taylor_expand(x->fg(x),0,order=N)
+    taylorexpand_g = taylor_expand(x->g(x),0,order=N)
+    P = zeros(N)
+    for j in 1:N
+        P[j] = taylorexpand_fg[j]/taylorexpand_g[j]
+    end
+    return P
+end
+
 # normalization
 function set_one(vec)
     vec = abs.(vec)

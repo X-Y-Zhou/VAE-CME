@@ -19,6 +19,8 @@ a = 0.0282;
 b = 3.46;
 τ = 120;
 N = 100
+ab_list = [[0.03,1],[0.03,3],[0.025,2],[0.025,4],[0.02,3],[0.02,6],[0.01,4],[0.01,7],
+            [0.0075,5],[0.0075,10],[0.005,5],[0.005,10],[0.0025,5],[0.0025,10],[0.0025,15]]
 
 ab_list = [[0.01,3],[0.01,5],[0.025,2],[0.025,4],[0.05,3],[0.05,4],
                         [0.1,2],[0.1,3],[0.5,0.25],[0.5,0.5]]
@@ -26,7 +28,7 @@ l_ablist = length(ab_list)
 # a,b = ab_list[1]
 # train_sol = bursty(N,a,b,τ)
 
-train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:10]
+train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 # plot(train_sol_end_list[end],lw=3)
 # plot(train_sol[9:10],lw=3,line=:dash,label="bursty")
 plot(train_sol)
@@ -41,6 +43,7 @@ p1
 #CME
 function f1!(x,p,a,b)
     NN = re(p)(x)
+    push!(NN_list,NN)
     # l,m,n,o = re(p)(z)
     # NN = f_NN.(1:N-1,l,m,n,o)
     return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
@@ -100,12 +103,19 @@ mse_min = [7.43750855448281e-6]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231212/params_trained_bp.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231212-2/params_trained_bp.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
 solution = [sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
 mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
+
+i = 4
+NN_list = []
+ab_list[i]
+solution = sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i])
+plot(NN_list[end])
+plot!([0,120],[0,1])
 
 function plot_distribution(set)
     plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
@@ -186,3 +196,26 @@ function plot_all()
 end
 plot_all()
 savefig("Control_rate_Inference/control_kinetic/predicting.pdf")
+
+
+function f1!(x,p)
+    NN = re(p)(x)
+    push!(NN_list,NN)
+    return vcat(-ρ*x[1] + NN[1]*x[2],
+                [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
+                sum(x)-1)
+end
+
+ρ = 0.2
+P_0_distribution = Poisson(ρ*τ)
+P_0 = [pdf(Poisson(ρ*τ),j) for j=0:N-1]
+
+sol(p1,P0) = nlsolve(x->f1!(x,p1),P0).zero
+
+NN_list = []
+solution = sol(p1,P_0)
+
+plot(NN_list[end])
+
+plot(0:N-1,solution)
+plot!(0:N-1,birth_death(N,ρ,τ))
