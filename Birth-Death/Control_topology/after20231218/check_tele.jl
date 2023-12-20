@@ -104,7 +104,7 @@ plot_all()
 
 sigma_on,sigma_off,rho_on = [0.01,1,10]
 
-sigma_on,sigma_off,rho_on = [0.003,0.006,0.3]
+sigma_on,sigma_off,rho_on = [0.005,0.0075,0.3]
 
 sigma_on,sigma_off,rho_on = p_list[1]
 @time solution = solve_tele(sigma_on,sigma_off,rho_on)

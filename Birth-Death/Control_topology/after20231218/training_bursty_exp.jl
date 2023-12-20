@@ -65,8 +65,9 @@ end
 @time grads = gradient(()->loss_func(p1) , ps)
 
 lr = 0.01;  #lr需要操作一下的
+lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
-# for lr in lr_list
+for lr in lr_list
 using CSV,DataFrames
 df = CSV.read("Birth-Death/Control_topology/after20231218/params_trained_exp.csv",DataFrame)
 p1 = df.p1
@@ -75,7 +76,7 @@ ps = Flux.params(p1);
 # # training
 
 opt= ADAM(lr);
-epochs = 10
+epochs = 50
 print("learning rate = ",lr)
 mse_list = []
 
@@ -94,7 +95,7 @@ mse_list = []
     push!(mse_list,mse)
     print(mse,"\n")
 end
-
+end
 
 mse_min = [0.0013060164889193901]
 mse_min 
