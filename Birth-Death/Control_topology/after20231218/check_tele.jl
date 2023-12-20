@@ -25,14 +25,12 @@ p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231218/params_trained_Poisson.csv",DataFrame)
-p1 = df.p1
-ps = Flux.params(p1);
+df = CSV.read("Birth-Death/Control_topology/after20231218/params_trained_exp.csv",DataFrame)
+p1 = df.p1;
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231218/params_trained_exp.csv",DataFrame)
-p2 = df.p1
-ps = Flux.params(p1);
+df = CSV.read("Birth-Death/Control_topology/after20231218/params_trained_Poisson.csv",DataFrame)
+p2 = df.p1;
 
 function f1!(x,p1,p2,sigma_on,sigma_off,rho_on)
     NN1 = re(p1)(x[1:N])
@@ -42,14 +40,19 @@ function f1!(x,p1,p2,sigma_on,sigma_off,rho_on)
     NN2 = re(p2)(x[N+1:2*N])
     # l,m,n,o = re2(p2)(z)
     # NN2 = f_NN.(1:N-1,l,m,n,o)
-
+    # push!(NN1_list,NN1)
+    # push!(NN2_list,NN2)
+    # push!(x_list,x)
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
                 rho_off*x[N-1] + (-sigma_on-rho_off+N*gamma-NN1[N-1])*x[N] + sigma_off*x[2*N],
+                # sum(x[1:N])-sigma_off/(sigma_on+sigma_off),
                 
                 sigma_on*x[1] + (-sigma_off-rho_on)*x[N+1] + (-gamma+NN2[1])*x[N+2],
                 [sigma_on*x[i-N] + rho_on*x[i-1] + (-sigma_off-rho_on+(i-N-1)*gamma -NN2[i-N-1])*x[i] + (-(i-N)*gamma+NN2[i-N])*x[i+1] for i in (N+2):(2*N-1)],
-                sum(x)-1)
+                sum(x)-1
+                # sum(x[N+1:2*N])-sigma_on/(sigma_on+sigma_off)
+                )
 end
 
 # P0,P1
@@ -60,7 +63,7 @@ function solve_tele(sigma_on,sigma_off,rho_on)
 
     solving(p1,p2,P_0) = nlsolve(x->f1!(x,p1,p2,sigma_on,sigma_off,rho_on),P_0).zero
     solution = solving(p1,p2,P_0_split)
-    solution = solution[1:N]+solution[N+1:2*N]
+    # solution = solution[1:N]+solution[N+1:2*N]
     return solution
 end
 
@@ -68,6 +71,7 @@ end
 solution_list = []
 solution_list
 i = 1
+p_list
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
 
 for i = 1:12
@@ -106,12 +110,23 @@ sigma_on,sigma_off,rho_on = [0.01,1,10]
 
 sigma_on,sigma_off,rho_on = [0.005,0.0075,0.3]
 
+NN1_list = []
+NN2_list = []
+x_list = []
 sigma_on,sigma_off,rho_on = p_list[1]
 @time solution = solve_tele(sigma_on,sigma_off,rho_on)
+plot(solution[1:N])
+plot(solution[N+1:2*N])
+
+solution = solution[1:N]+solution[N+1:2*N]
 
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="exact",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
+plot(NN1_list[end])
+plot(NN2_list[end])
+plot(x_list[end][1:N],label="P0")
+plot(x_list[end][N+1:2*N],label="P1")
 
 a_list = [0.1,0.3] # sigma_on
 b_list = [1,3] # rho_on/sigma_off

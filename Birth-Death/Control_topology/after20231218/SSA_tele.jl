@@ -8,7 +8,7 @@ rn = @reaction_network begin
     kon, Goff --> Gon
     koff, Gon --> Goff
     ρ, Gon --> Gon + N
-end kon koff ρ
+end
 jumpsys = convert(JumpSystem, rn; combinatoric_ratelaws=false)
 
 u0 = [0, 1, 0]
@@ -16,12 +16,18 @@ de_chan0 = [[]]
 tf = 200.
 tspan = (0, tf)
 
-p_list = [[0.005,0.0075,0.3]]
+
 p_list = [[0.25,1,1.5]]
+p_list = [[0.003,0.005,0.3],[0.003,0.008,0.3],[0.006,0.008,0.3],[0.006,0.012,0.3],
+          [0.003,0.005,1],[0.003,0.008,1],[0.006,0.008,1],[0.006,0.012,1],
+          [0.01,0.015,0.3],[0.01,0.05,0.3],[0.03,0.06,0.3],[0.03,0.1,0.3],
+          ]
+
 # p_list = [[0.5,1,0.25]]
 train_sol_end_list = []
 
 for p in p_list
+# p = p_list[1]
 print(p,"\n")
 # p = [0.08, 1., 2.3]
 dprob = DiscreteProblem(u0, tspan, p)
@@ -39,13 +45,13 @@ djprob = DelayJumpProblem(
     jumpsys, dprob, DelayRejection(), delayjumpset, de_chan0; save_positions=(false, false)
 )
 
-Sample_size = 10^5
+Sample_size = 5e4
 ensprob = EnsembleProblem(djprob)
 @time ens = solve(ensprob, SSAStepper(), EnsembleThreads(); trajectories=Sample_size,saveat=1.)
 last_slice = componentwise_vectors_timepoint(ens, tf)
 
-Gon = componentwise_vectors_timepoint(ens, tf)[1]
-Goff = componentwise_vectors_timepoint(ens, tf)[2]
+Goff = componentwise_vectors_timepoint(ens, tf)[1]
+Gon = componentwise_vectors_timepoint(ens, tf)[2]
 NRNA = componentwise_vectors_timepoint(ens, tf)[3]
 
 N = 100
@@ -80,11 +86,15 @@ N = 100
 
 train_sol_end = zeros(N)
 probability = convert_histo(vec(NRNA))[2]
+# probability = (counts(Int.(NRNA))./Sample_size)
 if length(probability)<N
     train_sol_end[1:length(probability)] = probability
 else
     train_sol_end[1:N] = probability[1:N]
 end
+# plot(train_sol_end)
+# plot(P0,label="P0")
+# plot(P1,label="P1")
 push!(train_sol_end_list,train_sol_end)
 end
 

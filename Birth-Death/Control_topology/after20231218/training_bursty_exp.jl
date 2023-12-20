@@ -29,7 +29,7 @@ l_ablist = length(ab_list)
 train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 # plot(train_sol_end_list[end],lw=3)
 # plot(train_sol[9:10],lw=3,line=:dash,label="bursty")
-plot(train_sol)
+plot(bursty(N,0.02,3,τ))
 
 # a,b = [0.1,0.1]
 # plot(bursty(N,a,b,τ),lw=3)
