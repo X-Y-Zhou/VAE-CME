@@ -45,7 +45,7 @@ djprob = DelayJumpProblem(
     jumpsys, dprob, DelayRejection(), delayjumpset, de_chan0; save_positions=(false, false)
 )
 
-Sample_size = Int(1e5)
+Sample_size = Int(1e6)
 ensprob = EnsembleProblem(djprob)
 @time ens = solve(ensprob, SSAStepper(), EnsembleThreads(); trajectories=Sample_size,saveat=1.)
 last_slice = componentwise_vectors_timepoint(ens, tf)
