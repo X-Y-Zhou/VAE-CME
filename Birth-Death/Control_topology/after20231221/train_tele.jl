@@ -16,14 +16,14 @@ N = 100
 # model initialization
 model1 = Chain(Dense(N, 10, tanh), Dense(10, N-1), x -> 0.03.*x .+ [i/τ for i in 1:N-1], x -> relu.(x));
 model2 = Chain(Dense(N, 10, tanh), Dense(10, N-1), x -> 0.03.*x .+ [i/τ for i in 1:N-1], x -> relu.(x));
-params1, re = Flux.destructure(model1);
-params2, re = Flux.destructure(model2);
+params1, re1 = Flux.destructure(model1);
+params2, re2 = Flux.destructure(model2);
 ps = Flux.params(params1,params2);
 
 #CME
 function f1!(x,p1,p2,sigma_on,sigma_off,rho_on)
-    NN1 = re(p1)(x[1:N])
-    NN2 = re(p2)(x[N+1:2*N])
+    NN1 = re1(p1)(x[1:N])
+    NN2 = re2(p2)(x[N+1:2*N])
     # push!(NN1_list,NN1)
     # push!(NN2_list,NN2)
     # push!(x_list,x)
@@ -31,13 +31,13 @@ function f1!(x,p1,p2,sigma_on,sigma_off,rho_on)
     # NN = f_NN.(1:N-1,l,m,n,o)
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
-                # rho_off*x[N-1] + (-sigma_on-rho_off+N*gamma-NN1[N-1])*x[N] + sigma_off*x[2*N],
-                sum(x[1:N])-sigma_off/(sigma_on+sigma_off),
+                rho_off*x[N-1] + (-sigma_on-rho_off+N*gamma-NN1[N-1])*x[N] + sigma_off*x[2*N],
+                # sum(x[1:N])-sigma_off/(sigma_on+sigma_off),
 
                 sigma_on*x[1] + (-sigma_off-rho_on)*x[N+1] + (-gamma+NN2[1])*x[N+2],
                 [sigma_on*x[i-N] + rho_on*x[i-1] + (-sigma_off-rho_on+(i-N-1)*gamma -NN2[i-N-1])*x[i] + (-(i-N)*gamma+NN2[i-N])*x[i+1] for i in (N+2):(2*N-1)],
-                # sum(x)-1,
-                sum(x[N+1:2*N])-sigma_on/(sigma_on+sigma_off)
+                sum(x)-1,
+                # sum(x[N+1:2*N])-sigma_on/(sigma_on+sigma_off)
                 )
 end
 
@@ -73,7 +73,7 @@ ps = Flux.params(params1,params2);
 # # training
 
 opt= ADAM(lr);
-epochs = 30
+epochs = 50
 print("learning rate = ",lr)
 mse_list = []
 
@@ -94,7 +94,7 @@ mse_list = []
 end
 
 
-mse_min = [4.391406366183506e-5]
+mse_min = [4.401372681219162e-5]
 mse_min 
 
 using CSV,DataFrames
