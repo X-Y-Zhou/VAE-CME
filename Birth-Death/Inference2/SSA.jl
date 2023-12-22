@@ -14,7 +14,7 @@ u0 = [0.]
 tf = 200
 saveat = 1
 de_chan0 = [[]]
-ρ = 2
+ρ = 2.0
 p = [ρ]
 tspan = (0.0, tf)
 # aggregatoralgo = DelayRejection()
@@ -25,7 +25,7 @@ dprob = DiscreteProblem(u0, tspan, p)
 
 μ_σ_list = [[4,sqrt(0)],[3,sqrt(2)],[2,sqrt(4)],[1,sqrt(6)],[0,sqrt(8)]]
 train_sol_end_list = []
-exp(4)
+
 for temp in μ_σ_list
 print(temp,"\n")
 μ = temp[1]
@@ -44,7 +44,7 @@ djprob = DelayJumpProblem(jumpsys, dprob, aggregatoralgo, delaysets, de_chan0,
 # seed = 3
 # sol = @time solve(djprob, SSAStepper(), seed = seed, saveat = 1)
 
-Sample_size = Int(1e4)
+Sample_size = Int(5e4)
 ens_prob = EnsembleProblem(djprob)
 @time ens = solve(ens_prob, SSAStepper(), EnsembleThreads(), trajectories = Sample_size,
             saveat = 1)
@@ -65,6 +65,15 @@ else
 end
 push!(train_sol_end_list,train_sol_end)
 end
+
+train_sol_end_matrix = zeros(N,length(μ_σ_list))
+for i = 1:length(μ_σ_list)
+    train_sol_end_matrix[:,i] = train_sol_end_list[i]
+end
+
+train_sol_end_matrix
+df = DataFrame(train_sol_end_matrix,:auto)
+CSV.write("Birth-Death/Inference2/data/ρ=$ρ.csv",df)
 
 
 plot(train_sol_end_list)
