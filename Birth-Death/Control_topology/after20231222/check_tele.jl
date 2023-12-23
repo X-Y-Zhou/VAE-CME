@@ -25,16 +25,18 @@ p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231212-3/params_trained_bp.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231222/params_trained_bp.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
 function f1!(x,p,sigma_on,sigma_off,rho_on)
-    NN1 = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
+    NN1 = re(p)(x[1:N])
+    # NN1 = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
     # l,m,n,o = re(p)(z)
     # NN1 = f_NN.(1:N-1,l,m,n,o)
 
-    NN2 = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
+    NN2 = re(p)(x[N+1:2*N])
+    # NN2 = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
     # l,m,n,o = re2(p2)(z)
     # NN2 = f_NN.(1:N-1,l,m,n,o)
 
@@ -51,7 +53,7 @@ end
 function solve_tele(sigma_on,sigma_off,rho_on)
     P_0_distribution = Poisson(rho_on*τ*sigma_on)
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
-    P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off)]
+    P_0_split = [P_0*sigma_off/(sigma_on+sigma_off);P_0*sigma_on/(sigma_on+sigma_off)]
 
     sol(p,P_0) = nlsolve(x->f1!(x,p,sigma_on,sigma_off,rho_on),P_0).zero
     solution = sol(p1,P_0_split)
@@ -82,6 +84,7 @@ for i = 1:12
     solution = solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
     push!(solution_list,solution)
 end
+solution_list
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
@@ -114,15 +117,16 @@ sigma_on,sigma_off,rho_on = [0.01,1,10]
 
 sigma_on,sigma_off,rho_on = [0.005,0.008,0.1]
 
-sigma_on,sigma_off,rho_on = p_list[1]
+sigma_on,sigma_off,rho_on = p_list[11]
 @time solution = solve_tele(sigma_on,sigma_off,rho_on)
+plot(solution)
 
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
 plot!(0:N-1,train_sol_end_list[end],linewidth = 3,label="SSA",line=:dash,title=join(["on_off_ρ=",p_list[1]]))
 
 
-a_list = [0.025,0.05] # sigma_on
-b_list = [3,6] # rho_on/sigma_off
+a_list = [0.005,0.0075] # sigma_on
+b_list = [5,10] # rho_on/sigma_off
 times_list = [1,1.6,2,10] # sigma_off/sigma_on
 
 a_list = [0.2,0.4] # sigma_on

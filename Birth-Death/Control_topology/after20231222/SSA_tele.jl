@@ -23,6 +23,7 @@ p_list = [[0.003,0.004,0.3],[0.003,0.008,0.3],[0.003,0.015,0.3],
 train_sol_end_list = []
 
 for p in p_list
+# p = p_list[1]
 print(p,"\n")
 # p = [0.08, 1., 2.3]
 dprob = DiscreteProblem(u0, tspan, p)

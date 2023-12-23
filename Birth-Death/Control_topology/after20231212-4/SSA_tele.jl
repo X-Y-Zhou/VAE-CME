@@ -14,28 +14,16 @@ de_chan0 = [[]]
 tf = 200.
 tspan = (0, tf)
 
-a_list = [0.04,0.06,0.08,0.1]
-b_list = [2,2.2,2.4,2.6,2.8,3]
-p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-
-a_list = [0.0082,0.0132,0.0182,0.0232,0.0282]
-b_list = [1.46,1.96,2.46,2.96,3.46]
-p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-
-a_list = [0.0082,0.015,0.02,0.024,0.0282]
-b_list = [1.46,1.96,2.46,2.96,3.46]
-p_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-
-train_sol_end_list = []
-
-p_list = [[0.07,0.680,2.],[0.3,5.3,11.3],[0.0282,0.609,2.11]]
-p_list
-
-p_list = [[0.006,0.01,0.1]]
+p_list = [[0.003,0.004,0.3],[0.003,0.008,0.2],[0.003,0.015,0.1],
+          [0.0045,0.006,0.3],[0.0045,0.008,0.2],[0.0045,0.01,0.1],
+          [0.006,0.0075,0.3],[0.006,0.01,0.2],[0.006,0.015,0.1],
+          [0.008,0.009,0.3],[0.008,0.015,0.2],[0.008,0.02,0.1],
+          ]
 # p_list = [[0.5,1,0.25]]
 train_sol_end_list = []
 
 for p in p_list
+# p = p_list[1]
 print(p,"\n")
 # p = [0.08, 1., 2.3]
 dprob = DiscreteProblem(u0, tspan, p)

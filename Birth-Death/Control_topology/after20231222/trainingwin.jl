@@ -20,21 +20,24 @@ b = 3.46;
 τ = 120;
 N = 100
 
-ab_list = [[0.5,0.5],[0.5,1],[0.25,0.5],[0.25,0.1],
-            [0.25,1],[0.25,1.5],[0.1,1],[0.1,3],
-            [0.05,2],[0.05,4],[0.01,3],[0.01,6],
-            [0.005,5],[0.005,10]]
+ab_list = [[0.01,2],[0.01,4],[0.01,8],[0.01,15],
+           [0.0075,5],[0.0075,7],[0.0075,10],[0.0075,15],
+           [0.005,5],[0.005,10],[0.005,12],[0.005,18],
+           [0.0025,5],[0.0025,10],[0.0025,15],[0.0025,20]]
 l_ablist = length(ab_list)
 # a,b = ab_list[1]
 # train_sol = bursty(N,a,b,τ)
 
 train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 # plot(train_sol_end_list[end],lw=3)
-# plot(train_sol[3:4],lw=3,line=:dash,label="bursty")
+# plot(train_sol[9:10],lw=3,line=:dash,label="bursty")
 plot(train_sol)
 
-# a,b = [0.1,3]
+# a,b = [0.0075,5]
 # plot(bursty(N,a,b,τ),lw=3)
+
+# P2mean(bursty(N,a,b,τ))
+# a*b*τ
 
 # model initialization
 model = Chain(Dense(N, 10, tanh), Dense(10, N-1), x -> 0.03.*x .+ [i/τ for i in 1:N-1], x -> relu.(x));
@@ -66,21 +69,21 @@ end
 @time loss_func(p1)
 @time grads = gradient(()->loss_func(p1) , ps)
 
-lr = 0.002;  #lr需要操作一下的
+lr = 0.01;  #lr需要操作一下的
 
 lr_list = [0.025,0.01,0.08,0.06,0.04]
-lr_list = [0.01,0.08,0.06,0.04]
+lr_list = [0.01,0.008,0.006,0.004]
 
-# for lr in lr_list
+for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231212-3/params_trained_bp.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231222/params_trained_bp.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
 # # training
 
 opt= ADAM(lr);
-epochs = 20
+epochs = 30
 print("learning rate = ",lr)
 mse_list = []
 
@@ -92,20 +95,20 @@ mse_list = []
     mse = loss_func(p1)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Birth-Death/Control_topology/after20231212-3/params_trained_bp.csv",df)
+        CSV.write("Birth-Death/Control_topology/after20231222/params_trained_bp.csv",df)
         mse_min[1] = mse
     end
     
     push!(mse_list,mse)
     print(mse,"\n")
 end
-# end
+end
 
-mse_min = [2.0703300721788896e-5]
+mse_min = [0.0009915103803918416]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231212-3/params_trained_bp.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231222/params_trained_bp.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -133,7 +136,9 @@ function plot_all()
     p12 = plot_distribution(12)
     p13 = plot_distribution(13)
     p14 = plot_distribution(14)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,size=(1500,900),layout=(3,5))
+    p15 = plot_distribution(15)
+    p16 = plot_distribution(16)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,size=(1200,1200),layout=(4,4))
 end
 plot_all()
 
