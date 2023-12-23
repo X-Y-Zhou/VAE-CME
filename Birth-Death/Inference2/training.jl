@@ -23,18 +23,22 @@ include("../../utils.jl")
 # LogNormal(0,sqrt(8)) [1]  # var = 8883129
 
 N = 200
+τ = exp(4)
 data1 = readdlm("Birth-Death/Inference2/data/ρ=0.5.csv",',')[2:end,:]
 data2 = readdlm("Birth-Death/Inference2/data/ρ=2.0.csv",',')[2:end,:]
 train_sol_1 = [data1[:,1] data2[:,1]] # var = 0 ρ = 0.5,2.0
 train_sol_2 = [data1[:,5] data2[:,5]] # var = 8883129 ρ = 0.5,2.0
 
-ρ_list = [0.5,2.0]
+train_sol_1 = data1[:,1] # var = 0 ρ = 0.5,2.0
+train_sol_2 = data1[:,5] # var = 8883129 ρ = 0.5,2.0
+
+ρ_list = [0.5]
 l_ρ_list = length(ρ_list)
 
 # model initialization
 latent_size = 2;
 encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
-decoder_1 = Chain(Dense(latent_size+1, 10),Dense(10 , N-1),x->0.3.* x.+[i/τ  for i in 1:N-1],x ->relu.(x));
+decoder_1 = Chain(Dense(latent_size+1, 10),Dense(10 , N-1),x->0.03.* x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 decoder_2  = Chain(decoder_1[1],decoder_1[2],decoder_1[3],decoder_1[4]);
 
 params1, re1 = Flux.destructure(encoder);
@@ -70,8 +74,7 @@ function f2!(x,p1,p2,ρ,ϵ)
 end
 
 #solve P
-P_0_distribution = Poisson(ρ*τ);
-P_0_list = [[pdf(Poisson(ρ*τ),j) for j=0:N-1] for i=1:l_ρ_list]
+P_0_list = [[pdf(Poisson(ρ_list[i]*τ),j) for j=0:N-1] for i=1:l_ρ_list]
 
 ϵ = zeros(latent_size)
 sol_1(p1,p2,ρ,ϵ,P0) = nlsolve(x->f1!(x,p1,p2,ρ,ϵ),P0).zero
@@ -114,7 +117,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 500000000
+λ = 500000
 
 #check λ if is appropriate
 ϵ = zeros(latent_size)
@@ -126,10 +129,9 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 
 # training
-lr = 0.001;  #lr需要操作一下的
+lr = 0.025;  #lr需要操作一下的
 opt= ADAM(lr);
-epochs = 40
-epochs_all = epochs_all + epochs
+epochs = 20
 print("learning rate = ",lr)
 mse_list = []
 
@@ -148,7 +150,7 @@ mse_list = []
     mse = mse_1+mse_2
 
     if mse<mse_min[1]
-        df = DataFrame( params1 = params1,params2 = vcat(params2,[0 for i=1:length(params1)-length(params2)]))
+        df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
         CSV.write("Birth-Death/Inference2/params_training.csv",df)
         mse_min[1] = mse
     end
@@ -160,11 +162,11 @@ end
 mse_list
 mse_min 
 
-# mse_min = [2.6634592951590713e-6]
+mse_min = [0.0007829622928540465]
 
 using CSV,DataFrames
 df = CSV.read("Birth-Death/Inference2/params_training.csv",DataFrame)
-params1 = df.params1
+params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 
@@ -175,57 +177,64 @@ mse_1 = sum(Flux.mse(solution_1[i],train_sol_1[:,i]) for i=1:l_ρ_list)/l_ρ_lis
 mse_2 = sum(Flux.mse(solution_2[i],train_sol_2[:,i]) for i=1:l_ρ_list)/l_ρ_list
 mse = mse_1+mse_2
 
+set = 1
+train_sol_1[:,set]
+
 function plot_distribution_1(set)
     plot(0:N-1,solution_1[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 4800"]),line=:dash)
+    plot!(0:N-1,train_sol_1[:,set],linewidth = 3,label="exact",title=join(["ρ=",ρ_list[set]," var = 0"]),line=:dash)
 end
 
 function plot_distribution_2(set)
     plot(0:N-1,solution_2[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["a,b=",ab_list[set]," var = 0"]),line=:dash)
+    plot!(0:N-1,train_sol_2[:,set],linewidth = 3,label="exact",title=join(["ρ=",ρ_list[set]," var = max"]),line=:dash)
 end
 
 function plot_all()
     p1 = plot_distribution_1(1)
-    p2 = plot_distribution_1(2)
+    # p2 = plot_distribution_1(2)
     p3 = plot_distribution_2(1)
-    p4 = plot_distribution_2(2)
-    plot(p1,p2,p3,p4,layouts=(2,2),size=(800,800))
+    # p4 = plot_distribution_2(2)
+    plot(p1,p3,layouts=(1,2),size=(800,400))
 end
 plot_all()
 
-function sol_Extenicity(τ,Attribute,a,b)
+function sol_Extenicity(τ,Attribute,ρ)
     decoder_Extenicity  = Chain(decoder_1[1],decoder_1[2],x->0.03.* x.+[i/τ for i in 1:N-1],decoder_1[4]);
     _,re2_Extenicity = Flux.destructure(decoder_Extenicity);
 
-    function f_Extenicity!(x,p1,p2,a,b,ϵ)
+    function f_Extenicity!(x,p1,p2,ρ,ϵ)
         h = re1(p1)(x)
         μ, logσ = split_encoder_result(h, latent_size)
         z = reparameterize.(μ, logσ, ϵ)
         z = vcat(z,Attribute)
         NN = re2_Extenicity(p2)(z)
-        return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
-                (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+        return vcat(-ρ*x[1] + NN[1]*x[2],
+                [ρ*x[i-1] + (-ρ-NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],
+                sum(x)-1)
     end
 
-    P_0_distribution_Extenicity = NegativeBinomial(a*τ, 1/(1+b));
+    P_0_distribution_Extenicity = Poisson(ρ*τ);
     P_0_Extenicity = [pdf(P_0_distribution_Extenicity,i) for i=0:N-1]
 
-    sol_Extenicity(p1,p2,ϵ) = nlsolve(x->f_Extenicity!(x,p1,p2,a,b,ϵ),P_0_Extenicity).zero
+    sol_Extenicity(p1,p2,ϵ) = nlsolve(x->f_Extenicity!(x,p1,p2,ρ,ϵ),P_0_Extenicity).zero
 
     P_trained_Extenicity = sol_Extenicity(params1,params2,zeros(latent_size))
     return P_trained_Extenicity
 end
 
-τ = 120
-τ1 = 120
-Attribute = -τ1/τ+1
+μ = 1
+Attribute = -μ/4+1
 
 # Uniform(τ1,2τ-τ1)
-a = 0.0282
-b = 3.46
+ρ = 0.5
 ϵ = zeros(latent_size)
-P_trained_Extenicity = sol_Extenicity(τ,Attribute,a,b)
+P_trained_Extenicity = sol_Extenicity(τ,Attribute,ρ)
+
+p=plot(0:N-1,P_trained_Extenicity,linewidth = 3,label="VAE-CME",xlabel = "# of products", ylabel = "\n Probability")
+plot!(0:N-1,data1[:,4],linewidth = 3,label="exact",line=:dash,)
+
+
 
 a_list_pre = [0.0082,0.0132,0.0182,0.0232,0.0282]
 b_list_pre = [1.46,1.96,2.46,2.96,3.46]

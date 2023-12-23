@@ -3,10 +3,10 @@ using LinearAlgebra, Distributions, SparseArrays, DifferentialEquations
 
 # Define kinetic parameters
 d=1
-ρ=0.3
-σon = 0.003
-σoff = 0.004
-τ=120
+ρ=10
+σon = 0.02
+σoff = 0.05
+τ=2
 N=60
 
 # Define transition matrix without delay effect terms
@@ -37,18 +37,9 @@ tspan = (0.0, τ)
 prob1 = ODEProblem(CME_tau!, u0, tspan, p)
 sol1 = solve(prob1, Tsit5(), saveat=0.02)
 u1 = sol1.u[end]
-
-u1m = reshape(u1[1:N^2],(N,N))
-u2m = reshape(u1[1+N^2:end],(N,N))
-upn = sum(u1m,dims = 2)
-plot(collect(0:N-1),upn)
-
-upn = sum(u2m,dims = 2)
-plot(collect(0:N-1),upn)
-
-u1m = reshape(u1[1:N^2]+u1[1+N^2:end],(N,N))
-upn = sum(u1m,dims = 2)
-plot(collect(0:N-1),upn)
+#u1m = reshape(u1[1:N^2]+u1[1+N^2:end],(N,N))
+#upn = sum(u1m,dims = 2)
+#plot(collect(0:N-1),upn)
 
 # Define initial conditions for CME in time [τ,T]
 u_temp = zeros(2*N)
@@ -95,8 +86,6 @@ pn1 = sol2.u[end][N+1:end]
 pn01 = vcat(0,pn0[1:end-1])
 pn11 = vcat(0,pn1[1:end-1])
 
-plot(pn01)
-
 # Solve for joint distribution in time [τ,T]
 function CME_main!(du,u,p,t)
     ρ,τ,N=p
@@ -108,17 +97,15 @@ function CME_main!(du,u,p,t)
     du[N^2*2+1:end] = A*u[N^2*2+1:end]
 end
 
-tspan = (0.0, 120)
+tspan = (0.0, 10)
 prob3 = ODEProblem(CME_main!, u_main, tspan, p)
 sol3 = solve(prob3, Tsit5(), saveat=1)
 
 T = 4 # Absolute time 6
 tsp = trunc(Int,T/0.02+1)
-tsp = 120
+tsp = 4
 u_int = sol3.u[tsp][1:N^2*2]
 u_intm = reshape(u_int[1:N^2]+u_int[N^2+1:2*N^2],(N,N))
 #u1m = reshape(u1[1:N^2]+u1[1+N^2:end],(N,N))
 u_intn = sum(u_intm,dims = 2)
 plot(collect(0:N-1),u_intm[:,16])
-
-plot(vec(u_intn))
