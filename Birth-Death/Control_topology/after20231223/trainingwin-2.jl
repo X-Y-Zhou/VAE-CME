@@ -78,7 +78,7 @@ lr_list = [0.01,0.008,0.006,0.004]
 
 for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Control_topology/after20231223/params_trained_bp-2.csv",DataFrame)
+df = CSV.read("Birth-death/Control_topology/after20231223/params_trained_bp-2.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -97,7 +97,7 @@ mse_list = []
     mse = loss_func(p1)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Control_topology/after20231223/params_trained_bp-2.csv",df)
+        CSV.write("Birth-death/Control_topology/after20231223/params_trained_bp-2.csv",df)
         mse_min[1] = mse
     end
     
@@ -110,7 +110,7 @@ mse_min = [7.282754960921953e-5]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Control_topology/after20231223/params_trained_bp-2.csv",DataFrame)
+df = CSV.read("Birth-death/Control_topology/after20231223/params_trained_bp-2.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 

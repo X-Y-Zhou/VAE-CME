@@ -30,30 +30,33 @@ p1 = df.p1
 ps = Flux.params(p1);
 
 function f1!(x,p,sigma_on,sigma_off,rho_on)
-    # NN1 = re(p)(x[1:N])
-    NN1 = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
+    NN1 = re(p)(x[1:N])
+    # NN1 = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
     # l,m,n,o = re(p)(z)
     # NN1 = f_NN.(1:N-1,l,m,n,o)
 
-    # NN2 = re(p)(x[N+1:2*N])
-    NN2 = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
+    NN2 = re(p)(x[N+1:2*N])
+    # NN2 = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
     # l,m,n,o = re2(p2)(z)
     # NN2 = f_NN.(1:N-1,l,m,n,o)
 
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
                 rho_off*x[N-1] + (-sigma_on-rho_off+N*gamma-NN1[N-1])*x[N] + sigma_off*x[2*N],
-                
+                # sum(x[1:N])-sigma_off/(sigma_on+sigma_off),
+
                 sigma_on*x[1] + (-sigma_off-rho_on)*x[N+1] + (-gamma+NN2[1])*x[N+2],
                 [sigma_on*x[i-N] + rho_on*x[i-1] + (-sigma_off-rho_on+(i-N-1)*gamma -NN2[i-N-1])*x[i] + (-(i-N)*gamma+NN2[i-N])*x[i+1] for i in (N+2):(2*N-1)],
-                sum(x)-1)
+                sum(x)-1
+                # sum(x[N+1:2*N])-sigma_on/(sigma_on+sigma_off)
+                )
 end
 
 # P0,P1
 function solve_tele(sigma_on,sigma_off,rho_on)
     P_0_distribution = Poisson(rho_on*τ*sigma_on)
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
-    P_0_split = [P_0*sigma_off/(sigma_on+sigma_off);P_0*sigma_on/(sigma_on+sigma_off)]
+    P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off)]
 
     sol(p,P_0) = nlsolve(x->f1!(x,p,sigma_on,sigma_off,rho_on),P_0).zero
     solution = sol(p1,P_0_split)
@@ -79,7 +82,7 @@ solution_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
 
-for i = 1:12
+for i = 1:15
     print(i,"\n")
     solution = solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
     push!(solution_list,solution)
@@ -107,8 +110,11 @@ function plot_all()
     p10 = plot_distribution(10)
     p11 = plot_distribution(11)
     p12 = plot_distribution(12)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,
-         size=(1200,900),layout=(3,4))
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+         size=(1200,1200),layout=(4,4))
     # plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
     # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
 end
