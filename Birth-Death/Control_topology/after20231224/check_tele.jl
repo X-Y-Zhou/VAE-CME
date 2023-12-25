@@ -20,25 +20,33 @@ b = rho_on/sigma_off
 τ = 120
 N = 100
 
-model = Chain(Dense(N, 10, tanh), Dense(10, 4), x -> exp.(x));
+model = Chain(Dense(N, 10, tanh), Dense(10, 5), x -> exp.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-2.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
 function f1!(x,p,sigma_on,sigma_off,rho_on)
     # NN1 = re(p)(x[1:N])
     # NN1 = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
-    l,m,n,o = re(p)(x[1:N])
-    NN1 = f_NN.(1:N-1,l,m,n,o)
+
+    # l,m,n = re(p)(x[1:N])
+    # NN1 = f_NN.(1:N-1,l,m,n)
+
+    l,m,n,o,k = re(p)(x[1:N])
+    NN1 = f_NN.(1:N,l,m,n,o,k/τ)
 
     # NN2 = re(p)(x[N+1:2*N])
     # NN2 = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
-    l,m,n,o = re(p)(x[N+1:2*N])
-    NN2 = f_NN.(1:N-1,l,m,n,o)
+
+    # l,m,n = re(p)(x[N+1:2*N])
+    # NN2 = f_NN.(1:N-1,l,m,n)
+
+    l,m,n,o,k = re(p)(x[N+1:2*N])
+    NN2 = f_NN.(1:N,l,m,n,o,k/τ)
 
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
@@ -56,7 +64,7 @@ end
 function solve_tele(sigma_on,sigma_off,rho_on)
     P_0_distribution = Poisson(rho_on*τ*sigma_on)
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
-    P_0_split = [P_0*sigma_off/(sigma_on+sigma_off);P_0*sigma_on/(sigma_on+sigma_off)]
+    P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off)]
 
     sol(p,P_0) = nlsolve(x->f1!(x,p,sigma_on,sigma_off,rho_on),P_0).zero
     solution = sol(p1,P_0_split)

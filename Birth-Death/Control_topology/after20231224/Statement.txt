@@ -1,0 +1,3 @@
+trainingwin.jl: exp ax^b/(c+x^d)
+trainingwin-2.jl: exp ax^b/(c+x^d)+k/τ
+trainingwin-3.jl: exp ax^b/(c+x^b) 训练集只有geo

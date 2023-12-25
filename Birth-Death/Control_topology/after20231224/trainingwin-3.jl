@@ -9,20 +9,22 @@ b = 3.46;
 τ = 120;
 N = 100
 
-# ab_list = [[0.0025,5],[0.0025,10],[0.0025,15],[0.0025,20],
-#            [0.005,5],[0.005,10],[0.005,12],[0.005,18],
-#            [0.0075,5],[0.0075,7],[0.0075,10],[0.0075,15],
-#            [0.01,2],[0.01,4],[0.01,8],[0.01,10],
-#            [0.02,1],[0.02,2],[0.02,6],[0.02,8],
-#            [0.04,1],[0.04,2],[0.04,4],[0.04,6],
-#            [0.06,1],[0.06,2],[0.06,3],[0.06,5],
-#            [0.08,1],[0.08,2],[0.08,3],[0.08,4],
-#            [0.1,1],[0.1,2],[0.1,3],[0.1,3.5],
-#            [0.25,0.8],[0.25,1.25],[0.25,1.5],[0.25,1.75],
-#            [0.5,0.5],[0.5,0.6],[0.5,0.8],[0.5,1.0],
-#            ]
+ab_list = [[0.001,5],[0.001,10],[0.001,15],[0.001,20],
+           [0.002,5],[0.002,10],[0.002,15],[0.002,20],
+           [0.003,5],[0.003,10],[0.003,12],[0.003,18],
+           [0.004,5],[0.004,10],[0.004,12],[0.004,18],
+           [0.005,5],[0.005,10],[0.005,12],[0.005,18],
+           [0.006,5],[0.006,10],[0.006,12],[0.006,18],
+           [0.007,5],[0.007,7],[0.007,10],[0.007,15],
+           [0.008,5],[0.008,10],[0.008,12],[0.008,18],
+           [0.009,5],[0.009,10],[0.009,12],[0.009,18],
+           [0.01,2],[0.01,4],[0.01,8],[0.01,10],
+           ]
 
-ab_list = [[0.0025,5]]
+# ab_list = [[0.0025,5]]
+function f_NN(x,l,m,n)
+    return l*x^m/(n+x^m)
+end;
 
 l_ablist = length(ab_list)
 
@@ -41,7 +43,7 @@ plot(NN_input[range],label=false)
 plot(NN_output[range],label=false,ylims=(0,0.3))
 
 # model initialization
-model = Chain(Dense(N, 10, tanh), Dense(10, 5), x -> exp.(x));
+model = Chain(Dense(N, 10, tanh), Dense(10, 3), x ->exp.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
@@ -54,9 +56,9 @@ ps = Flux.params(p1);
 # end
 
 function out!(x,p)
-    l,m,n,o,k = re(p)(x)
+    l,m,n = re(p)(x)
     # push!(lmno_list,[l,m,n,o])
-    NN = f_NN.(1:N,l,m,n,o,k/τ)
+    NN = f_NN.(1:N,l,m,n)
     return NN
 end
 
@@ -70,24 +72,25 @@ end
 @time loss_func(p1)
 @time grads = gradient(()->loss_func(p1) , ps)
 
-lr = 0.004;  #lr需要操作一下的
+lr = 0.008;  #lr需要操作一下的
 
 lr_list = [0.025,0.01,0.008,0.006,0.004]
 lr_list = [0.01,0.008,0.006,0.004]
 lr_list = [0.0006,0.0004]
 lr_list = [0.0003,0.00015,0.0001]
 lr_list = [0.008,0.006,0.004]
+lr_list = [0.002,0.001]
 
-# for lr in lr_list
+for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-3_1.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-3.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
 # # training
 
 opt= ADAM(lr);
-epochs = 100
+epochs = 1000
 print("learning rate = ",lr)
 mse_list = []
 
@@ -99,20 +102,20 @@ mse_list = []
     mse = loss_func(p1)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Birth-Death/Control_topology/after20231224/params_trained_bp-3_1.csv",df)
+        CSV.write("Birth-Death/Control_topology/after20231224/params_trained_bp-3.csv",df)
         mse_min[1] = mse
     end
     
     push!(mse_list,mse)
     print(mse,"\n")
 end
-# end
+end
 
-mse_min = [1.2728582680918452]
+mse_min = [0.9100281079943426]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-3_1.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-3.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
