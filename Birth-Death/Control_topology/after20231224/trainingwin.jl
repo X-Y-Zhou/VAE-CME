@@ -78,21 +78,23 @@ lr = 0.01;  #lr需要操作一下的
 
 lr_list = [0.025,0.01,0.008,0.006,0.004]
 lr_list = [0.01,0.008,0.006,0.004]
+lr_list = [0.002,0.001]
 lr_list = [0.0006,0.0004]
 lr_list = [0.0003,0.00015,0.0001]
 lr_list = [0.008,0.006,0.004]
-lr_list = [0.008,0.006,0.004]
+lr_list = [0.008,0.006]
+lr_list = [0.025]
 
 for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp.csv",DataFrame)
+df = CSV.read("Control_topology/after20231224/params_trained_bp.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
 # # training
 
 opt= ADAM(lr);
-epochs = 500
+epochs = 4000
 print("learning rate = ",lr)
 mse_list = []
 
@@ -104,7 +106,7 @@ mse_list = []
     mse = loss_func(p1)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Birth-Death/Control_topology/after20231224/params_trained_bp.csv",df)
+        CSV.write("Control_topology/after20231224/params_trained_bp.csv",df)
         mse_min[1] = mse
     end
     
@@ -113,11 +115,11 @@ mse_list = []
 end
 end
 
-mse_min = [0.001057285151862559]
+mse_min = [0.00018271021677962053]
 mse_min 
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp.csv",DataFrame)
+df = CSV.read("Control_topology/after20231224/params_trained_bp.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
