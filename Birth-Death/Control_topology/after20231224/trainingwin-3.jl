@@ -22,8 +22,8 @@ ab_list = [[0.001,5],[0.001,10],[0.001,15],[0.001,20],
            ]
 
 # ab_list = [[0.0025,5]]
-function f_NN(x,l,m,n)
-    return l*x^m/(n+x^m)
+function f_NN(x,l,m,n,o,k)
+    return l*x^m/(n+x^o)+k
 end;
 
 l_ablist = length(ab_list)
@@ -43,7 +43,7 @@ plot(NN_input[range],label=false)
 plot(NN_output[range],label=false,ylims=(0,0.3))
 
 # model initialization
-model = Chain(Dense(N, 10, tanh), Dense(10, 3), x ->exp.(x));
+model = Chain(Dense(N, 10, tanh), Dense(10, 5), x ->exp.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
@@ -56,9 +56,9 @@ ps = Flux.params(p1);
 # end
 
 function out!(x,p)
-    l,m,n = re(p)(x)
+    l,m,n,o,k = re(p)(x)
     # push!(lmno_list,[l,m,n,o])
-    NN = f_NN.(1:N,l,m,n)
+    NN = f_NN.(1:N,l,m,n,o,k/τ)
     return NN
 end
 
@@ -80,6 +80,7 @@ lr_list = [0.0006,0.0004]
 lr_list = [0.0003,0.00015,0.0001]
 lr_list = [0.008,0.006,0.004]
 lr_list = [0.002,0.001]
+lr_list = [0.01]
 
 for lr in lr_list
 using CSV,DataFrames
@@ -90,7 +91,7 @@ ps = Flux.params(p1);
 # # training
 
 opt= ADAM(lr);
-epochs = 1000
+epochs = 2000
 print("learning rate = ",lr)
 mse_list = []
 
@@ -111,7 +112,7 @@ mse_list = []
 end
 end
 
-mse_min = [0.9100281079943426]
+mse_min = [0.5476504008006983]
 mse_min 
 
 using CSV,DataFrames
@@ -124,8 +125,8 @@ mse = sum(Flux.mse(solution[i],NN_output[i]) for i=1:l_ablist)/l_ablist
 [Flux.mse(solution[i],NN_output[i]) for i=1:l_ablist]
 
 function plot_distribution(set)
-    plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,NN_output[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+    # plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot(0:N-1,NN_output[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]))
 end
 plot_distribution(1)
 
@@ -154,33 +155,28 @@ function plot_all()
     p22 = plot_distribution(22)
     p23 = plot_distribution(23)
     p24 = plot_distribution(24)
+    p25 = plot_distribution(25)
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,
-            p17,p18,p19,p20,p21,p22,p23,p24,size=(1200,1800),layout=(6,4))
+            p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
 
 function plot_all()
-    p1 = plot_distribution(25)
-    p2 = plot_distribution(26)
-    p3 = plot_distribution(27)
-    p4 = plot_distribution(28)
-    p5 = plot_distribution(29)
-    p6 = plot_distribution(30)
-    p7 = plot_distribution(31)
-    p8 = plot_distribution(32)
-    p9 = plot_distribution(33)
-    p10 = plot_distribution(34)
-    p11 = plot_distribution(35)
-    p12 = plot_distribution(36)
-    p13 = plot_distribution(37)
-    p14 = plot_distribution(38)
-    p15 = plot_distribution(39)
-    p16 = plot_distribution(40)
-    p17 = plot_distribution(41)
-    p18 = plot_distribution(42)
-    p19 = plot_distribution(43)
-    p20 = plot_distribution(44)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,
-            p17,p18,p19,p20,size=(1500,1200),layout=(4,5))
+    p1 = plot_distribution(26)
+    p2 = plot_distribution(27)
+    p3 = plot_distribution(28)
+    p4 = plot_distribution(29)
+    p5 = plot_distribution(30)
+    p6 = plot_distribution(31)
+    p7 = plot_distribution(32)
+    p8 = plot_distribution(33)
+    p9 = plot_distribution(34)
+    p10 = plot_distribution(35)
+    p11 = plot_distribution(36)
+    p12 = plot_distribution(37)
+    p13 = plot_distribution(38)
+    p14 = plot_distribution(39)
+    p15 = plot_distribution(40)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,size=(1500,900),layout=(3,5))
 end
 plot_all()
