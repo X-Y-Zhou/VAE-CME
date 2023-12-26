@@ -36,70 +36,108 @@ ab_list = [[0.0025,3],[0.0025,5],[0.0025,10],[0.0025,15],[0.0025,20],
 l_ablist = length(ab_list)
 
 # ab_list = ab_list./2
-# a,b = ab_list[1]
-# train_sol = bursty(N,a,b,τ)
+NN_input = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
+NN_output = [NN_bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
 
-train_sol = [bursty(N,ab_list[i][1],ab_list[i][2],τ) for i=1:l_ablist]
-# plot(train_sol_end_list[end],lw=3)
-# plot(train_sol[9:10],lw=3,line=:dash,label="bursty")
-# plot(train_sol[30:35])
+range = 1:4
+plot(NN_input[range],label=false)
+plot(NN_output[range],label=false)
 
-# a,b = [0.0075,5]
-# plot(bursty(N,a,b,τ),lw=3)
+plot(NN_input,label=false)
+plot(NN_output,label=false)
 
-# P2mean(bursty(N,a,b,τ))
-# a*b*τ
+range = 5:8
+plot(NN_input[range],label=false)
+plot(NN_output[range],label=false,ylims=(0,0.3))
 
 # model initialization
-model = Chain(Dense(N, 10, tanh), Dense(10, 5), x -> exp.(x));
+model = Chain(Dense(N, 10, tanh), Dense(10, 4), x -> exp.(x));
 p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
+# lmno_list = []
 #CME
-function f1!(x,p,a,b)
-    # NN = re(p)(x)
-
-    # l,m,n,o = re(p)(x)
-    # NN = f_NN.(1:N,l,m,n,o)
-
-    l,m,n,o,k = re(p)(x)
-    NN = f_NN.(1:N,l,m,n,o,k/τ)
-
-    # l,m,n = re(p)(x)
-    # NN = f_NN.(1:N,l,m,n)
-
-    return vcat(-a*b/(1+b)*x[1]+NN[1]*x[2],[sum(a*(b/(1+b))^(i-j)/(1+b)*x[j] for j in 1:i-1) - 
-            (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
+function out!(x,p)
+    l,m,n,o = re(p)(x)
+    # push!(lmno_list,[l,m,n,o])
+    NN = f_NN.(1:N,l,m,n,o)
+    return NN
 end
 
+add_length = 25
+weight = 10
+function loss_func(p)
+    sol_cme = [out!(NN_input[i],p) for i=1:l_ablist]
+    mse1 = sum(Flux.mse(sol_cme[i],NN_output[i]) for i=1:add_length)
+    mse2 = sum(Flux.mse(sol_cme[i],NN_output[i]) for i=add_length+1:l_ablist)
+    loss = (weight*mse1+mse2)/l_ablist
+    return loss
+end
 
-#solve P
-P_0_distribution = NegativeBinomial(a*τ, 1/(1+b));
-P_0_list = [[pdf(NegativeBinomial(ab_list[i][1]*τ, 1/(1+ab_list[i][2])),j) for j=0:N-1] for i=1:l_ablist]
-sol(p,a,b,P0) = nlsolve(x->f1!(x,p,a,b),P0).zero
+@time loss_func(p1)
+@time grads = gradient(()->loss_func(p1) , ps)
 
+lr = 0.01;  #lr需要操作一下的
+
+lr_list = [0.025,0.01,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.01,0.01,0.008,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.002,0.001]
+lr_list = [0.0006,0.0004]
+lr_list = [0.0003,0.00015,0.0001]
+lr_list = [0.008,0.006,0.004]
+lr_list = [0.008,0.006]
+lr_list = [0.025]
+
+for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-2_1.csv",DataFrame)
+df = CSV.read("Control_topology/after20231224/params_trained_bp-1_1.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
-solution = [sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:l_ablist]
-mse = sum(Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist)/l_ablist
-# [Flux.mse(solution[i],train_sol[i]) for i=1:l_ablist]
+# # training
 
-# i = 1
-# solution = [sol(p1,ab_list[i][1],ab_list[i][2],P_0_list[i]) for i=1:1]
+opt= ADAM(lr);
+epochs = 2000
+print("learning rate = ",lr)
+mse_list = []
 
-# set = 1
-# plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-# plot!(0:N-1,train_sol[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+@time for epoch in 1:epochs
+    print(epoch,"\n")
+    grads = gradient(()->loss_func(p1) , ps)
+    Flux.update!(opt, ps, grads)
 
+    mse = loss_func(p1)
+    if mse<mse_min[1]
+        df = DataFrame(p1 = p1)
+        CSV.write("Control_topology/after20231224/params_trained_bp-1_1.csv",df)
+        mse_min[1] = mse
+    end
+    
+    push!(mse_list,mse)
+    print(mse,"\n")
+end
+end
+
+mse_min = [0.00021776781574262674]
+mse_min 
+
+using CSV,DataFrames
+df = CSV.read("Control_topology/after20231224/params_trained_bp-1_1.csv",DataFrame)
+p1 = df.p1
+ps = Flux.params(p1);
+
+solution = [out!(NN_input[i],p1) for i=1:l_ablist]
+mse = sum(Flux.mse(solution[i],NN_output[i]) for i=1:l_ablist)/l_ablist
+
+[Flux.mse(solution[i],NN_output[i]) for i=1:l_ablist]
+
+lmno_list
 
 function plot_distribution(set)
     plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
+    plot!(0:N-1,NN_output[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]),line=:dash)
 end
-# plot_distribution(1)
+plot_distribution(35)
 
 function plot_all()
     p1 = plot_distribution(1)
@@ -224,6 +262,3 @@ function plot_all()
             p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,1500),layout=(5,5))
 end
 plot_all()
-
-
-

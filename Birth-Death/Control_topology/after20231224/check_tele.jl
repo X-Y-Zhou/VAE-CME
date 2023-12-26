@@ -25,7 +25,7 @@ p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-3.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-2_1.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -37,6 +37,7 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     # NN1 = f_NN.(1:N-1,l,m,n)
 
     l,m,n,o,k = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
+    # l,m,n,o,k = re(p)(x[1:N])
     NN1 = f_NN.(1:N,l,m,n,o,k/τ)
 
     # NN2 = re(p)(x[N+1:2*N])
@@ -46,6 +47,7 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     # NN2 = f_NN.(1:N-1,l,m,n)
 
     l,m,n,o,k = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
+    # l,m,n,o,k = re(p)(x[N+1:2*N])
     NN2 = f_NN.(1:N,l,m,n,o,k/τ)
 
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
