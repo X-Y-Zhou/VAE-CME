@@ -36,8 +36,8 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     # l,m,n = re(p)(x[1:N])
     # NN1 = f_NN.(1:N-1,l,m,n)
 
-    l,m,n,o,k = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
-    # l,m,n,o,k = re(p)(x[1:N])
+    # l,m,n,o,k = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
+    l,m,n,o,k = re(p)(x[1:N])
     NN1 = f_NN.(1:N,l,m,n,o,k/τ)
 
     # NN2 = re(p)(x[N+1:2*N])
@@ -46,8 +46,8 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     # l,m,n = re(p)(x[N+1:2*N])
     # NN2 = f_NN.(1:N-1,l,m,n)
 
-    l,m,n,o,k = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
-    # l,m,n,o,k = re(p)(x[N+1:2*N])
+    # l,m,n,o,k = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
+    l,m,n,o,k = re(p)(x[N+1:2*N])
     NN2 = f_NN.(1:N,l,m,n,o,k/τ)
 
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
@@ -67,6 +67,7 @@ function solve_tele(sigma_on,sigma_off,rho_on)
     P_0_distribution = Poisson(rho_on*τ*sigma_on)
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
     P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off)]
+    # P_0_split = train_sol_end_list[set]
 
     sol(p,P_0) = nlsolve(x->f1!(x,p,sigma_on,sigma_off,rho_on),P_0).zero
     solution = sol(p1,P_0_split)
@@ -91,7 +92,7 @@ sum([Flux.mse(solution_list[set],train_sol_end_list[set]) for set=1:12])/12
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_end_list[set],linewidth = 3,label="exact",line=:dash,title=join(["+-ρ=",p_list[set]]))
+    plot!(0:N-1,train_sol_end_list_2[set],linewidth = 3,label="exact",line=:dash,title=join(["+-ρ=",p_list[set]]))
 end
 plot_distribution(1)
 

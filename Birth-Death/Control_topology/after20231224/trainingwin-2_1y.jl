@@ -78,7 +78,7 @@ end
 
 @time loss_func(p1)
 @time grads = gradient(()->loss_func(p1) , ps)
-
+grads+grads
 
 
 lr_list = [0.025,0.01,0.008,0.006,0.004,0.002,0.001]
