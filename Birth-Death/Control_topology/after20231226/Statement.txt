@@ -1,0 +1,5 @@
+trainingwin_multi_mac.jl: exp ax^b/(c+x^d)+k/τ 100组参数 
+        params_trained_bp_mac.csv 所有权重都是1
+        params_trained_bp_mac_2.csv 后40个训练集权重调为10
+
+

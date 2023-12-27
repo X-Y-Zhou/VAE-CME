@@ -73,7 +73,7 @@ end
 end
 
 @everywhere trunc = 60
-@everywhere weight = 10
+@everywhere weight = 5
 @everywhere function loss_func(p,set)
     mse1 = sum(pmap(i->compute_mse(p,i),1:trunc))
     mse2 = sum(pmap(i->compute_mse(p,i),trunc+1:set))
@@ -91,21 +91,21 @@ lr_list = [0.025,0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.05,0.0025,0.0015,0.001,0.004,0.002]
 
-lr_list = [0.01,0.008,0.006,0.004]
+lr_list = [0.01]
 lr_list = [0.0006,0.0004]
 lr_list = [0.0003,0.00015,0.0001]
 lr_list = [0.015]
 
 for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231226/params_trained_bp_mac.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231226/params_trained_bp_mac_2.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
 # # training
 
 opt= ADAM(lr);
-epochs = 50
+epochs = 100
 print("learning rate = ",lr)
 mse_list = []
 
@@ -117,7 +117,7 @@ mse_list = []
     mse = loss_func(p1,l_ablist)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Birth-Death/Control_topology/after20231226/params_trained_bp_mac.csv",df)
+        CSV.write("Birth-Death/Control_topology/after20231226/params_trained_bp_mac_2.csv",df)
         mse_min[1] = mse
     end
     
@@ -126,11 +126,11 @@ mse_list = []
 end
 end
 
-mse_min = [4.4486813282925204e-5]
+mse_min = [8.89038479388259e-5]
 mse_min
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231226/params_trained_bp_mac.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231226/params_trained_bp_mac_2.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
