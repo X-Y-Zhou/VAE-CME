@@ -1,5 +1,5 @@
 using Distributed,Pkg
-addprocs(3)
+addprocs(10)
 nprocs()
 workers()
 
@@ -72,8 +72,13 @@ end
     return mse
 end
 
+@everywhere trunc = 60
+@everywhere weight = 1
 @everywhere function loss_func(p,set)
-    return sum(pmap(i->compute_mse(p,i),1:set))/set
+    mse1 = sum(pmap(i->compute_mse(p,i),1:trunc))
+    mse2 = sum(pmap(i->compute_mse(p,i),trunc+1:set))
+    loss = (mse1+weight*mse2)/set
+    return loss
 end
 
 set = 100
@@ -82,15 +87,13 @@ set = 100
 
 lr = 0.025;  #lr需要操作一下的
 
-lr_list = [0.025,0.01,0.008,0.006,0.004]
-lr_list = [0.01,0.008,0.006,0.004]
-lr_list = [0.0006,0.0004]
-lr_list = [0.0003,0.00015,0.0001]
-lr_list = [0.015]
+lr_list = [0.025,0.01,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.05,0.0025,0.0015,0.001,0.004,0.002]
 
 for lr in lr_list
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231226/params_trained_bp.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231226/params_trained_bp_2.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -109,7 +112,7 @@ mse_list = []
     mse = loss_func(p1,l_ablist)
     if mse<mse_min[1]
         df = DataFrame(p1 = p1)
-        CSV.write("Birth-Death/Control_topology/after20231226/params_trained_bp.csv",df)
+        CSV.write("Birth-Death/Control_topology/after20231226/params_trained_bp_2.csv",df)
         mse_min[1] = mse
     end
     
@@ -122,7 +125,7 @@ mse_min = [0.0047070723832164565]
 mse_min
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231226/params_trained_bp.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231226/params_trained_bp_2.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
