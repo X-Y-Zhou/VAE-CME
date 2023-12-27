@@ -72,8 +72,13 @@ end
     return mse
 end
 
+@everywhere trunc = 60
+@everywhere weight = 10
 @everywhere function loss_func(p,set)
-    return sum(pmap(i->compute_mse(p,i),1:set))/set
+    mse1 = sum(pmap(i->compute_mse(p,i),1:trunc))
+    mse2 = sum(pmap(i->compute_mse(p,i),trunc+1:set))
+    loss = (mse1+weight*mse2)/set
+    return loss
 end
 
 set = 100
@@ -121,7 +126,7 @@ mse_list = []
 end
 end
 
-mse_min = [0.0047070723832164565]
+mse_min = [4.4486813282925204e-5]
 mse_min
 
 using CSV,DataFrames
