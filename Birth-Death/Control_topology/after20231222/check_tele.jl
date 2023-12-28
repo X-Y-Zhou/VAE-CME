@@ -31,11 +31,13 @@ ps = Flux.params(p1);
 
 function f1!(x,p,sigma_on,sigma_off,rho_on)
     NN1 = re(p)(x[1:N])
+    push!(NN1_list,NN1)
     # NN1 = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
     # l,m,n,o = re(p)(z)
     # NN1 = f_NN.(1:N-1,l,m,n,o)
 
     NN2 = re(p)(x[N+1:2*N])
+    push!(NN2_list,NN2)
     # NN2 = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
     # l,m,n,o = re2(p2)(z)
     # NN2 = f_NN.(1:N-1,l,m,n,o)
@@ -63,9 +65,15 @@ end
 
 solution_list_2 = []
 solution_list
+
+NN1_list = []
+NN2_list = []
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
+p_list
 
+plot(NN1_list[end])
+plot(NN2_list[end])
 for i = 1:15
     print(i,"\n")
     solution = solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])

@@ -15,6 +15,8 @@ p_list = [[0.003,0.004,0.3],[0.003,0.008,0.3],[0.003,0.015,0.3],
           ]
 
 p0p1_list = []
+p0_list = []
+p1_list = []
 for p in p_list
 # p = p_list[1]
 print(p,"\n")
@@ -61,13 +63,16 @@ end
 solution = nlsolve(f, [1.;zeros(2*N-1)]).zero
 p_0 = solution[1:N]
 p_1 = solution[N+1:2*N]
+push!(p0_list,p_0)
+push!(p1_list,p_1)
+
 p0p1 = p_0+p_1
 push!(p0p1_list,p0p1)
 end
 
 p0p1_list
-
-plot!(p0p1_list[7],lw=3,line=:dash)
+p0_list
+p1_list
 
 plot(p_0)
 plot(p_1)
