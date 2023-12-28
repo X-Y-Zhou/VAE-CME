@@ -11,7 +11,7 @@ jumpsys = convert(JumpSystem, rn; combinatoric_ratelaws=false)
 
 u0 = [0, 1, 0]
 de_chan0 = [[]]
-tf = 200.
+tf = 1000.
 tspan = (0, tf)
 
 p_list = [[0.003,0.004,0.3],[0.003,0.008,0.3],[0.003,0.015,0.3],
@@ -24,7 +24,7 @@ p_list = [[0.5,1,0.25],[0.5,1,0.5],[0.5,1,0.6],[0.5,1,0.8],[0.5,1,1.0],
           [0.75,1,0.2],[0.75,1,0.4],[0.75,1,0.5],[0.75,1,0.6],[0.75,1,0.75],
           [1.0,1,0.2],[1.0,1,0.3],[1.0,1,0.4],[1.0,1,0.5],[1.0,1,0.55]]
 # p_list = [[0.5,1,0.25]]
-train_sol_end_list_2 = []
+train_sol_end_list = []
 
 for p in p_list
 # p = p_list[1]
@@ -60,7 +60,7 @@ if length(probability)<N
 else
     train_sol_end[1:N] = probability[1:N]
 end
-push!(train_sol_end_list_2,train_sol_end)
+push!(train_sol_end_list,train_sol_end)
 end
 
 train_sol_end_list

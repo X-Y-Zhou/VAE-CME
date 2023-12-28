@@ -125,8 +125,8 @@ mse = sum(Flux.mse(solution[i],NN_output[i]) for i=1:l_ablist)/l_ablist
 [Flux.mse(solution[i],NN_output[i]) for i=1:l_ablist]
 
 function plot_distribution(set)
-    # plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot(0:N-1,NN_output[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]))
+    plot(0:N-1,solution[set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,NN_output[set],linewidth = 3,label="exact",title=join(["a,b,τ=",ab_list[set]]))
 end
 plot_distribution(1)
 

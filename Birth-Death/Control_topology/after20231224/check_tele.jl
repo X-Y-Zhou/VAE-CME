@@ -25,7 +25,7 @@ p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-2_1.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-3.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -80,6 +80,7 @@ solution_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
 p_list
+train_sol_end_list
 
 for i = 1:15
     print(i,"\n")
@@ -92,7 +93,7 @@ sum([Flux.mse(solution_list[set],train_sol_end_list[set]) for set=1:12])/12
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_end_list_2[set],linewidth = 3,label="exact",line=:dash,title=join(["+-ρ=",p_list[set]]))
+    plot!(0:N-1,train_sol_end_list[set],linewidth = 3,label="exact",line=:dash,title=join(["+-ρ=",p_list[set]]))
 end
 plot_distribution(1)
 

@@ -53,7 +53,7 @@ end
 function solve_tele(sigma_on,sigma_off,rho_on)
     P_0_distribution = Poisson(rho_on*τ*sigma_on)
     P_0 = [pdf(P_0_distribution,j) for j=0:N-1]
-    P_0_split = [P_0*sigma_off/(sigma_on+sigma_off);P_0*sigma_on/(sigma_on+sigma_off)]
+    P_0_split = [P_0*sigma_on/(sigma_on+sigma_off);P_0*sigma_off/(sigma_on+sigma_off)]
 
     sol(p,P_0) = nlsolve(x->f1!(x,p,sigma_on,sigma_off,rho_on),P_0).zero
     solution = sol(p1,P_0_split)
@@ -61,33 +61,20 @@ function solve_tele(sigma_on,sigma_off,rho_on)
     return solution
 end
 
-a_list = [0.04,0.06,0.08,0.1]
-b_list = [2,2.2,2.4,2.6,2.8,3]
-ρ_on_off_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-
-a_list = [0.0082,0.0132,0.0182,0.0232,0.0282]
-b_list = [1.46,1.96,2.46,2.96,3.46]
-ab_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-
-a_list = [0.0082,0.015,0.02,0.024,0.0282]
-b_list = [1.46,1.96,2.46,2.96,3.46]
-ab_list = [[a_list[i],1.,b_list[j]] for i=1:length(a_list) for j=1:length(b_list)]
-ab_list[7]
-
-solution_list = []
+solution_list_2 = []
 solution_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
 
-for i = 1:12
+for i = 1:15
     print(i,"\n")
     solution = solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
-    push!(solution_list,solution)
+    push!(solution_list_2,solution)
 end
 solution_list
 
 function  plot_distribution(set)
-    p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
+    p=plot(0:N-1,solution_list_2[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
     plot!(0:N-1,train_sol_end_list[set],linewidth = 3,label="exact",line=:dash,title=join(["+-ρ=",p_list[set]]))
 end
 plot_distribution(1)
@@ -105,8 +92,11 @@ function plot_all()
     p10 = plot_distribution(10)
     p11 = plot_distribution(11)
     p12 = plot_distribution(12)
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,
-         size=(1200,900),layout=(3,4))
+    p13 = plot_distribution(13)
+    p14 = plot_distribution(14)
+    p15 = plot_distribution(15)
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,
+         size=(1200,1200),layout=(4,4))
     # plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
     # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
 end

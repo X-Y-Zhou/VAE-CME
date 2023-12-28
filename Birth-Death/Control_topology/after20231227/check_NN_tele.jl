@@ -26,5 +26,6 @@ NN2 = NN_solution[N+1:2*N]
 plot(NN1,label="NN1")
 plot(NN2,label="NN2")
 
-
+p_0[1:100]
+p_1[1:100]
 
