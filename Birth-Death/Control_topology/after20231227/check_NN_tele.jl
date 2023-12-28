@@ -1,4 +1,4 @@
-using Plots
+using Plots,NLsolve
 using LinearAlgebra, Distributions, DifferentialEquations
 
 P_split = [p_0;p_1]

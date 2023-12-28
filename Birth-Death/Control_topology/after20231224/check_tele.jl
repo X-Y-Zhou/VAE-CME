@@ -4,6 +4,10 @@ using DelimitedFiles, Plots
 
 include("../../../utils.jl")
 
+function f_NN(x,l,m,n,o,k)
+    return l*x^m/(n+x^o)+k
+end;
+
 # topo tele
 sigma_on = 0.003
 sigma_off = 0.004
@@ -25,7 +29,7 @@ p1, re = Flux.destructure(model);
 ps = Flux.params(p1);
 
 using CSV,DataFrames
-df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-3.csv",DataFrame)
+df = CSV.read("Birth-Death/Control_topology/after20231224/params_trained_bp-2_1.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 
@@ -39,6 +43,7 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     # l,m,n,o,k = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
     l,m,n,o,k = re(p)(x[1:N])
     NN1 = f_NN.(1:N,l,m,n,o,k/τ)
+    push!(NN1_list,NN1)
 
     # NN2 = re(p)(x[N+1:2*N])
     # NN2 = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
@@ -49,6 +54,7 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     # l,m,n,o,k = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
     l,m,n,o,k = re(p)(x[N+1:2*N])
     NN2 = f_NN.(1:N,l,m,n,o,k/τ)
+    push!(NN2_list,NN2)
 
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
@@ -75,12 +81,18 @@ function solve_tele(sigma_on,sigma_off,rho_on)
     return solution
 end
 
+NN1_list = []
+NN2_list = []
 solution_list = []
 solution_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
+
+plot(NN1_list[end])
+plot(NN2_list[end])
+
 p_list
-train_sol_end_list
+p0p1_list
 
 for i = 1:15
     print(i,"\n")
@@ -93,7 +105,7 @@ sum([Flux.mse(solution_list[set],train_sol_end_list[set]) for set=1:12])/12
 
 function  plot_distribution(set)
     p=plot(0:N-1,solution_list[set],linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol_end_list[set],linewidth = 3,label="exact",line=:dash,title=join(["+-ρ=",p_list[set]]))
+    plot!(0:N-1,p0p1_list[set],linewidth = 3,label="exact",line=:dash,title=join(["+-ρ=",p_list[set]]))
 end
 plot_distribution(1)
 

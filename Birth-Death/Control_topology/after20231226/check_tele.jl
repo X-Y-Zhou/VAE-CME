@@ -14,7 +14,9 @@ gamma= 0.0
 a = sigma_on
 b = rho_on/sigma_off
 # N = 70
-
+function f_NN(x,l,m,n,o,k)
+    return l*x^m/(n+x^o)+k
+end;
 # check_sol = vec(readdlm("Birth-Death/Control_topology/after20231211-2/ssa_tele.csv", ',')[2:N+1,:])
 # model
 τ = 120
@@ -39,6 +41,7 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     # l,m,n,o,k = re(p)(x[1:N].*((sigma_on+sigma_off)/sigma_on))
     l,m,n,o,k = re(p)(x[1:N])
     NN1 = f_NN.(1:N,l,m,n,o,k/τ)
+    push!(NN1_list,NN1)
 
     # NN2 = re(p)(x[N+1:2*N])
     # NN2 = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
@@ -49,6 +52,7 @@ function f1!(x,p,sigma_on,sigma_off,rho_on)
     # l,m,n,o,k = re(p)(x[N+1:2*N].*((sigma_on+sigma_off)/sigma_off))
     l,m,n,o,k = re(p)(x[N+1:2*N])
     NN2 = f_NN.(1:N,l,m,n,o,k/τ)
+    push!(NN2_list,NN2)
 
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
@@ -75,11 +79,14 @@ function solve_tele(sigma_on,sigma_off,rho_on)
     return solution
 end
 
-solution_list_2 = []
+
+solution_list = []
 solution_list
+
+p_list
 i = 1
 solve_tele(p_list[i][1],p_list[i][2],p_list[i][3])
-p_list
+
 
 for i = 1:15
     print(i,"\n")
@@ -117,15 +124,16 @@ function plot_all()
     # plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,size=(1500,600),layout=(2,5))
     # plot(p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,size=(1500,900),layout=(3,5))
 end
-
 plot_all()
 
-sigma_on,sigma_off,rho_on = [0.01,1,10]
-
-sigma_on,sigma_off,rho_on = [0.005,0.008,0.1]
-
-sigma_on,sigma_off,rho_on = p_list[11]
+sigma_on,sigma_off,rho_on = [0.003,0.004,0.03]
+NN1_list = []
+NN2_list = []
 @time solution = solve_tele(sigma_on,sigma_off,rho_on)
+
+plot(NN1_list[end])
+plot(NN2_list[end])
+
 plot(solution)
 
 plot(0:N-1,solution,linewidth = 3,label="topo",xlabel = "# of products", ylabel = "\n Probability")
