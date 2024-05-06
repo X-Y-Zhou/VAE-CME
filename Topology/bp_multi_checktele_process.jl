@@ -18,7 +18,7 @@ workers()
 @everywhere gamma= 0.0
 
 # bd params
-@everywhere ps_matrix = vec(readdlm("Topology/ps_bd.csv"))
+@everywhere ps_matrix = vec(readdlm("Topology/ps_bd2.csv"))
 @everywhere ρ_list = ps_matrix
 
 @everywhere τ = 40
@@ -81,7 +81,7 @@ end
 end
 
 # @time solution_tele = hcat([solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],p1) for i=1:batchsize]...)
-@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],p1),1:batchsize)...);
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],p1),1:50)...);
 mse_tele = Flux.mse(solution_tele,check_sol)
 
 function loss_func(p)
@@ -103,7 +103,7 @@ lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 100
+    epochs = 30
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
@@ -113,12 +113,12 @@ for lr in lr_list
 
         mse_bd = loss_func(p1);
 
-        solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],p1),1:batchsize)...);
+        solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],p1),1:50)...);
         mse_tele = Flux.mse(solution_tele,check_sol)
 
         if mse_tele<mse_min[1]
             df = DataFrame(p1 = p1)
-            CSV.write("Topology/params_trained_bp_tele.csv",df)
+            CSV.write("Topology/params_trained_bp_tele3.csv",df)
             mse_min[1] = mse_tele
         end
         print("mse_bd:",mse_bd,"\n")
@@ -127,7 +127,7 @@ for lr in lr_list
 end
 
 using CSV,DataFrames
-df = CSV.read("Topology/params_trained_bp_tele.csv",DataFrame)
+df = CSV.read("Topology/params_trained_bp_tele3.csv",DataFrame)
 p1 = df.p1
 ps = Flux.params(p1);
 # end
@@ -135,7 +135,7 @@ ps = Flux.params(p1);
 @time solution_bd = hcat(pmap(i->solve_bd(ρ_list[i],p1),1:batchsize)...);
 mse_bd = Flux.mse(solution_bd,train_sol)
 
-@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],p1),1:batchsize)...);
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],p1),1:50)...);
 mse_tele = Flux.mse(solution_tele,check_sol)
 mse_min = [mse_tele]
 
