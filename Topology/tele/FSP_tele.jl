@@ -5,7 +5,7 @@ sigma_on = 0.003
 sigma_off = 0.004
 rho_on = 0.3
 τ = 40
-N = 100
+N = 80
 # sigma_on,sigma_off,rho_on = ps_list[1]
 
 function CME_ba(du,u,p,t)
@@ -60,26 +60,20 @@ plot(p0p1,lw=3)
 using Plots,NLsolve
 using LinearAlgebra, Distributions, DifferentialEquations
 
-seed = 1
-rng = Random.seed!(seed)
-sigma_on_list =  [rand(rng,Uniform(0.002,0.005),30);rand(rng,Uniform(0.002,0.005),20)]
-sigma_off_list = [rand(rng,Uniform(0.002,0.005),30);rand(rng,Uniform(0.002,0.005),20)]
-rho_on_list =    [rand(rng,Uniform(0.1,1),50);]
-batchsize = length(rho_on_list)
-ps_list = [[sigma_on_list[i],sigma_off_list[i],rho_on_list[i]] for i=1:batchsize]
-
 τ = 40
 N = 80
 
+ps_list = readdlm("Topology/tele/data/ps_telev2.txt")
+batchsize = size(ps_list,2)
 matrix_tele = zeros(N,batchsize)
 matrix_tele_p0 = zeros(N,batchsize)
 matrix_tele_p1 = zeros(N,batchsize)
 
 @time for i = 1:batchsize
     print(i,"\n")
-    sigma_on = ps_list[i][1]
-    sigma_off = ps_list[i][2]
-    rho_on = ps_list[i][3]
+    sigma_on = ps_list[:,i][1]
+    sigma_off = ps_list[:,i][2]
+    rho_on = ps_list[:,i][3]
     function CME_ba(du,u,p,t)
         for i=1:N
             du[i] = -sigma_on*u[i] + sigma_off*u[i+N]
@@ -123,9 +117,9 @@ matrix_tele_p1 = zeros(N,batchsize)
     matrix_tele[:,i] = p0p1
 end
 
-writedlm("Topology/tele/data/matrix_telep0.csv",matrix_tele_p0)
-writedlm("Topology/tele/data/matrix_telep1.csv",matrix_tele_p1)
-writedlm("Topology/tele/data/matrix_tele.csv",matrix_tele)
+# writedlm("Topology/tele/data/matrix_telep0.csv",matrix_tele_p0)
+# writedlm("Topology/tele/data/matrix_telep1.csv",matrix_tele_p1)
+writedlm("Topology/tele/data/matrix_telev2.csv",matrix_tele)
 
 
 function plot_distribution(set)

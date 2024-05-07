@@ -1,5 +1,6 @@
 using Distributed,Pkg
 addprocs(3)
+# rmprocs(5)
 nprocs()
 workers()
 
@@ -7,26 +8,27 @@ workers()
 @everywhere using Distributions, Distances,Random
 @everywhere using DelimitedFiles, Plots
 
-@everywhere include("../utils.jl")
+@everywhere include("../../utils.jl")
 
-# tele params
-@everywhere ps_matrix = readdlm("Topology/tele/data/ps_tele.csv")
-@everywhere sigma_on_list = ps_matrix[1,:]
-@everywhere sigma_off_list = ps_matrix[2,:]
-@everywhere rho_on_list = ps_matrix[3,:]
+# tele params and check_sol
+@everywhere version = 2
+@everywhere ps_matrix_tele = readdlm("Topology/tele/data/ps_telev$version.txt")
+@everywhere sigma_on_list = ps_matrix_tele[1,:]
+@everywhere sigma_off_list = ps_matrix_tele[2,:]
+@everywhere rho_on_list = ps_matrix_tele[3,:]
 @everywhere rho_off = 0.0
 @everywhere gamma= 0.0
+@everywhere batchsize_tele = size(ps_matrix_tele,2)
+check_sol = readdlm("Topology/tele/data/matrix_telev$version.csv")
 
-# bd params
-@everywhere ps_matrix = vec(readdlm("Topology/ps_bd2.csv"))
-@everywhere ρ_list = ps_matrix
+# bd params and train_sol
+@everywhere ps_matrix_bd = vec(readdlm("Topology/ps_bdv2.csv"))
+@everywhere ρ_list = ps_matrix_bd
+@everywhere batchsize_bd = length(ρ_list)
+train_sol = hcat([birth_death(N, ρ_list[i], τ) for i = 1:length(ρ_list)]...)
 
 @everywhere τ = 40
 @everywhere N = 80
-@everywhere batchsize = length(ρ_list)
-
-train_sol = hcat([birth_death(N, ρ_list[i], τ) for i = 1:length(ρ_list)]...)
-check_sol = readdlm("Topology/tele/data/matrix_tele.csv")
 
 # model initialization
 @everywhere latent_size = 2;
@@ -59,7 +61,7 @@ end
 
 ϵ = zeros(latent_size)
 # @time solution_bd = hcat([solve_bd(ρ_list[i],params1,params2,ϵ) for i=1:batchsize]...)
-@time solution_bd = hcat(pmap(i->solve_bd(ρ_list[i],params1,params2,ϵ),1:batchsize)...);
+@time solution_bd = hcat(pmap(i->solve_bd(ρ_list[i],params1,params2,ϵ),1:batchsize_bd)...);
 mse_bd = Flux.mse(solution_bd,train_sol)
 
 @everywhere function f_tele!(x,p1,p2,ϵ,sigma_on,sigma_off,rho_on)
@@ -99,13 +101,13 @@ end
 end
 
 # @time solution_tele = hcat([solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ) for i=1:50]...)
-@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:50)...);
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:batchsize_tele)...);
 mse_tele = Flux.mse(solution_tele,check_sol)
 
 @everywhere function loss_func(p1,p2,ϵ)
     sol_cme = hcat(pmap(i->solve_bd(ρ_list[i],p1,p2,ϵ),1:batchsize)...);
     mse = Flux.mse(sol_cme,train_sol)
-    print(mse," ")
+    print("mse:",mse,"\n")
 
     μ_logσ_list = [split_encoder_result(re1(p1)(sol_cme[:,i]), latent_size) for i=1:batchsize]
     kl = sum([(0.5f0 * sum(exp.(2f0 .* μ_logσ_list[i][2]) + μ_logσ_list[i][1].^2 .- 1 .- (2 .* μ_logσ_list[i][2])))  
@@ -113,23 +115,24 @@ mse_tele = Flux.mse(solution_tele,check_sol)
     print("kl:",kl,"\n")
 
     loss = λ*mse + kl
-    print(loss,"\n")
+    print("loss:",loss,"\n")
     return loss
 end
 
-λ = 10000
+λ = 1e7
 @time loss_bd = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 mse_min = [mse_tele]
 
 # training
-lr_list = [0.01]  #lr需要操作一下的
-
+lr_list = [0.002,0.001,0.0008,0.0006,0.0004,0.0002,0.0001]  #lr需要操作一下的
+lr_list = [0.002]
+mse_min
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 30
+    epochs = 50
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
@@ -146,32 +149,39 @@ for lr in lr_list
         mse_tele = Flux.mse(solution_tele,check_sol)
 
         if mse_tele<mse_min[1]
-            df = DataFrame(p1 = p1)
-            CSV.write("Topology/params_trained_vae_tele.csv",df)
+            df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
+            CSV.write("Topology/vae/params_trained_vae_tele.csv",df)
             mse_min[1] = mse_tele
         end
         print("mse_bd:",mse_bd,"\n")
         print("mse_tele:",mse_tele,"\n")
     end
+
+    using CSV,DataFrames
+    df = CSV.read("Topology/vae/params_trained_vae_tele.csv",DataFrame)
+    params1 = df.params1[1:length(params1)]
+    params2 = df.params2[1:length(params2)]
+    ps = Flux.params(params1,params2);
 end
 
 using CSV,DataFrames
-df = CSV.read("Topology/params_trained_vae_tele.csv",DataFrame)
-p1 = df.p1
-ps = Flux.params(p1);
+df = CSV.read("Topology/vae/params_trained_vae_tele.csv",DataFrame)
+params1 = df.params1[1:length(params1)]
+params2 = df.params2[1:length(params2)]
+ps = Flux.params(params1,params2);
 # end
 
 ϵ = zeros(latent_size)
-@time solution_bd = hcat(pmap(i->solve_bd(ρ_list[i],p1,p2,ϵ),1:batchsize)...);
+@time solution_bd = hcat(pmap(i->solve_bd(ρ_list[i],params1,params2,ϵ),1:batchsize_bd)...);
 mse_bd = Flux.mse(solution_bd,train_sol)
 
-@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:50)...);
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:batchsize_tele)...);
 mse_tele = Flux.mse(solution_tele,check_sol)
 mse_min = [mse_tele]
 
 function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join(["ρ=",ρ_list[set]]),line=:dash)
+    plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix[:,set],digits=4)]),line=:dash)
 end
 plot_distribution(1)
 
@@ -190,7 +200,13 @@ function plot_channel(i)
 end
 plot_channel(1)
 
-for i = 1:5
+for i = 1:10
     p = plot_channel(i)
     savefig(p,"Topology/topo_results/fig_$i.svg")
 end
+
+
+a = 0.0282
+b = 3.46
+sum([a*(b/(1+b))^i/(1+b) for i=1:30])
+
