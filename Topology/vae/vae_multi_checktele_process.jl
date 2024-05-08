@@ -11,7 +11,7 @@ workers()
 @everywhere include("../../utils.jl")
 
 # tele params and check_sol
-@everywhere version = 2
+@everywhere version = 1
 @everywhere ps_matrix_tele = readdlm("Topology/tele/data/ps_telev$version.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
@@ -22,7 +22,7 @@ workers()
 check_sol = readdlm("Topology/tele/data/matrix_telev$version.csv")
 
 # bd params and train_sol
-@everywhere ps_matrix_bd = vec(readdlm("Topology/ps_bdv2.csv"))
+@everywhere ps_matrix_bd = vec(readdlm("Topology/ps_bdv1.csv"))
 @everywhere ρ_list = ps_matrix_bd
 @everywhere batchsize_bd = length(ρ_list)
 train_sol = hcat([birth_death(N, ρ_list[i], τ) for i = 1:length(ρ_list)]...)
@@ -150,7 +150,7 @@ for lr in lr_list
 
         if mse_tele<mse_min[1]
             df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-            CSV.write("Topology/vae/params_trained_vae_tele.csv",df)
+            CSV.write("Topology/vae/params_trained_vae_tele_better.csv",df)
             mse_min[1] = mse_tele
         end
         print("mse_bd:",mse_bd,"\n")
@@ -158,14 +158,14 @@ for lr in lr_list
     end
 
     using CSV,DataFrames
-    df = CSV.read("Topology/vae/params_trained_vae_tele.csv",DataFrame)
+    df = CSV.read("Topology/vae/params_trained_vae_tele_better.csv",DataFrame)
     params1 = df.params1[1:length(params1)]
     params2 = df.params2[1:length(params2)]
     ps = Flux.params(params1,params2);
 end
 
 using CSV,DataFrames
-df = CSV.read("Topology/vae/params_trained_vae_tele.csv",DataFrame)
+df = CSV.read("Topology/vae/params_trained_vae_tele_better.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
