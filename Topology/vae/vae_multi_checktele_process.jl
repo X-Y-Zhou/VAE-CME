@@ -10,8 +10,11 @@ workers()
 
 @everywhere include("../../utils.jl")
 
+@everywhere τ = 40
+@everywhere N = 80
+
 # tele params and check_sol
-@everywhere version = 1
+@everywhere version = 2
 @everywhere ps_matrix_tele = readdlm("Topology/tele/data/ps_telev$version.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
@@ -26,9 +29,6 @@ check_sol = readdlm("Topology/tele/data/matrix_telev$version.csv")
 @everywhere ρ_list = ps_matrix_bd
 @everywhere batchsize_bd = length(ρ_list)
 train_sol = hcat([birth_death(N, ρ_list[i], τ) for i = 1:length(ρ_list)]...)
-
-@everywhere τ = 40
-@everywhere N = 80
 
 # model initialization
 @everywhere latent_size = 2;
@@ -181,7 +181,7 @@ mse_min = [mse_tele]
 
 function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix[:,set],digits=4)]),line=:dash)
+    plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
 plot_distribution(1)
 
