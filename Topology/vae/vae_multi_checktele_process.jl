@@ -14,7 +14,7 @@ workers()
 @everywhere N = 80
 
 # tele params and check_sol
-@everywhere version = 2
+@everywhere version = 4
 @everywhere ps_matrix_tele = readdlm("Topology/tele/data/ps_telev$version.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
@@ -180,10 +180,15 @@ mse_tele = Flux.mse(solution_tele,check_sol)
 mse_min = [mse_tele]
 
 function plot_distribution(set)
-    plot(0:N-1,solution_tele[:,set],linewidth = 3,label="NN-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
 plot_distribution(1)
+
+function plot_distribution(set)
+    plot(0:N-1,solution_bd[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bd[set],digits=3)]),line=:dash)
+end
 
 function plot_channel(i)
     p1 = plot_distribution(1+10*(i-1))
@@ -202,7 +207,7 @@ plot_channel(1)
 
 for i = 1:10
     p = plot_channel(i)
-    savefig(p,"Topology/topo_results/fig_$i.svg")
+    savefig(p,"Topology/train_results/fig_$i.svg")
 end
 
 

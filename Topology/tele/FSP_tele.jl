@@ -63,7 +63,7 @@ using LinearAlgebra, Distributions, DifferentialEquations
 τ = 40
 N = 80
 
-ps_list = readdlm("Topology/tele/data/ps_telev2.txt")
+ps_list = readdlm("Topology/tele/data/ps_telev4.txt")
 batchsize = size(ps_list,2)
 matrix_tele = zeros(N,batchsize)
 matrix_tele_p0 = zeros(N,batchsize)
@@ -119,7 +119,7 @@ end
 
 # writedlm("Topology/tele/data/matrix_telep0.csv",matrix_tele_p0)
 # writedlm("Topology/tele/data/matrix_telep1.csv",matrix_tele_p1)
-writedlm("Topology/tele/data/matrix_telev2.csv",matrix_tele)
+writedlm("Topology/tele/data/matrix_telev4.csv",matrix_tele)
 
 
 function plot_distribution(set)
