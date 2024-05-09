@@ -185,10 +185,10 @@ function plot_distribution(set)
 end
 plot_distribution(1)
 
-function plot_distribution(set)
-    plot(0:N-1,solution_bd[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bd[set],digits=3)]),line=:dash)
-end
+# function plot_distribution(set)
+#     plot(0:N-1,solution_bd[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+#     plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bd[set],digits=3)]),line=:dash)
+# end
 
 function plot_channel(i)
     p1 = plot_distribution(1+10*(i-1))
