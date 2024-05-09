@@ -9,3 +9,12 @@ N = 80
 matrix_bd = hcat([birth_death(N, ρ_list[i], τ) for i = 1:length(ρ_list)]...)
 writedlm("Topology/ps_bdv2.csv",ρ_list)
 
+# Topology/ps_bdv3.csv
+using Plots,Random,Distributions,DelimitedFiles
+seed = 1
+rng = Random.seed!(seed)
+ρ_list = rand(rng,Uniform(2.5,6),50)
+τ = 40
+N = 80
+matrix_bd = hcat([birth_death(N, ρ_list[i], τ) for i = 1:length(ρ_list)]...)
+writedlm("Topology/ps_bdv3.csv",ρ_list)
