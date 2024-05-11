@@ -8,7 +8,7 @@ rho_on_list =    [rand(rng,Uniform(0.1,1),50);]
 batchsize = length(rho_on_list)
 ps_list = [[sigma_on_list[i],sigma_off_list[i],rho_on_list[i]] for i=1:batchsize]
 ps_matrix = hcat([[sigma_on_list[i],sigma_off_list[i],rho_on_list[i]] for i=1:batchsize]...)
-writedlm("Topology/tele/data/ps_telev1.csv",ps_matrix)
+writedlm("Topology/tele/data/ps_telev1.txt",ps_matrix)
 
 τ = 40
 N = 80
