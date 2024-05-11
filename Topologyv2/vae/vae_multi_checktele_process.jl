@@ -33,7 +33,7 @@ train_sol = hcat([birth_death(N, ρ_list[i], τ) for i = 1:length(ρ_list)]...)
 # model initialization
 @everywhere latent_size = 2;
 @everywhere encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
-@everywhere decoder = Chain(Dense(latent_size, 10),Dense(10 , N-1),x -> 0.3.*x.+[i/τ  for i in 1:N-1],x ->relu.(x));
+@everywhere decoder = Chain(Dense(latent_size, 10),Dense(10 , N-1),x -> x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 
 @everywhere params1, re1 = Flux.destructure(encoder);
 @everywhere params2, re2 = Flux.destructure(decoder);
@@ -68,18 +68,29 @@ end
 mse_bd = Flux.mse(solution_bd,train_sol)
 
 @everywhere function f_tele!(x,p1,p2,ϵ,sigma_on,sigma_off,rho_on)
-    # NN1 = re(p)(x[1:N])
-    # NN2 = re(p)(x[N+1:2*N])
-
+    
     h = re1(p1)(x[1:N])
+    # h = re1(p1)(x[1:N])*sigma_off/(sigma_on+sigma_off)
+    # h = re1(p1)(x[1:N]*sigma_off/(sigma_on+sigma_off))
+
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
     NN1 = re2(p2)(z)
 
+    # NN1 = NN1*sigma_off/(sigma_on+sigma_off)
+    # NN1 = NN1*(sigma_on+sigma_off)/sigma_off
+
+
     h = re1(p1)(x[N+1:2*N])
+    # h = re1(p1)(x[N+1:2*N])*sigma_on/(sigma_on+sigma_off)
+    # h = re1(p1)(x[N+1:2*N]*sigma_on/(sigma_on+sigma_off))
+
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
     NN2 = re2(p2)(z)
+
+    # NN2 = NN2*sigma_on/(sigma_on+sigma_off)
+    # NN2 = NN2*(sigma_on+sigma_off)/sigma_on
 
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
@@ -129,14 +140,14 @@ mse_min = [mse_tele]
 
 # training
 lr_list = [0.002,0.001,0.0008,0.0006,0.0004,0.0002,0.0001]  #lr需要操作一下的
-lr_list = [0.001]
+lr_list = [0.002]
 lr_list = [0.01]
 mse_min
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 10
+    epochs = 50
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
@@ -190,8 +201,8 @@ end
 plot_distribution(1)
 
 # function plot_distribution(set)
-#     # plot(0:N-1,solution_bd[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-#     plot(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bd[set],digits=3)]),line=:dash)
+#     plot(0:N-1,solution_bd[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+#     plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bd[set],digits=3)]),line=:dash)
 # end
 
 function plot_channel(i)
