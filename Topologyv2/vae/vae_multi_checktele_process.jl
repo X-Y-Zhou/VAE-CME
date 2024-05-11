@@ -147,7 +147,7 @@ lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 50
+    epochs = 25
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
