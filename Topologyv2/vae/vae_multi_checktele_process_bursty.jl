@@ -1,7 +1,7 @@
 # 仅用bursty的数据进行外拓
 using Distributed,Pkg
-addprocs(3)
-# rmprocs(5)
+addprocs(1)
+rmprocs(5)
 nprocs()
 workers()
 
@@ -29,7 +29,9 @@ check_sol = readdlm("Topologyv2/tele/data/matrix_telev$version.csv")
 @everywhere ps_matrix_bursty = readdlm("Topologyv2/ps_burstyv1.csv")
 @everywhere ρ_list = ps_matrix_bursty
 @everywhere batchsize_bursty = size(ps_matrix_bursty,2)
-train_sol = hcat([bursty(N, a_list[i],b_list[i], τ) for i = 1:length(a_list)]...)
+@everywhere a_list = ps_matrix_bursty[1,:]
+@everywhere b_list = ps_matrix_bursty[2,:]
+train_sol = hcat([bursty(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
 
 
 # model initialization
@@ -42,7 +44,7 @@ train_sol = hcat([bursty(N, a_list[i],b_list[i], τ) for i = 1:length(a_list)]..
 @everywhere ps = Flux.params(params1,params2);
 
 # CME
-@everywhere function f1!(x,p1,p2,ϵ,ρ)
+@everywhere function f1!(x,p1,p2,ϵ,a,b)
     h = re1(p1)(x)
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
@@ -51,18 +53,18 @@ train_sol = hcat([bursty(N, a_list[i],b_list[i], τ) for i = 1:length(a_list)]..
             (a*b/(1+b)+NN[i-1])*x[i] + NN[i]*x[i+1] for i in 2:N-1],sum(x)-1)
 end
 
-@everywhere sol_bursty(p1,p2,ϵ,ρ,P0) = nlsolve(x->f1!(x,p1,p2,ϵ,ρ),P0).zero
+@everywhere sol_bursty(p1,p2,ϵ,a,b,P0) = nlsolve(x->f1!(x,p1,p2,ϵ,a,b),P0).zero
 
-@everywhere function solve_bursty(ρ,p1,p2,ϵ)
-    P_0_distribution = Poisson(ρ*τ)
+@everywhere function solve_bursty(a,b,p1,p2,ϵ)
+    P_0_distribution = NegativeBinomial(a*τ, 1/(1+b))
     P_0 = [pdf(P_0_distribution,i) for i=0:N-1]
-    solution = sol_bursty(p1,p2,ϵ,ρ,P_0)
+    solution = sol_bursty(p1,p2,ϵ,a,b,P_0)
     return solution
 end
 
 ϵ = zeros(latent_size)
 # @time solution_bursty = hcat([solve_bursty(ρ_list[i],params1,params2,ϵ) for i=1:batchsize]...)
-@time solution_bursty = hcat(pmap(i->solve_bursty(ρ_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
+@time solution_bursty = hcat(pmap(i->solve_bursty(a_list[i],b_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
 mse_bursty = Flux.mse(solution_bursty,train_sol)
 
 @everywhere function f_tele!(x,p1,p2,ϵ,sigma_on,sigma_off,rho_on)
@@ -117,7 +119,7 @@ end
 mse_tele = Flux.mse(solution_tele,check_sol)
 
 @everywhere function loss_func(p1,p2,ϵ)
-    sol_cme = hcat(pmap(i->solve_bursty(ρ_list[i],p1,p2,ϵ),1:batchsize_bursty)...);
+    sol_cme = hcat(pmap(i->solve_bursty(a_list[i],b_list[i],p1,p2,ϵ),1:batchsize_bursty)...);
     mse = Flux.mse(sol_cme,train_sol)
     print("mse:",mse,"\n")
 
@@ -131,10 +133,12 @@ mse_tele = Flux.mse(solution_tele,check_sol)
     return loss
 end
 
-λ = 1e8
+λ = 1e7
 @time loss_bursty = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 mse_min = [mse_tele]
+
+# 3 proce 22s
 
 # training
 lr_list = [0.002,0.001,0.0008,0.0006,0.0004,0.0002,0.0001]  #lr需要操作一下的
@@ -155,7 +159,7 @@ for lr in lr_list
         Flux.update!(opt, ps, grads)
 
         ϵ = zeros(latent_size)
-        solution_bursty = hcat(pmap(i->solve_bursty(ρ_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
+        solution_bursty = hcat(pmap(i->solve_bursty(a_list[i],b_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
         mse_bursty = Flux.mse(solution_bursty,train_sol)
 
         solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:batchsize_tele)...);
@@ -163,7 +167,7 @@ for lr in lr_list
 
         if mse_tele<mse_min[1]
             df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-            CSV.write("Topologyv2/vae/params_trained_vae_tele.csv",df)
+            CSV.write("Topologyv2/vae/params_trained_vae_tele_bursty.csv",df)
             mse_min[1] = mse_tele
         end
         print("mse_bursty:",mse_bursty,"\n")
@@ -171,21 +175,21 @@ for lr in lr_list
     end
 
     using CSV,DataFrames
-    df = CSV.read("Topologyv2/vae/params_trained_vae_tele.csv",DataFrame)
+    df = CSV.read("Topologyv2/vae/params_trained_vae_tele_bursty.csv",DataFrame)
     params1 = df.params1[1:length(params1)]
     params2 = df.params2[1:length(params2)]
     ps = Flux.params(params1,params2);
 end
 
 using CSV,DataFrames
-df = CSV.read("Topologyv2/vae/params_trained_vae_tele.csv",DataFrame)
+df = CSV.read("Topologyv2/vae/params_trained_vae_tele_bursty.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
 # end
 
 ϵ = zeros(latent_size)
-@time solution_bursty = hcat(pmap(i->solve_bursty(ρ_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
+@time solution_bursty = hcat(pmap(i->solve_bursty(a_list[i],b_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
 mse_bursty = Flux.mse(solution_bursty,train_sol)
 
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:batchsize_tele)...);
@@ -200,7 +204,7 @@ plot_distribution(1)
 
 # function plot_distribution(set)
 #     plot(0:N-1,solution_bursty[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-#     plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bursty[set],digits=3)]),line=:dash)
+#     plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bursty[:,set],digits=3)]),line=:dash)
 # end
 
 function plot_channel(i)
@@ -216,12 +220,15 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(5)
+plot_channel(10)
 
 for i = 1:10
     p = plot_channel(i)
     savefig(p,"Topologyv2/topo_results/fig_$i.svg")
 end
 
+set = 90
+plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability",ylims=(-0.001,0.4))
+plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 
 
