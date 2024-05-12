@@ -133,7 +133,7 @@ mse_tele = Flux.mse(solution_tele,check_sol)
     return loss
 end
 
-λ = 1e7
+λ = 1e10
 @time loss_bursty = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 mse_min = [mse_tele]
@@ -149,7 +149,7 @@ lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 10
+    epochs = 50
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
@@ -167,7 +167,7 @@ for lr in lr_list
 
         if mse_tele<mse_min[1]
             df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-            CSV.write("Topologyv2/vae/params_trained_vae_tele_burstyv2.csv",df)
+            CSV.write("Topologyv2/vae/params_trained_vae_tele_burstyv3_better.csv",df)
             mse_min[1] = mse_tele
         end
         print("mse_bursty:",mse_bursty,"\n")
@@ -175,14 +175,14 @@ for lr in lr_list
     end
 
     using CSV,DataFrames
-    df = CSV.read("Topologyv2/vae/params_trained_vae_tele_burstyv2.csv",DataFrame)
+    df = CSV.read("Topologyv2/vae/params_trained_vae_tele_burstyv3_better.csv",DataFrame)
     params1 = df.params1[1:length(params1)]
     params2 = df.params2[1:length(params2)]
     ps = Flux.params(params1,params2);
 end
 
 using CSV,DataFrames
-df = CSV.read("Topologyv2/vae/params_trained_vae_tele_burstyv2.csv",DataFrame)
+df = CSV.read("Topologyv2/vae/params_trained_vae_tele_burstyv3_better.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
