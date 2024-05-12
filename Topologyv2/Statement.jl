@@ -1,3 +1,4 @@
+# 用bursty或者bd的数据外拓tele的数据，双峰+binomial的形状，用bursty的效果比较好
 # Topology/ps_bdv1.csv
 # seed = 2 --> v2
 using Plots,Random,Distributions,DelimitedFiles
