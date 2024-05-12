@@ -43,17 +43,17 @@ function tele_delay(N,sigma_on,sigma_off,rho_on,τ)
 end
 
 sigma_on = 0.8
-sigma_off = 0.8
-rho_on = 8
+sigma_off = 8
+rho_on = 30
 τ = 10
 N = 120
 
-set = 43
-sigma_on,sigma_off,rho_on = ps_list[set]
+# set = 43
+# sigma_on,sigma_off,rho_on = ps_list[set]
 p0p1 = tele_delay(N,sigma_on,sigma_off,rho_on,τ)[3]
 plot(0:N-1,p0p1,lw=3,title=join([round.([sigma_on,sigma_off,rho_on],digits=4)]))
 # plot(p0p1,lw=3,title=join([round.(ps_list[set],digits=4)]))
-plot(0:N-1,birth_death(N, rho_on, τ))
+# plot(0:N-1,birth_death(N, rho_on, τ))
 
 mean = P2mean(p0p1)
 var = P2var(p0p1)
@@ -74,7 +74,7 @@ using LinearAlgebra, Distributions, DifferentialEquations
 τ = 10
 N = 120
 
-ps_list = readdlm("Topologyv2/tele/data/ps_telev1.txt")
+ps_list = readdlm("Topologyv2/tele/data/ps_telev3.txt")
 batchsize = size(ps_list,2)
 matrix_tele = zeros(N,batchsize)
 matrix_tele_p0 = zeros(N,batchsize)
@@ -94,7 +94,7 @@ end
 
 # writedlm("Topology/tele/data/matrix_telep0.csv",matrix_tele_p0)
 # writedlm("Topology/tele/data/matrix_telep1.csv",matrix_tele_p1)
-writedlm("Topologyv2/tele/data/matrix_telev1.csv",matrix_tele)
+writedlm("Topologyv2/tele/data/matrix_telev3.csv",matrix_tele)
 
 
 function plot_distribution(set)
@@ -116,9 +116,9 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(6)
+plot_channel(5)
 
-for i = 1:10
+for i = 1:5
     p = plot_channel(i)
     savefig(p,"Topologyv2/tele/data/compare/fig_$i.svg")
 end

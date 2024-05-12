@@ -15,7 +15,7 @@ workers()
 @everywhere N = 120
 
 # tele params and check_sol
-@everywhere version = 1
+@everywhere version = 3
 @everywhere ps_matrix_tele = readdlm("Topologyv2/tele/data/ps_telev$version.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
@@ -133,10 +133,11 @@ mse_tele = Flux.mse(solution_tele,check_sol)
     return loss
 end
 
-λ = 1e7
+λ = 1e8
 @time loss_bursty = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
-mse_min = [mse_tele]
+# mse_min = [mse_tele]
+mse_min = [mse_bursty]
 
 # 3 proce 22s
 
@@ -146,6 +147,7 @@ lr_list = [0.002]
 lr_list = [0.01]
 mse_min
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.008,0.006]
 
 for lr in lr_list
     opt= ADAM(lr);
@@ -165,24 +167,24 @@ for lr in lr_list
         solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:batchsize_tele)...);
         mse_tele = Flux.mse(solution_tele,check_sol)
 
-        if mse_tele<mse_min[1]
+        if mse_bursty<mse_min[1]
             df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-            CSV.write("Topologyv2/vae/params_trained_vae_tele_bursty.csv",df)
-            mse_min[1] = mse_tele
+            CSV.write("Topologyv2/vae/params_trained_vae_tele_burstyv2.csv",df)
+            mse_min[1] = mse_bursty
         end
         print("mse_bursty:",mse_bursty,"\n")
         print("mse_tele:",mse_tele,"\n")
     end
 
     using CSV,DataFrames
-    df = CSV.read("Topologyv2/vae/params_trained_vae_tele_bursty.csv",DataFrame)
+    df = CSV.read("Topologyv2/vae/params_trained_vae_tele_burstyv2.csv",DataFrame)
     params1 = df.params1[1:length(params1)]
     params2 = df.params2[1:length(params2)]
     ps = Flux.params(params1,params2);
 end
 
 using CSV,DataFrames
-df = CSV.read("Topologyv2/vae/params_trained_vae_tele_bursty.csv",DataFrame)
+df = CSV.read("Topologyv2/vae/params_trained_vae_tele_burstyv3.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -194,13 +196,14 @@ mse_bursty = Flux.mse(solution_bursty,train_sol)
 
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:batchsize_tele)...);
 mse_tele = Flux.mse(solution_tele,check_sol)
-mse_min = [mse_tele]
+# mse_min = [mse_tele]
+mse_min = [mse_bursty]
 
 function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
-plot_distribution(1)
+plot_distribution(50)
 
 # function plot_distribution(set)
 #     plot(0:N-1,solution_bursty[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
@@ -220,9 +223,9 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(10)
+plot_channel(5)
 
-for i = 1:10
+for i = 1:5
     p = plot_channel(i)
     savefig(p,"Topologyv2/topo_results/fig_$i.svg")
 end
