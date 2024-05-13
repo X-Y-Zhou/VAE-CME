@@ -42,16 +42,19 @@ function tele_delay(N,sigma_on,sigma_off,rho_on,τ)
     return p_0,p_1,p0p1
 end
 
-sigma_on = 0.03
-sigma_off = 0.04
-rho_on = 2
-τ = exp(2)
+sigma_on = 0.3
+sigma_off = 5
+rho_on = 5
+τ = 100
 N = 120
 
 # set = 43
 # sigma_on,sigma_off,rho_on = ps_list[set]
 p0p1 = tele_delay(N,sigma_on,sigma_off,rho_on,τ)[3]
 plot(0:N-1,p0p1,lw=3,title=join([round.([sigma_on,sigma_off,rho_on],digits=4)]))
+
+
+
 # plot(p0p1,lw=3,title=join([round.(ps_list[set],digits=4)]))
 # plot(0:N-1,birth_death(N, rho_on, τ))
 
@@ -71,7 +74,7 @@ p_value*r_value/(1-p_value)^2
 using Plots,NLsolve
 using LinearAlgebra, Distributions, DifferentialEquations
 
-τ = exp(2.5)
+τ = 100
 N = 120
 
 ps_list = readdlm("Topologyv3/tele/data/ps_telev1.txt")
@@ -98,7 +101,7 @@ writedlm("Topologyv3/tele/data/matrix_telev3.csv",matrix_tele)
 
 
 function plot_distribution(set)
-    plot(0:N-1,matrix_tele[:,set],linewidth = 3,label="tele")
+    plot(0:N-1,matrix_tele[:,set],linewidth = 3,label="tele",title=round.(ps_list[:,set],digits=4))
     # plot!(0:N-1,matrix_degrade[:,1,1,set],linewidth = 3,label="degrade",line=:dash,title=round.(ps_list[set],digits=4))
 end
 plot_distribution(1)
@@ -118,7 +121,7 @@ function plot_channel(i)
 end
 plot_channel(5)
 
-for i = 1:10
+for i = 1:5
     p = plot_channel(i)
     savefig(p,"Topologyv3/tele/data/compare/fig_$i.svg")
 end
@@ -198,4 +201,10 @@ plot!(p0p1,lw=3,line=:dash)
 # plot(p0p1,lw=3,title=join([sigma_on," ",sigma_off," ",rho_on]))
 
 
+# set = 45
+# mean_value = P2mean(matrix_tele[:,set])
+# P_Poisson = pdf.(Poisson(P2mean(p0p1)),0:N-1)
+
+# plot(0:N-1,matrix_tele[:,set],linewidth = 3,label="tele",title=round.(ps_list[:,set],digits=4))
+# plot!(0:N-1,P_Poisson,lw=3,line=:dash)
 

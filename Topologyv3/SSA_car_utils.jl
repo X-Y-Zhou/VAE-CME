@@ -83,7 +83,16 @@ function car_event_bd(tmax,saveat,ρ,dist,L)
 end
 
 # SSA bursty
-# ρ 0 -> iN will trigger N => 0 after time τ 
+# ρ 0 -> iN will trigger N => 0 after time τ
+
+# function process_element(j)
+#     if j == 0
+#         0
+#     else
+#         sum(rand(Geometric(1 / (1 + β))) for _ = 1:j)
+#     end
+# end
+
 function car_event_bursty(tmax,saveat,α,β,dist,L)
     velo_list = []
     location_list = []
@@ -145,15 +154,19 @@ function car_event_bursty(tmax,saveat,α,β,dist,L)
 
     n_saveat_list = n_list[searchsortedlast.(Ref(t_list), saveat)]
 
-    # n_people_list=[]
-    # for j in n_saveat_list
-    #     if j==0
-    #         push!(n_people_list,0)
-    #     else
-    #         push!(n_people_list,sum([rand(Geometric(1/(1+β))) for i=1:j]))
-    #     end
-    # end
+    n_people_list=[]
+    for j in n_saveat_list
+        if j==0
+            push!(n_people_list,0)
+        else
+            push!(n_people_list,sum([rand(Geometric(1/(1+β))) for i=1:j]))
+        end
+    end
+    return n_people_list
+
+    # n_people_list = process_element.(n_saveat_list);
     # return n_people_list
+
     return n_saveat_list
 end
 
@@ -245,8 +258,40 @@ function car_event_tele(tmax,saveat,sigma_on,sigma_off,ρ,dist,L)
     return n_saveat_list
 end
 
+# exact solution of car event with Uniform distribution
+using SymPy,QuadGK
+function car_exact_bd(T1,T2,ρ,t,n_cars_max)
+    @variables x s
+    f(x) = x<T1 ? 0 : T1<x<T2 ? (x-T1)/(T2-T1) : 1
+    f_(x) = 1-f(x)
+    g0(x) = f_(t-x)
+    car_distribution_theory = zeros(n_cars_max)
+    car_distribution_theory[1] = exp(-ρ*quadgk(g0, 0, t, rtol=1e-3)[1])
+    for i = 2:n_cars_max
+        n = i-1
+        g(x) = exp(-ρ*(t-x))*(ρ*(t-x))^(n-1)*ρ*(1-f(t-x))*exp(-ρ*quadgk(g0, 0, x, rtol=1e-3)[1])/factorial(big(n-1))
+        car_distribution_theory[i] = quadgk(g, 0, t, rtol=1e-3)[1]
+    end
+    return car_distribution_theory
+end
 
+function car_exact_bursty(T1,T2,α,β,t,n_cars_max,n_people_max)
+    @variables x s
+    f(x) = x<T1 ? 0 : T1<x<T2 ? (x-T1)/(T2-T1) : 1
+    f_(x) = 1-f(x)
+    g0(x) = f_(t-x)
+    car_distribution_theory = zeros(n_cars_max)
+    car_distribution_theory[1] = exp(-α*quadgk(g0, 0, t, rtol=1e-3)[1])
+    for i = 2:n_cars_max
+        n = i-1
+        g(x) = exp(-α*(t-x))*(α*(t-x))^(n-1)*α*(1-f(t-x))*exp(-α*quadgk(g0, 0, x, rtol=1e-3)[1])/factorial(big(n-1))
+        car_distribution_theory[i] = quadgk(g, 0, t, rtol=1e-3)[1]
+    end
 
+    people_distribution_theory = [sum([pdf(NegativeBinomial(k, 1/(1+β)),n)*car_distribution_theory[k+1] for k=1:n_cars_max-1]) for n=0:n_people_max-1]
+    people_distribution_theory[1]=sum([pdf(NegativeBinomial(k, 1/(1+β)),0)*car_distribution_theory[k+1] for k=1:n_cars_max-1])+car_distribution_theory[1]
+    return people_distribution_theory
+end
 
 
 

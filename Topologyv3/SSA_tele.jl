@@ -1,24 +1,22 @@
 include("../utils.jl")
 include("SSA_car_utils.jl")
 
-# tele
-# μ = 0
-# σ = sqrt(2)
-# dist = LogNormal(μ,σ)
-# mean(dist)
+ps_matrix = readdlm("Topologyv3/tele/data/ps_telev1.txt")
+batchsize = size(ps_matrix,2)
 
-dist = Uniform(0,20)
-dist = 10
+# tele
+dist = Uniform(0,200)
+
 # sigma_on,sigma_off,ρ = ps_list[20]
 # sigma_on = 0.003
 # sigma_off = 0.004
 # ρ = 3
 
-sigma_on,sigma_off,ρ = [0.0037389896785794694,0.0036070583793114874,4.059660383260196]
+sigma_on,sigma_off,ρ = ps_matrix[:,26]
 
 L = 200
-tmax = 100.
-N = 80
+tmax = 300.
+N = 120
 
 saveat = 0:tmax
 trajectories = 10000

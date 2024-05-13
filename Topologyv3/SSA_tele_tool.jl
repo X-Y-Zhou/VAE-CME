@@ -12,19 +12,19 @@ jumpsys = convert(JumpSystem, rn; combinatoric_ratelaws=false)
 
 u0 = [1, 0, 0]
 de_chan0 = [[]]
-tf = 100.
+tf = 1000.
 tspan = (0, tf)
 
 # p_list = [[4,5,5]]
 
 # for p in p_list
-p = [0.3,0.4,2]
+p = [0.0037389896785794694,0.0036070583793114874,0.4059660383260196]
 print(p,"\n")
 # p = [0.08, 1., 2.3]
 dprob = DiscreteProblem(u0, tspan, p)
 
 delay_trigger_affect! = function (integrator, rng)
-    τ = 10
+    τ = 100
     append!(integrator.de_chan[1], τ)
 end
 delay_trigger = Dict(3 => delay_trigger_affect!)
