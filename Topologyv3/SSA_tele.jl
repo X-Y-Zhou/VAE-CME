@@ -2,26 +2,31 @@ include("../utils.jl")
 include("SSA_car_utils.jl")
 
 # tele
-μ = 0
-σ = sqrt(4)
-dist = LogNormal(μ,σ)
-mean(dist)
+# μ = 0
+# σ = sqrt(2)
+# dist = LogNormal(μ,σ)
+# mean(dist)
 
-sigma_on,sigma_off,ρ = ps_list[:,20]
+dist = Uniform(0,20)
+dist = 10
+# sigma_on,sigma_off,ρ = ps_list[20]
 # sigma_on = 0.003
 # sigma_off = 0.004
 # ρ = 3
 
+sigma_on,sigma_off,ρ = [0.0037389896785794694,0.0036070583793114874,4.059660383260196]
+
 L = 200
-tmax = 1000.
-N = 50
+tmax = 100.
+N = 80
 
 saveat = 0:tmax
 trajectories = 10000
 n_timepoints = zeros(trajectories,length(saveat))
+# @time car_event_tele(tmax,saveat,sigma_on,sigma_off,ρ,dist,L)
 
 @time for i =1:trajectories
-    if i/1000 in [j for j=1.:trajectories/1000.]
+    if i/100 in [j for j=1.:trajectories/100.]
         print(i,"\n")
     end
 

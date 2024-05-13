@@ -145,15 +145,16 @@ function car_event_bursty(tmax,saveat,α,β,dist,L)
 
     n_saveat_list = n_list[searchsortedlast.(Ref(t_list), saveat)]
 
-    n_people_list=[]
-    for j in n_saveat_list
-        if j==0
-            push!(n_people_list,0)
-        else
-            push!(n_people_list,sum([rand(Geometric(1/(1+β))) for i=1:j]))
-        end
-    end
-    return n_people_list
+    # n_people_list=[]
+    # for j in n_saveat_list
+    #     if j==0
+    #         push!(n_people_list,0)
+    #     else
+    #         push!(n_people_list,sum([rand(Geometric(1/(1+β))) for i=1:j]))
+    #     end
+    # end
+    # return n_people_list
+    return n_saveat_list
 end
 
 # SSA tele 
