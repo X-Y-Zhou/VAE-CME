@@ -5,13 +5,13 @@ seed = 1
 rng = Random.seed!(seed)
 sigma_on_list =  [rand(rng,Uniform(0.002,0.005),10);rand(rng,Uniform(0.002,0.005),10);
                   rand(rng,Uniform(0.01,0.05),10);
-                  rand(rng,Uniform(0.2,0.6),10);rand(rng,Uniform(0.6,1),10);]
+                  rand(rng,Uniform(0.1,0.5),10);rand(rng,Uniform(0.5,1),10);]
 sigma_off_list = [rand(rng,Uniform(0.002,0.005),10);rand(rng,Uniform(0.002,0.005),10);
                   rand(rng,Uniform(0.1,0.5),10);
-                  rand(rng,Uniform(2,5),10);rand(rng,Uniform(4,10),10);]
+                  rand(rng,Uniform(1,5),10);rand(rng,Uniform(4,8),10);]
 rho_on_list =    [rand(rng,Uniform(0.1,0.5),20);
                   rand(rng,Uniform(0.8,1.5),10);
-                  rand(rng,Uniform(2.5,5),20);]
+                  rand(rng,Uniform(1,5),20);]
 τ = 100
 N = 120
 batchsize = length(rho_on_list)
