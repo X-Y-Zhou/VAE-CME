@@ -25,7 +25,7 @@ workers()
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
 check_sol1 = readdlm("Topologyv3/tele/data/matrix_tele_100-100.csv") # var = 0 Attribute = 0
 check_sol2 = readdlm("Topologyv3/tele/data/matrix_tele_0-200.csv") # var = max Attribute = 1
-# check_sol3 = readdlm("Topologyv3/tele/data/matrix_tele_50-150.csv") # Attribute = 0.5
+check_sol3 = readdlm("Topologyv3/tele/data/matrix_tele_50-150.csv") # Attribute = 0.5
 
 
 # bursty params and train_sol
@@ -96,16 +96,28 @@ mse_bursty2 = Flux.mse(solution_bursty2,train_sol2)
 
 @everywhere function f_tele!(x,p1,p2,ϵ,sigma_on,sigma_off,rho_on,Attribute)
     h = re1(p1)(x[1:N])
+    # h = re1(p1)(x[1:N])*sigma_off/(sigma_on+sigma_off)
+    # h = re1(p1)(x[1:N]*sigma_off/(sigma_on+sigma_off))
+
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
     z = vcat(z,Attribute)
     NN1 = re2_1(p2)(z)
 
+    # NN1 = NN1*sigma_off/(sigma_on+sigma_off)
+    # NN1 = NN1*(sigma_on+sigma_off)/sigma_off
+
     h = re1(p1)(x[N+1:2*N])
+    # h = re1(p1)(x[N+1:2*N])*sigma_on/(sigma_on+sigma_off)
+    # h = re1(p1)(x[N+1:2*N]*sigma_on/(sigma_on+sigma_off))
+    
     μ, logσ = split_encoder_result(h, latent_size)
     z = reparameterize.(μ, logσ, ϵ)
     z = vcat(z,Attribute)
     NN2 = re2_1(p2)(z)
+    
+    # NN2 = NN2*sigma_on/(sigma_on+sigma_off)
+    # NN2 = NN2*(sigma_on+sigma_off)/sigma_on
 
     return vcat((-sigma_on-rho_off)*x[1] + (-gamma+NN1[1])*x[2] + sigma_off*x[N+1],
                 [rho_off*x[i-1] + (-sigma_on-rho_off+(i-1)*gamma-NN1[i-1])*x[i] + (-i*gamma+NN1[i])*x[i+1] + sigma_off*x[i+N] for i in 2:N-1],
@@ -133,6 +145,11 @@ end
 Attrtibute = 0
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
 mse_tele = Flux.mse(solution_tele,check_sol1)
+
+Attrtibute = 1
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+mse_tele = Flux.mse(solution_tele,check_sol2)
+
 
 @everywhere function loss_func1(p1,p2,ϵ)
     sol_cme = hcat(pmap(i->solve_bursty1(a_list[i],b_list[i],p1,p2,ϵ),1:batchsize_bursty)...);
@@ -237,18 +254,26 @@ mse_bursty2 = Flux.mse(solution_bursty2,train_sol2)
 mse_bursty = mse_bursty1 + mse_bursty2
 mse_min = [mse_bursty]
 
+Attrtibute = 0
+check_sol = check_sol1
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+mse_tele = Flux.mse(solution_tele,check_sol)
+
 Attrtibute = 1
 check_sol = check_sol2
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-mse_tele = Flux.mse(solution_tele[:,1:40],check_sol[:,1:40])
-# mse_min = [mse_tele]
-# mse_min = [mse_bursty]
+mse_tele = Flux.mse(solution_tele,check_sol)
+
+Attrtibute = 0.5
+check_sol = check_sol3
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+mse_tele = Flux.mse(solution_tele,check_sol)
 
 function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4),Attrtibute]),line=:dash)
 end
-plot_distribution(1)
+plot_distribution(10)
 
 # function plot_distribution(set)
 #     plot(0:N-1,solution_bursty1[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
@@ -280,3 +305,7 @@ plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of pro
 plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 
 
+Attrtibute = 0
+check_sol = check_sol1
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+mse_tele = Flux.mse(solution_tele,check_sol)

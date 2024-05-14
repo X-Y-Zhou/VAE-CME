@@ -293,9 +293,50 @@ end
 #     return people_distribution_theory
 # end
 
+# T1 = 20
+# T2 = 120
+# dist_temp = Uniform(T1,T2)
+# f(x) = x<T1 ? 0 : T1<=x<=T2 ? (x-T1)/(T2-T1) : 1
+# g(x) = cdf(dist_temp,x)
 
 
+# x0 = 0:200
+# fx = f.(x0)
+# gx = g.(x0)
 
+# Flux.mse(fx,gx)
 
+# exact solution of car event with any distribution
+using QuadGK,Symbolics
+function car_exact_bd(dist,ρ,t,n_cars_max)
+    @variables x s
+    f(x) = cdf(dist,x)
+    f_(x) = 1-f(x)
+    g0(x) = f_(t-x)
+    car_distribution_theory = zeros(n_cars_max)
+    car_distribution_theory[1] = exp(-ρ*quadgk(g0, 0, t, rtol=1e-3)[1])
+    for i = 2:n_cars_max
+        n = i-1
+        g(x) = exp(-ρ*(t-x))*(ρ*(t-x))^(n-1)*ρ*(1-f(t-x))*exp(-ρ*quadgk(g0, 0, x, rtol=1e-3)[1])/factorial(big(n-1))
+        car_distribution_theory[i] = quadgk(g, 0, t, rtol=1e-3)[1]
+    end
+    return car_distribution_theory
+end
 
+function car_exact_bursty(dist,α,β,t,n_cars_max,n_people_max)
+    @variables x s
+    f(x) = cdf(dist,x)
+    f_(x) = 1-f(x)
+    g0(x) = f_(t-x)
+    car_distribution_theory = zeros(n_cars_max)
+    car_distribution_theory[1] = exp(-α*quadgk(g0, 0, t, rtol=1e-3)[1])
+    for i = 2:n_cars_max
+        n = i-1
+        g(x) = exp(-α*(t-x))*(α*(t-x))^(n-1)*α*(1-f(t-x))*exp(-α*quadgk(g0, 0, x, rtol=1e-3)[1])/factorial(big(n-1))
+        car_distribution_theory[i] = quadgk(g, 0, t, rtol=1e-3)[1]
+    end
 
+    people_distribution_theory = [sum([pdf(NegativeBinomial(k, 1/(1+β)),n)*car_distribution_theory[k+1] for k=1:n_cars_max-1]) for n=0:n_people_max-1]
+    people_distribution_theory[1]=sum([pdf(NegativeBinomial(k, 1/(1+β)),0)*car_distribution_theory[k+1] for k=1:n_cars_max-1])+car_distribution_theory[1]
+    return people_distribution_theory
+end
