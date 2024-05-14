@@ -97,7 +97,7 @@ end
 
 # writedlm("Topology/tele/data/matrix_telep0.csv",matrix_tele_p0)
 # writedlm("Topology/tele/data/matrix_telep1.csv",matrix_tele_p1)
-writedlm("Topologyv3/tele/data/matrix_telev3.csv",matrix_tele)
+writedlm("Topologyv3/tele/data/matrix_tele_100-100.csv",matrix_tele)
 
 
 function plot_distribution(set)

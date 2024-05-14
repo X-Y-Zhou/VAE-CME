@@ -15,7 +15,7 @@ workers()
 @everywhere N = 120
 
 # tele params and check_sol
-@everywhere version = 3
+@everywhere version = 1
 @everywhere ps_matrix_tele = readdlm("Topologyv2/tele/data/ps_telev$version.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
@@ -31,7 +31,7 @@ check_sol = readdlm("Topologyv2/tele/data/matrix_telev$version.csv")
 @everywhere batchsize_bursty = size(ps_matrix_bursty,2)
 @everywhere a_list = ps_matrix_bursty[1,:]
 @everywhere b_list = ps_matrix_bursty[2,:]
-train_sol = hcat([bursty(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
+train_sol = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
 
 
 # model initialization
@@ -203,7 +203,7 @@ function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
-plot_distribution(50)
+plot_distribution(1)
 
 # function plot_distribution(set)
 #     plot(0:N-1,solution_bursty[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
