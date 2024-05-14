@@ -1,6 +1,6 @@
 # 仅用bursty的数据进行外拓
 using Distributed,Pkg
-addprocs(2)
+addprocs(3)
 # rmprocs(5)
 nprocs()
 workers()
@@ -27,7 +27,6 @@ workers()
 
 # bursty params and train_sol
 @everywhere ps_matrix_bursty = readdlm("Topologyv3/ps_burstyv1.csv")
-@everywhere ρ_list = ps_matrix_bursty
 @everywhere batchsize_bursty = size(ps_matrix_bursty,2)
 @everywhere a_list = ps_matrix_bursty[1,:]
 @everywhere b_list = ps_matrix_bursty[2,:]
@@ -38,7 +37,7 @@ train_sol2 = readdlm("Topologyv3/bursty_data/matrix_bursty_0-200.csv") # var = m
 # model initialization
 @everywhere latent_size = 2;
 @everywhere encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
-@everywhere decoder_1 = Chain(Dense(latent_size+1, 10),Dense(10 , N-1),x -> x.+[i/τ  for i in 1:N-1],x ->relu.(x));
+@everywhere decoder_1 = Chain(Dense(latent_size+1, 10),Dense(10 , N-1),x -> 0.03.* x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 @everywhere decoder_2 = Chain(decoder_1[1],decoder_1[2],decoder_1[3],decoder_1[4]);
 
 @everywhere params1, re1 = Flux.destructure(encoder);
@@ -177,23 +176,19 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 1e6
-λ2 = 1e3
+λ1 = 5e7
+λ2 = 5e7
 @time loss_bursty = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 # mse_min = [mse_tele]
 mse_bursty = mse_bursty1 + mse_bursty2
 mse_min = [mse_bursty]
 
-# 3 proce 22s
-
 # training
-lr_list = [0.002,0.001,0.0008,0.0006,0.0004,0.0002,0.0001]  #lr需要操作一下的
-lr_list = [0.002]
-lr_list = [0.01]
 mse_min
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
-lr_list = [0.008,0.006]
+lr_list = [0.01,0.008]
+lr_list = [0.01]
 
 for lr in lr_list
     opt= ADAM(lr);
@@ -222,7 +217,8 @@ for lr in lr_list
             CSV.write("Topologyv3/vae/params_trained_vae_tele_bursty.csv",df)
             mse_min[1] = mse_bursty
         end
-        print("mse_bursty:",mse_bursty,"\n")
+        print("mse_bursty1:",mse_bursty1,"\n")
+        print("mse_bursty2:",mse_bursty2,"\n")
         # print("mse_tele:",mse_tele,"\n")
     end
 
@@ -241,8 +237,12 @@ ps = Flux.params(params1,params2);
 # end
 
 ϵ = zeros(latent_size)
-@time solution_bursty = hcat(pmap(i->solve_bursty(a_list[i],b_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
-mse_bursty = Flux.mse(solution_bursty,train_sol)
+@time solution_bursty1 = hcat(pmap(i->solve_bursty1(a_list[i],b_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
+@time solution_bursty2 = hcat(pmap(i->solve_bursty2(a_list[i],b_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
+mse_bursty1 = Flux.mse(solution_bursty1,train_sol1)
+mse_bursty2 = Flux.mse(solution_bursty2,train_sol2)
+mse_bursty = mse_bursty1 + mse_bursty2
+mse_min = [mse_bursty]
 
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ),1:batchsize_tele)...);
 mse_tele = Flux.mse(solution_tele,check_sol)
