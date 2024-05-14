@@ -43,8 +43,8 @@ function tele_delay(N,sigma_on,sigma_off,rho_on,τ)
 end
 
 sigma_on = 0.3
-sigma_off = 5
-rho_on = 5
+sigma_off = 4
+rho_on = 4
 τ = 100
 N = 120
 
