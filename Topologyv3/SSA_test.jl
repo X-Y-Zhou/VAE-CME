@@ -3,7 +3,9 @@ include("SSA_car_utils.jl")
 
 # bd
 ρ = 0.1
-dist = Uniform(0,200)
+# dist = Uniform(0,200)
+# dist = Uniform(50,150)
+dist = LogNormal(1,sqrt(2))
 L = 200
 tmax = 600.
 N = 30
@@ -24,17 +26,18 @@ end
 mean_value = [mean(n_timepoints[:,i]) for i=1:length(saveat)]
 plot(saveat,mean_value,lw=3,xlabel="t",ylabel="mean",label="SSA_test")
 
-t = 600
+t = 1000
 SSA_distriburion = convert_histo(n_timepoints[:,t+1])
 plot(SSA_distriburion,label="SSA Uniform(0,200)",lw=3)
 
-P_exact = car_exact_bd(T1,T2,ρ,t,N)
+P_exact = car_exact_bd(dist,ρ,t,N)
 plot!(0:N-1,P_exact,lw=3,line=:dash,label="exact")
 
 # bursty
-α = 0.0979
+α = 0.8
 β = 4.476
-dist = Uniform(0,200)
+# dist = Uniform(0,200)
+dist = LogNormal(1,sqrt(2))
 L = 200
 tmax = 600.
 N = 120
@@ -59,10 +62,26 @@ t = 600
 SSA_distriburion = convert_histo(n_timepoints[:,t+1])
 plot(SSA_distriburion,label="SSA_test",lw=3)
 
-P_exact = car_exact_bursty(T1,T2,α,β,t,30,N)
-plot!(0:N-1,P_exact,lw=3,line=:dash)
+t = 5000
+dist = LogNormal(0,sqrt(3))
+dist = LogNormal(0.5,sqrt(2))
+dist = LogNormal(1,sqrt(1))
+# dist = LogNormal(1.5,sqrt(0))
+
+N = 120
+P_exact = car_exact_bursty(dist,α,β,t,50,N)
+plot(0:N-1,P_exact,lw=3,line=:dash)
+
+α = 0.5
+β = 10
+exp(1.5)
+
+P_exact = bursty_delay(N,α,β,mean(dist))
+plot(0:N-1,P_exact,lw=3,line=:dash)
 
 # plot!(0:N-1,bursty_delay(N,α,β,mean(dist)),lw=3,line=:dash,label="Uniform(100,100)")
+
+plot(0:0.01:10,cdf.(dist,0:0.01:10))
 
 # tele
 sigma_on = 0.3

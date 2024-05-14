@@ -18,7 +18,7 @@ function tele_delay(N,sigma_on,sigma_off,rho_on,τ)
     u0[N+1] = 1.
     tspan = (0.0, τ)
     prob1 = ODEProblem(CME_ba, u0, tspan)
-    sol1 = solve(prob1, Tsit5(), saveat=0.01)
+    sol1 = solve(prob1, Tsit5(), saveat=1)
 
     P0ba = sol1.u[end][1:N]
     P1ba = sol1.u[end][N+1:2*N]
@@ -42,19 +42,16 @@ function tele_delay(N,sigma_on,sigma_off,rho_on,τ)
     return p_0,p_1,p0p1
 end
 
-sigma_on = 0.3
-sigma_off = 4
-rho_on = 4
-τ = 100
+sigma_on = 0.8
+sigma_off = 8
+rho_on = 30
+τ = 10
 N = 120
 
 # set = 43
 # sigma_on,sigma_off,rho_on = ps_list[set]
 p0p1 = tele_delay(N,sigma_on,sigma_off,rho_on,τ)[3]
 plot(0:N-1,p0p1,lw=3,title=join([round.([sigma_on,sigma_off,rho_on],digits=4)]))
-
-
-
 # plot(p0p1,lw=3,title=join([round.(ps_list[set],digits=4)]))
 # plot(0:N-1,birth_death(N, rho_on, τ))
 
@@ -74,10 +71,10 @@ p_value*r_value/(1-p_value)^2
 using Plots,NLsolve
 using LinearAlgebra, Distributions, DifferentialEquations
 
-τ = 100
+τ = 10
 N = 120
 
-ps_list = readdlm("Topologyv3/tele/data/ps_telev1.txt")
+ps_list = readdlm("Topologyv4/tele/data/ps_telev2.txt")
 batchsize = size(ps_list,2)
 matrix_tele = zeros(N,batchsize)
 matrix_tele_p0 = zeros(N,batchsize)
@@ -97,14 +94,18 @@ end
 
 # writedlm("Topology/tele/data/matrix_telep0.csv",matrix_tele_p0)
 # writedlm("Topology/tele/data/matrix_telep1.csv",matrix_tele_p1)
-writedlm("Topologyv3/tele/data/matrix_tele_100-100.csv",matrix_tele)
+writedlm("Topologyv4/tele/data/matrix_telev2.csv",matrix_tele)
 
+ps_list = readdlm("Topologyv4/tele/data/ps_telev1.txt")
+matrix_tele = readdlm("Topologyv4/tele/data/matrix_telev1.csv")
+N = 120
+ps_list[:,20]
 
 function plot_distribution(set)
-    plot(0:N-1,matrix_tele[:,set],linewidth = 3,label="tele",title=round.(ps_list[:,set],digits=4))
+    plot(0:N-1,matrix_tele[:,set],linewidth = 3,label="tele")
     # plot!(0:N-1,matrix_degrade[:,1,1,set],linewidth = 3,label="degrade",line=:dash,title=round.(ps_list[set],digits=4))
 end
-plot_distribution(1)
+plot_distribution(10)
 
 function plot_channel(i)
     p1 = plot_distribution(1+10*(i-1))
@@ -119,11 +120,11 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(4)
+plot_channel(2)
 
 for i = 1:5
     p = plot_channel(i)
-    savefig(p,"Topologyv3/tele/data/compare/fig_$i.svg")
+    savefig(p,"Topologyv4/tele/data/compare/fig_$i.svg")
 end
 
 plot_channel(6)
@@ -201,10 +202,4 @@ plot!(p0p1,lw=3,line=:dash)
 # plot(p0p1,lw=3,title=join([sigma_on," ",sigma_off," ",rho_on]))
 
 
-# set = 45
-# mean_value = P2mean(matrix_tele[:,set])
-# P_Poisson = pdf.(Poisson(P2mean(p0p1)),0:N-1)
-
-# plot(0:N-1,matrix_tele[:,set],linewidth = 3,label="tele",title=round.(ps_list[:,set],digits=4))
-# plot!(0:N-1,P_Poisson,lw=3,line=:dash)
 
