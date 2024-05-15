@@ -1,17 +1,17 @@
-include("../utils.jl")
-include("../SSA_car_utils.jl")
+include("../../utils.jl")
+include("../../SSA_car_utils.jl")
 
 N = 150
-τ = 50
+τ = 10
 
 # Uniform(T1,T2)
-T1T2_list = [[0,100],[25,75],[50,50],]
+T1T2_list = [[0,20],[5,15]]
 
 # bursty
-for j = 1:3
+for j = 1:2
     T1 = T1T2_list[j][1]
     T2 = T1T2_list[j][2]
-    ps_matrix = readdlm("Topologyv5/ps_burstyv1.csv")
+    ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
     batchsize = size(ps_matrix,2)
     matrix_bursty = zeros(N,batchsize)
 
@@ -26,16 +26,22 @@ for j = 1:3
         matrix_bursty[:,i] = P_bursty
     end
 
-    writedlm("Topologyv5/bursty_data/matrix_bursty_$T1-$T2.csv",matrix_bursty)
+    writedlm("Topologyv6/bursty_data/matrix_bursty_$T1-$T2.csv",matrix_bursty)
 end
 
-ps_matrix = readdlm("Topologyv5/ps_burstyv1.csv")
+ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+batchsize_bursty = size(ps_matrix,2)
+matrix_bursty = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
+writedlm("Topologyv6/bursty_data/matrix_bursty_10-10.csv",matrix_bursty)
+
+
+
 
 matrix_bursty_list = []
-for j = 1:3
+for j = 1:2
     T1 = T1T2_list[j][1]
     T2 = T1T2_list[j][2]
-    matrix_bursty = readdlm("Topologyv5/bursty_data/matrix_bursty_$T1-$T2.csv")
+    matrix_bursty = readdlm("Topologyv6/bursty_data/matrix_bursty_$T1-$T2.csv")
     push!(matrix_bursty_list,matrix_bursty)
 end
 matrix_bursty_list
@@ -66,7 +72,7 @@ plot_channel(5)
 
 for i = 1:5
     p = plot_channel(i)
-    savefig(p,"Topologyv5/bursty_data/compare/fig_$i.svg")
+    savefig(p,"Topologyv6/bursty_data/compare/fig_$i.svg")
 end
 
 a_list = ps_matrix[1,:]

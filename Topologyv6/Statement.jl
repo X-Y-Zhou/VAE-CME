@@ -1,16 +1,17 @@
 # 用bursty的数据外拓tele双峰+binomial的数据
 # 其中τ均值不变，服从某个概率分布，用Attribute对方差进行调控，是否能外拓
-# τ 服从均值为50的均分分布
+# τ 服从均值为10的均分分布
 
+# Topology/ps_burstyv1.csv
 using Plots,Random,Distributions,DelimitedFiles
 seed = 1
 rng = Random.seed!(seed)
-a_list = [rand(rng,Uniform(0.03,0.06),25);rand(rng,Uniform(0.06,0.25),25);]
-b_list = [rand(rng,Uniform(1,3),25);rand(rng,Uniform(3,5),25)]
+a_list = [rand(rng,Uniform(0.1,0.5),25);rand(rng,Uniform(0.5,1),25);]
+b_list = [rand(rng,Uniform(1,3),25);rand(rng,Uniform(3,6),25)]
 ps_matrix = hcat([[a_list[i],b_list[i]] for i=1:length(a_list)]...)
-τ = 50
-N = 120
-writedlm("Topologyv5/ps_burstyv1.csv",ps_matrix)
+τ = 10
+N = 150
+writedlm("Topologyv6/ps_burstyv1.csv",ps_matrix)
 
 batchsize_bursty = size(ps_matrix,2)
 train_sol = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
@@ -18,6 +19,8 @@ train_sol = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_b
 function plot_distribution(set)
     plot(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix[:,set],digits=3)]))
 end
+
+plot_distribution(10)
 
 function plot_channel(i)
     p1 = plot_distribution(1+10*(i-1))
@@ -36,5 +39,5 @@ plot_channel(2)
 
 for i = 1:5
     p = plot_channel(i)
-    savefig(p,"Topologyv5/bursty_data/compare/fig_$i.svg")
+    savefig(p,"Topologyv6/bursty_data/compare/fig_$i.svg")
 end
