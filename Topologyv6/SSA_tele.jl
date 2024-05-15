@@ -45,18 +45,18 @@ ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 batchsize = size(ps_matrix,2)
 
 # tele
-
 T1T2_list = [[0,200],[50,150]]
 dist = Uniform(0,200)
 matrix_bursty = zeros(N,batchsize)
 
 # for i = 1:batchsize
-i = 38
+i = 21
 sigma_on,sigma_off,ρ = ps_matrix[:,i]
 L = 200
-tmax = 500.
-N = 120
-dist = Uniform(0,200)
+tmax = 100.
+N = 150
+dist = Uniform(0,20)
+# dist = 10
 
 saveat = 0:1:tmax
 trajectories = 1000
@@ -92,20 +92,25 @@ nprocs()
 workers()
 
 @everywhere include("../utils.jl")
-@everywhere include("SSA_car_utils.jl")
+@everywhere include("../SSA_car_utils.jl")
 
 @everywhere ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 @everywhere batchsize = size(ps_matrix,2)
 
 @everywhere L = 200
-@everywhere tmax = 500.
-@everywhere N = 120
+@everywhere N = 150
 @everywhere T1 = 0
-@everywhere T2 = 200
+@everywhere T2 = 20
 @everywhere dist = Uniform(T1,T2)
 # @everywhere dist = 100
 
 @everywhere function generate_SSA(set)
+    if set < 21
+        tmax = 500
+    else
+        tmax = 100
+    end
+
     sigma_on,sigma_off,ρ = ps_matrix[:,set]
     saveat = 0:1:tmax
     trajectories = 50000
