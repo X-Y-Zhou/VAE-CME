@@ -7,10 +7,10 @@ using Plots,Random,Distributions,DelimitedFiles
 seed = 1
 rng = Random.seed!(seed)
 a_list = [rand(rng,Uniform(0.1,0.5),25);rand(rng,Uniform(0.5,1),25);]
-b_list = [rand(rng,Uniform(1,3),25);rand(rng,Uniform(3,6),25)]
+b_list = [rand(rng,Uniform(1,3),25);rand(rng,Uniform(1.5,5),25)]
 ps_matrix = hcat([[a_list[i],b_list[i]] for i=1:length(a_list)]...)
 τ = 10
-N = 150
+N = 120
 writedlm("Topologyv6/ps_burstyv1.csv",ps_matrix)
 
 batchsize_bursty = size(ps_matrix,2)
@@ -35,7 +35,7 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(2)
+plot_channel(3)
 
 for i = 1:5
     p = plot_channel(i)

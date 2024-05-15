@@ -12,7 +12,7 @@ workers()
 @everywhere include("../../utils.jl")
 
 @everywhere τ = 10
-@everywhere N = 150
+@everywhere N = 120
 
 # tele params and check_sol
 @everywhere version = 1
@@ -38,8 +38,8 @@ train_sol2 = readdlm("Topologyv6/bursty_data/matrix_bursty_0-20.csv") # var = ma
 
 # model initialization
 @everywhere latent_size = 2;
-@everywhere encoder = Chain(Dense(N, 5,tanh),Dense(5, latent_size * 2));
-@everywhere decoder_1 = Chain(Dense(latent_size+1, 5),Dense(5 , N-1),x -> x.+[i/τ  for i in 1:N-1],x ->relu.(x));
+@everywhere encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
+@everywhere decoder_1 = Chain(Dense(latent_size+1, 10),Dense(10 , N-1),x -> x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 @everywhere decoder_2 = Chain(decoder_1[1],decoder_1[2],decoder_1[3],decoder_1[4]);
 
 @everywhere params1, re1 = Flux.destructure(encoder);

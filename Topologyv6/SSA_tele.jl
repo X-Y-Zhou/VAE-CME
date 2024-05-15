@@ -98,7 +98,7 @@ workers()
 @everywhere batchsize = size(ps_matrix,2)
 
 @everywhere L = 200
-@everywhere N = 150
+@everywhere N = 120
 @everywhere T1 = 0
 @everywhere T2 = 20
 @everywhere dist = Uniform(T1,T2)

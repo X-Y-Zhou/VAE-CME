@@ -72,7 +72,7 @@ using Plots,NLsolve
 using LinearAlgebra, Distributions, DifferentialEquations
 
 τ = 10
-N = 150
+N = 120
 
 ps_list = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 batchsize = size(ps_list,2)
