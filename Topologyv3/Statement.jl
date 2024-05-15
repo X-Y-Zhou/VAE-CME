@@ -21,7 +21,12 @@ function plot_distribution(set)
     plot(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix[:,set],digits=3)]))
 end
 
-function plot_channel(i)
+function plot_distribution(set)
+    plot(0:N-1,matrix_bursty[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix[:,set],digits=3)]))
+    plot!(0:N-1,matrix_bursty[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix[:,set],digits=3)]),line=:dash)
+end
+
+!function plot_channel(i)
     p1 = plot_distribution(1+10*(i-1))
     p2 = plot_distribution(2+10*(i-1))
     p3 = plot_distribution(3+10*(i-1))
@@ -34,7 +39,7 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(2)
+plot_channel(5)
 
 for i = 1:5
     p = plot_channel(i)

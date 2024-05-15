@@ -30,6 +30,27 @@ for j = 1:5
 end
 
 ps_matrix = readdlm("Topologyv3/ps_burstyv1.csv")
+batchsize_bursty = size(ps_matrix,2)
+a_list = ps_matrix[1,:]
+b_list = ps_matrix[2,:]
+matrix_bursty = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
+matrix_bursty_ori = readdlm("Topologyv3/bursty_data/matrix_bursty_100-100.csv")
+Flux.mse(matrix_bursty,matrix_bursty_ori)
+
+writedlm("Topologyv3/bursty_data/matrix_bursty_100-100v2.csv",matrix_bursty)
+
+ps_matrix_bursty = readdlm("Topologyv3/ps_burstyv1.csv")
+α,β = ps_matrix_bursty[:,50]
+T1 = 100
+T2 = 100
+t = 500
+n_cars_max = 30
+plot(bursty_delay(N,α,β,τ),lw=3)
+plot!(car_exact_bursty(T1,T2,α,β,100,n_cars_max,N),lw=3)
+plot!(car_exact_bursty(T1,T2,α,β,500,n_cars_max,N),lw=3)
+plot!(car_exact_bursty(T1,T2,α,β,1000,n_cars_max,N),lw=3)
+plot!(car_exact_bursty(T1,T2,α,β,2000,n_cars_max,N),lw=3)
+ps_matrix = readdlm("Topologyv3/ps_burstyv1.csv")
 
 matrix_bursty_list = []
 for j = 1:5

@@ -23,9 +23,8 @@ workers()
 @everywhere rho_off = 0.0
 @everywhere gamma= 0.0
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
-check_sol = readdlm("Topologyv6/tele/data/matrix_telev1.csv") # Attrtibute = 0
+check_sol = readdlm("Topologyv6/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
 # check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-200.csv") # Attrtibute = 1
-
 # check_sol3 = readdlm("Topologyv6/tele/data/matrix_tele_50-150.csv") # Attrtibute = 0.5
 
 # bursty params and train_sol
@@ -87,7 +86,6 @@ end
 end
 
 ϵ = zeros(latent_size)
-# @time solution_bursty = hcat([solve_bursty(ρ_list[i],params1,params2,ϵ) for i=1:batchsize]...)
 @time solution_bursty1 = hcat(pmap(i->solve_bursty1(a_list[i],b_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
 @time solution_bursty2 = hcat(pmap(i->solve_bursty2(a_list[i],b_list[i],params1,params2,ϵ),1:batchsize_bursty)...);
 mse_bursty1 = Flux.mse(solution_bursty1,train_sol1)
@@ -200,18 +198,18 @@ for lr in lr_list
         mse_bursty2 = Flux.mse(solution_bursty2,train_sol2)
         mse_bursty = mse_bursty1 + mse_bursty2
 
-        # Attrtibute = 0
-        # solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-        # mse_tele = Flux.mse(solution_tele,check_sol)
-        
         Attrtibute = 0
-        solution_tele1 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-        mse_tele1 = Flux.mse(solution_tele1,check_sol1)
+        solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+        mse_tele = Flux.mse(solution_tele,check_sol)
+        
+        # Attrtibute = 0
+        # solution_tele1 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+        # mse_tele1 = Flux.mse(solution_tele1,check_sol1)
 
-        Attrtibute = 1
-        solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-        mse_tele2 = Flux.mse(solution_tele2,check_sol2)
-        mse_tele = mse_tele1+mse_tele2
+        # Attrtibute = 1
+        # solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+        # mse_tele2 = Flux.mse(solution_tele2,check_sol2)
+        # mse_tele = mse_tele1+mse_tele2
 
         if mse_tele<mse_min[1]
             df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
@@ -247,16 +245,15 @@ mse_bursty = mse_bursty1 + mse_bursty2
 
 Attrtibute = 0
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-# check_sol = check_sol1
 mse_tele = Flux.mse(solution_tele,check_sol)
 
 
-Attrtibute = 1
-solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-mse_tele2 = Flux.mse(solution_tele2,check_sol2)
+# Attrtibute = 1
+# solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+# mse_tele2 = Flux.mse(solution_tele2,check_sol2)
 
-mse_tele = mse_tele1+mse_tele2
-mse_min = [mse_tele]
+# mse_tele = mse_tele1+mse_tele2
+# mse_min = [mse_tele]
 
 
 function plot_distribution(set)
@@ -278,8 +275,12 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(1)
+plot_channel(5)
 
+for i = 1:5
+    p = plot_channel(i)
+    savefig(p,"Topologyv6/topo_results/fig_$i.svg")
+end
 
 function plot_distribution(set)
     plot(0:N-1,solution_bursty1[:,set],linewidth = 3,label="100-100",xlabel = "# of products \n", ylabel = "\n Probability")

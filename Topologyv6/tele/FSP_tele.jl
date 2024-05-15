@@ -92,9 +92,10 @@ matrix_tele_p1 = zeros(N,batchsize)
     matrix_tele[:,i] = p0p1
 end
 
+matrix_tele
 # writedlm("Topology/tele/data/matrix_telep0.csv",matrix_tele_p0)
 # writedlm("Topology/tele/data/matrix_telep1.csv",matrix_tele_p1)
-writedlm("Topologyv6/tele/data/matrix_telev1.csv",matrix_tele)
+writedlm("Topologyv6/tele/data/matrix_tele_10-10.csv",matrix_tele)
 
 ps_list = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 matrix_tele = readdlm("Topologyv6/tele/data/matrix_telev1.csv")
@@ -120,7 +121,7 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(5)
+plot_channel(4)
 
 for i = 1:5
     p = plot_channel(i)

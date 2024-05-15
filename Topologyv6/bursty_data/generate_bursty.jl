@@ -30,11 +30,11 @@ for j = 1:2
 end
 
 ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+a_list = ps_matrix[1,:]
+b_list = ps_matrix[2,:]
 batchsize_bursty = size(ps_matrix,2)
 matrix_bursty = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
 writedlm("Topologyv6/bursty_data/matrix_bursty_10-10.csv",matrix_bursty)
-
-
 
 
 matrix_bursty_list = []
@@ -44,7 +44,8 @@ for j = 1:2
     matrix_bursty = readdlm("Topologyv6/bursty_data/matrix_bursty_$T1-$T2.csv")
     push!(matrix_bursty_list,matrix_bursty)
 end
-matrix_bursty_list
+matrix_bursty = readdlm("Topologyv6/bursty_data/matrix_bursty_10-10.csv")
+push!(matrix_bursty_list,matrix_bursty)
 
 function plot_distribution(set)
     plot(0:N-1,matrix_bursty_list[1][:,set],linewidth = 3,line=:dash,title=round.(ps_matrix[:,set],digits=4))
@@ -68,17 +69,9 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(5)
+plot_channel(3)
 
 for i = 1:5
     p = plot_channel(i)
     savefig(p,"Topologyv6/bursty_data/compare/fig_$i.svg")
 end
-
-a_list = ps_matrix[1,:]
-b_list = ps_matrix[2,:]
-batchsize_bursty = size(ps_matrix,2)
-train_sol = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
-
-using Flux
-Flux.mse(train_sol,matrix_bursty)
