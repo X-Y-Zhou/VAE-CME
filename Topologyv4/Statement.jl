@@ -1,0 +1,1 @@
+τ 服从Lognormal的情况
