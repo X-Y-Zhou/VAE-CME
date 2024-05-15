@@ -23,7 +23,10 @@ workers()
 @everywhere rho_off = 0.0
 @everywhere gamma= 0.0
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
-check_sol = readdlm("Topologyv3/tele/data/matrix_tele_100-100.csv")
+check_sol1 = readdlm("Topologyv3/tele/data/matrix_tele_100-100.csv") # Attrtibute = 0
+check_sol2 = readdlm("Topologyv3/tele/data/matrix_tele_0-200.csv") # Attrtibute = 1
+
+# check_sol3 = readdlm("Topologyv3/tele/data/matrix_tele_50-150.csv") # Attrtibute = 0.5
 
 # bursty params and train_sol
 @everywhere ps_matrix_bursty = readdlm("Topologyv3/ps_burstyv1.csv")
@@ -127,6 +130,7 @@ end
 
 Attrtibute = 0
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+checksol = check_sol1
 mse_tele = Flux.mse(solution_tele,check_sol)
 
 @everywhere function loss_func1(p1,p2,ϵ)
@@ -197,10 +201,19 @@ for lr in lr_list
         mse_bursty2 = Flux.mse(solution_bursty2,train_sol2)
         mse_bursty = mse_bursty1 + mse_bursty2
 
-        Attrtibute = 0
-        solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-        mse_tele = Flux.mse(solution_tele,check_sol)
+        # Attrtibute = 0
+        # solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+        # mse_tele = Flux.mse(solution_tele,check_sol)
         
+        Attrtibute = 0
+        solution_tele1 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+        mse_tele1 = Flux.mse(solution_tele1,check_sol1)
+
+        Attrtibute = 1
+        solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+        mse_tele2 = Flux.mse(solution_tele2,check_sol2)
+        mse_tele = mse_tele1+mse_tele2
+
         if mse_tele<mse_min[1]
             df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
             CSV.write("Topologyv3/vae/params_trained_vae_tele_bursty_better.csv",df)
@@ -234,8 +247,14 @@ mse_bursty = mse_bursty1 + mse_bursty2
 # mse_min = [mse_bursty]
 
 Attrtibute = 0
-solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-mse_tele = Flux.mse(solution_tele,check_sol)
+solution_tele1 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+mse_tele1 = Flux.mse(solution_tele1,check_sol1)
+
+Attrtibute = 1
+solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+mse_tele2 = Flux.mse(solution_tele2,check_sol2)
+
+mse_tele = mse_tele1+mse_tele2
 mse_min = [mse_tele]
 
 
@@ -243,12 +262,27 @@ function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
-plot_distribution(1)
+plot_distribution(30)
 
-# function plot_distribution(set)
-#     plot(0:N-1,solution_bursty[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-#     plot!(0:N-1,train_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bursty[:,set],digits=3)]),line=:dash)
-# end
+function plot_distribution(set)
+    plot(0:N-1,solution_bursty1[:,set],linewidth = 3,label="100-100",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol1[:,set],linewidth = 3,label="100-100exact",title=join([round.(ps_matrix_bursty[:,set],digits=3)]),line=:dash)
+    plot!(0:N-1,solution_bursty2[:,set],linewidth = 3,label="0-200",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol2[:,set],linewidth = 3,label="0-200exact",title=join([round.(ps_matrix_bursty[:,set],digits=3)]),line=:dash)
+end
+
+function plot_distribution(set)
+    plot(0:N-1,check_sol1[:,set],linewidth = 3,label="100-100",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol2[:,set],linewidth = 3,label="50-150",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="0-200",xlabel = "# of products \n", ylabel = "\n Probability")
+end
+plot_distribution(30)
+
+function plot_distribution(set)
+    plot(0:N-1,train_sol1[:,set],linewidth = 3,label="100-100",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol2[:,set],linewidth = 3,label="0-200",xlabel = "# of products \n", ylabel = "\n Probability")
+end
+plot_distribution(30)
 
 function plot_channel(i)
     p1 = plot_distribution(1+10*(i-1))
@@ -263,15 +297,35 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(1)
+plot_channel(4)
 
 for i = 1:4
     p = plot_channel(i)
     savefig(p,"Topologyv3/topo_results/fig_$i.svg")
 end
 
-set = 90
-plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability",ylims=(-0.001,0.4))
-plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+Attrtibute = 0
+solution_tele1 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
 
+Attrtibute = 0.5
+solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
 
+Attrtibute = 1
+solution_tele3 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+
+function plot_distribution(set)
+    plot(0:N-1,check_sol1[:,set],linewidth = 3,label="100-100",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol2[:,set],linewidth = 3,label="50-150",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="0-200",xlabel = "# of products \n", ylabel = "\n Probability")
+
+    plot!(0:N-1,solution_tele1[:,set],linewidth = 3,label="e100-100",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
+    plot!(0:N-1,solution_tele2[:,set],linewidth = 3,label="e50-150",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
+    plot!(0:N-1,solution_tele3[:,set],linewidth = 3,label="e0-200",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
+end
+plot_distribution(30)
+
+function plot_distribution(set)
+    plot(0:N-1,check_sol1[:,set],linewidth = 3,label="100-100",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol2[:,set],linewidth = 3,label="50-150",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="0-200",xlabel = "# of products \n", ylabel = "\n Probability")
+end

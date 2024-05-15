@@ -53,18 +53,19 @@ dist = Uniform(0,200)
 matrix_bursty = zeros(N,batchsize)
 
 # for i = 1:batchsize
-i = 3
+i = 38
 sigma_on,sigma_off,ρ = ps_matrix[:,i]
 L = 200
-tmax = 700.
+tmax = 500.
 N = 120
+dist = Uniform(0,200)
 
 saveat = 0:1:tmax
 trajectories = 1000
 n_timepoints = zeros(trajectories,length(saveat))
 
 @time for i =1:trajectories
-    if i/1000 in [j for j=1.:trajectories/1000.]
+    if i/100 in [j for j=1.:trajectories/100.]
         print(i,"\n")
     end
 
@@ -73,7 +74,12 @@ n_timepoints = zeros(trajectories,length(saveat))
 end
 
 t = Int(tmax+1)
-SSA_distriburion = convert_histo(n_timepoints[:,t])[2]
+SSA_distriburion = convert_histo(n_timepoints[:,t])
+plot(SSA_distriburion,label="SSA_test",lw=3)
+
+mean_value = [mean(n_timepoints[:,i]) for i=1:length(saveat)]
+plot(saveat,mean_value,lw=3,xlabel="t",ylabel="mean",label="SSA_test")
+
 
 if length(SSA_distriburion)<N
     matrix_bursty[1:length(SSA_distriburion),i] = SSA_distriburion
