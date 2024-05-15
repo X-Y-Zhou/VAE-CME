@@ -259,7 +259,7 @@ function car_event_tele(tmax,saveat,sigma_on,sigma_off,ρ,dist,L)
 end
 
 # exact solution of car event with Uniform distribution
-using SymPy,QuadGK,Symbolics
+using QuadGK,Symbolics
 function car_exact_bd(T1,T2,ρ,t,n_cars_max)
     @variables x s
     f(x) = x<T1 ? 0 : T1<x<T2 ? (x-T1)/(T2-T1) : 1
