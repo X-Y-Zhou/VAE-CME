@@ -94,7 +94,7 @@ workers()
 @everywhere include("../utils.jl")
 @everywhere include("../SSA_car_utils.jl")
 
-@everywhere ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
+@everywhere ps_matrix = readdlm("tele/data/ps_telev1.txt")
 @everywhere batchsize = size(ps_matrix,2)
 
 @everywhere L = 200
@@ -137,7 +137,7 @@ workers()
 end
 matrix_tele = hcat(pmap(set->generate_SSA(set),1:batchsize)...);
 
-writedlm("Topologyv6/tele/data/matrix_tele_$T1-$T2.csv",matrix_tele)
+writedlm("tele/data/matrix_tele_$T1-$T2.csv",matrix_tele)
 
 # P1 = generate_SSA(1)
 # P2 = generate_SSA(10)
