@@ -168,9 +168,9 @@ end
 λ2 = 5e7
 @time loss_bursty = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
-# mse_min = [mse_tele]
+mse_min = [mse_tele]
 mse_bursty = mse_bursty1 + mse_bursty2
-mse_min = [mse_bursty]
+# mse_min = [mse_bursty]
 
 # training
 mse_min
@@ -180,7 +180,7 @@ lr_list = [0.01]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 50
+    epochs = 20
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
@@ -208,7 +208,7 @@ for lr in lr_list
         end
         print("mse_bursty1:",mse_bursty1,"\n")
         print("mse_bursty2:",mse_bursty2,"\n")
-        # print("mse_tele:",mse_tele,"\n")
+        print("mse_tele:",mse_tele,"\n")
     end
 
     using CSV,DataFrames
@@ -231,7 +231,7 @@ ps = Flux.params(params1,params2);
 mse_bursty1 = Flux.mse(solution_bursty1,train_sol1)
 mse_bursty2 = Flux.mse(solution_bursty2,train_sol2)
 mse_bursty = mse_bursty1 + mse_bursty2
-mse_min = [mse_bursty]
+# mse_min = [mse_bursty]
 
 Attrtibute = 0
 solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
@@ -243,7 +243,7 @@ function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
-plot_distribution(50)
+plot_distribution(1)
 
 # function plot_distribution(set)
 #     plot(0:N-1,solution_bursty[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
@@ -263,9 +263,9 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(5)
+plot_channel(1)
 
-for i = 1:5
+for i = 1:4
     p = plot_channel(i)
     savefig(p,"Topologyv3/topo_results/fig_$i.svg")
 end
