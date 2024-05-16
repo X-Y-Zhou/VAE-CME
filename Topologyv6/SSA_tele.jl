@@ -45,25 +45,26 @@ ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 batchsize = size(ps_matrix,2)
 
 # tele
+N = 120
 T1T2_list = [[0,200],[50,150]]
 dist = Uniform(0,200)
 matrix_bursty = zeros(N,batchsize)
 
 # for i = 1:batchsize
-i = 21
+i = 30
 sigma_on,sigma_off,ρ = ps_matrix[:,i]
 L = 200
-tmax = 100.
-N = 150
+tmax = 30.
+N = 120
 dist = Uniform(0,20)
 # dist = 10
 
 saveat = 0:1:tmax
-trajectories = 1000
+trajectories = 50000
 n_timepoints = zeros(trajectories,length(saveat))
 
 @time for i =1:trajectories
-    if i/100 in [j for j=1.:trajectories/100.]
+    if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
     end
 
