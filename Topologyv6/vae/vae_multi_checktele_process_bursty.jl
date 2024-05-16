@@ -165,8 +165,8 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 1e6
-λ2 = 1e6
+λ1 = 1e8
+λ2 = 1e8
 @time loss_bursty = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 # mse_min = [mse_tele]
@@ -176,12 +176,13 @@ mse_min = [mse_bursty]
 # training
 mse_min
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
+lr_list = [0.006,0.004,0.002,0.001]
 lr_list = [0.01,0.008]
 lr_list = [0.01]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 20
+    epochs = 60
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
