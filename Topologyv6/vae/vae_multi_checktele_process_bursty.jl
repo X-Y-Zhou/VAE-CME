@@ -280,7 +280,7 @@ function plot_channel(i)
 end
 plot_channel(1)
 
-for i = 1:5
+for i = 1:1
     p = plot_channel(i)
     savefig(p,"Topologyv6/topo_results/fig_$i.svg")
 end
