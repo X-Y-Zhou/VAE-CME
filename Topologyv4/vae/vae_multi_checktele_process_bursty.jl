@@ -23,7 +23,7 @@ workers()
 @everywhere rho_off = 0.0
 @everywhere gamma= 0.0
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
-check_sol = readdlm("Topologyv4/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
+check_sol = readdlm("Topologyv4/tele/data/matrix_telev1.csv") # Attrtibute = 0
 # check_sol2 = readdlm("Topologyv4/tele/data/matrix_tele_0-200.csv") # Attrtibute = 1
 # check_sol3 = readdlm("Topologyv4/tele/data/matrix_tele_50-150.csv") # Attrtibute = 0.5
 
@@ -33,13 +33,13 @@ check_sol = readdlm("Topologyv4/tele/data/matrix_tele_10-10.csv") # Attrtibute =
 @everywhere a_list = ps_matrix_bursty[1,:]
 @everywhere b_list = ps_matrix_bursty[2,:]
 
-train_sol1 = readdlm("Topologyv4/bursty_data/matrix_bursty_μ=.csv") # var = 0
-train_sol2 = readdlm("Topologyv4/bursty_data/matrix_bursty_0-20.csv") # var = max
+train_sol1 = readdlm("Topologyv4/bursty_data/matrix_bursty_μ=2.0.csv") # var = 0
+train_sol2 = readdlm("Topologyv4/bursty_data/matrix_bursty_μ=0.0.csv") # var = max
 
 # model initialization
 @everywhere latent_size = 2;
 @everywhere encoder = Chain(Dense(N, 10,tanh),Dense(10, latent_size * 2));
-@everywhere decoder_1 = Chain(Dense(latent_size+1, 10),Dense(10 , N-1),x -> x.+[i/τ  for i in 1:N-1],x ->relu.(x));
+@everywhere decoder_1 = Chain(Dense(latent_size+1, 10),Dense(10 , N-1),x -> 0.03.*x.+[i/τ  for i in 1:N-1],x ->relu.(x));
 @everywhere decoder_2 = Chain(decoder_1[1],decoder_1[2],decoder_1[3],decoder_1[4]);
 
 @everywhere params1, re1 = Flux.destructure(encoder);
