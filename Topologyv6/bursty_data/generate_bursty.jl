@@ -25,7 +25,6 @@ for j = 1:2
 
         matrix_bursty[:,i] = P_bursty
     end
-
     writedlm("Topologyv6/bursty_data/matrix_bursty_$T1-$T2.csv",matrix_bursty)
 end
 
@@ -89,7 +88,7 @@ dist = Uniform(0,20)
 ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
 batchsize = size(ps_matrix,2)
 
-i = 45
+i = 25
 t = 500
 n_cars_max = 30
 α = ps_matrix[:,i][1]
@@ -98,5 +97,50 @@ P_bursty = car_exact_bursty(dist,α,β,t,n_cars_max,N)
 
 plot(0:N-1,P_bursty,lw=3)
 
+n_cars_max = 30
+mean_value = [P2mean(car_exact_bursty(dist,α,β,t,n_cars_max,N)) for t=1:500]
+plot(mean_value,lw=3,line=:dash)
 
-    
+ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+batchsize = size(ps_matrix,2)
+matrix_bursty = zeros(N,batchsize)
+
+dist = Uniform(0,20)
+@time for i = 1:batchsize
+    # print(i,"\n")
+    t = 500
+    n_cars_max = 50
+    α = ps_matrix[:,i][1]
+    β = ps_matrix[:,i][2]
+    P_bursty = car_exact_bursty(dist,α,β,t,n_cars_max,N)
+
+    matrix_bursty[:,i] = P_bursty
+end
+
+using Flux
+matrix_bursty_ori = readdlm("Topologyv6/bursty_data/matrix_bursty_0-20.csv")
+Flux.mse(matrix_bursty,matrix_bursty_ori)
+sum(matrix_bursty)
+
+function plot_distribution(set)
+    plot(0:N-1,matrix_bursty_ori[:,set],linewidth = 3,label="ori",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,matrix_bursty[:,set],linewidth = 3,label="now",line=:dash)
+end
+plot_distribution(30)
+
+function plot_channel(i)
+    p1 = plot_distribution(1+10*(i-1))
+    p2 = plot_distribution(2+10*(i-1))
+    p3 = plot_distribution(3+10*(i-1))
+    p4 = plot_distribution(4+10*(i-1))
+    p5 = plot_distribution(5+10*(i-1))
+    p6 = plot_distribution(6+10*(i-1))
+    p7 = plot_distribution(7+10*(i-1))
+    p8 = plot_distribution(8+10*(i-1))
+    p9 = plot_distribution(9+10*(i-1))
+    p10 = plot_distribution(10+10*(i-1))
+    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
+end
+plot_channel(3)
+
+
