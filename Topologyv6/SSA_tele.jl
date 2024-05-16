@@ -47,20 +47,20 @@ batchsize = size(ps_matrix,2)
 # tele
 N = 120
 T1T2_list = [[0,200],[50,150]]
-dist = Uniform(0,200)
+dist = Uniform(0,20)
 matrix_bursty = zeros(N,batchsize)
 
 # for i = 1:batchsize
-i = 30
+i = 45
 sigma_on,sigma_off,ρ = ps_matrix[:,i]
 L = 200
-tmax = 30.
+tmax = 100.
 N = 120
 dist = Uniform(0,20)
 # dist = 10
 
 saveat = 0:1:tmax
-trajectories = 50000
+trajectories = 1000
 n_timepoints = zeros(trajectories,length(saveat))
 
 @time for i =1:trajectories
@@ -87,7 +87,7 @@ else
 end
 
 using Distributed,Pkg
-addprocs(3)
+addprocs(2)
 # rmprocs(5)
 nprocs()
 workers()
@@ -95,7 +95,7 @@ workers()
 @everywhere include("../utils.jl")
 @everywhere include("../SSA_car_utils.jl")
 
-@everywhere ps_matrix = readdlm("tele/data/ps_telev1.txt")
+@everywhere ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 @everywhere batchsize = size(ps_matrix,2)
 
 @everywhere L = 200
@@ -114,7 +114,7 @@ workers()
 
     sigma_on,sigma_off,ρ = ps_matrix[:,set]
     saveat = 0:1:tmax
-    trajectories = 50000
+    trajectories = 20000
     n_timepoints = zeros(trajectories,length(saveat))
 
     @time for i =1:trajectories
@@ -136,9 +136,10 @@ workers()
     end
     return SSA_distriburion
 end
-matrix_tele = hcat(pmap(set->generate_SSA(set),1:batchsize)...);
+batchsize
+matrix_tele = hcat(pmap(set->generate_SSA(set),41:batchsize)...);
 
-writedlm("tele/data/matrix_tele_$T1-$T2.csv",matrix_tele)
+writedlm("Topologyv6/tele/data/matrix_tele_$T1-$(T2)41-50.csv",matrix_tele)
 
 # P1 = generate_SSA(1)
 # P2 = generate_SSA(10)

@@ -23,8 +23,8 @@ workers()
 @everywhere rho_off = 0.0
 @everywhere gamma= 0.0
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
-check_sol = readdlm("Topologyv6/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
-# check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-200.csv") # Attrtibute = 1
+check_sol1 = readdlm("Topologyv6/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
+check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2041-50.csv") # Attrtibute = 1
 # check_sol3 = readdlm("Topologyv6/tele/data/matrix_tele_50-150.csv") # Attrtibute = 0.5
 
 # bursty params and train_sol
@@ -128,7 +128,7 @@ end
 
 Attrtibute = 0
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-mse_tele = Flux.mse(solution_tele,check_sol)
+mse_tele = Flux.mse(solution_tele,check_sol1)
 
 @everywhere function loss_func1(p1,p2,ϵ)
     sol_cme = hcat(pmap(i->solve_bursty1(a_list[i],b_list[i],p1,p2,ϵ),1:batchsize_bursty)...);
@@ -246,12 +246,14 @@ mse_bursty = mse_bursty1 + mse_bursty2
 
 Attrtibute = 0
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+check_sol = check_sol1
 mse_tele = Flux.mse(solution_tele,check_sol)
 
+Attrtibute = 1
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),41:batchsize_tele)...);
+check_sol = check_sol2
+mse_tele = Flux.mse(solution_tele,check_sol)
 
-# Attrtibute = 1
-# solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
-# mse_tele2 = Flux.mse(solution_tele2,check_sol2)
 
 # mse_tele = mse_tele1+mse_tele2
 # mse_min = [mse_tele]
@@ -276,7 +278,7 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(4)
+plot_channel(1)
 
 for i = 1:5
     p = plot_channel(i)

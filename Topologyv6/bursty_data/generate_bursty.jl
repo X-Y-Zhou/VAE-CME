@@ -75,3 +75,28 @@ for i = 1:5
     p = plot_channel(i)
     savefig(p,"Topologyv6/bursty_data/compare/fig_$i.svg")
 end
+
+
+
+N = 120
+τ = 10
+
+# Uniform(T1,T2)
+T1T2_list = [[0,20],[5,15]]
+
+# bursty
+dist = Uniform(0,20)
+ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+batchsize = size(ps_matrix,2)
+
+i = 45
+t = 500
+n_cars_max = 30
+α = ps_matrix[:,i][1]
+β = ps_matrix[:,i][2]
+P_bursty = car_exact_bursty(dist,α,β,t,n_cars_max,N)
+
+plot(0:N-1,P_bursty,lw=3)
+
+
+    
