@@ -2,15 +2,15 @@ include("../../utils.jl")
 include("../../SSA_car_utils.jl")
 
 N = 120
-τ = 10
+τ = exp(2)+100
 
-# Uniform(T1,T2)
-T1T2_list = [[0,20],[5,15]]
+μ_σ_list = [[0,sqrt(4)],[1,sqrt(2)]]
 
 # bursty
 for j = 1:2
-    T1 = T1T2_list[j][1]
-    T2 = T1T2_list[j][2]
+    μ = μ_σ_list[j][1]
+    σ = μ_σ_list[j][2]
+    dist = LogNormal(μ,σ)
     ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
     batchsize = size(ps_matrix,2)
     matrix_bursty = zeros(N,batchsize)
@@ -21,12 +21,12 @@ for j = 1:2
         n_cars_max = 30
         α = ps_matrix[:,i][1]
         β = ps_matrix[:,i][2]
-        P_bursty = car_exact_bursty(T1,T2,α,β,t,n_cars_max,N)
+        P_bursty = car_exact_bursty(dist,α,β,t,n_cars_max,N)
 
         matrix_bursty[:,i] = P_bursty
     end
 
-    writedlm("Topologyv6/bursty_data/matrix_bursty_$T1-$T2.csv",matrix_bursty)
+    writedlm("Topologyv6/bursty_data/matrix_bursty_$μ.csv",matrix_bursty)
 end
 
 ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
@@ -34,7 +34,7 @@ a_list = ps_matrix[1,:]
 b_list = ps_matrix[2,:]
 batchsize_bursty = size(ps_matrix,2)
 matrix_bursty = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
-writedlm("Topologyv6/bursty_data/matrix_bursty_10-10.csv",matrix_bursty)
+writedlm("Topologyv6/bursty_data/matrix_bursty_2.csv",matrix_bursty)
 
 
 matrix_bursty_list = []
