@@ -26,7 +26,7 @@ for j = 1:2
         matrix_bursty[:,i] = P_bursty
     end
 
-    writedlm("Topologyv6/bursty_data/matrix_bursty_$μ.csv",matrix_bursty)
+    writedlm("Topologyv6/bursty_data/matrix_bursty_μ=$μ.csv",matrix_bursty)
 end
 
 ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
