@@ -11,7 +11,7 @@ for j = 1:2
     μ = μ_σ_list[j][1]
     σ = μ_σ_list[j][2]
     dist = LogNormal(μ,σ)
-    ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+    ps_matrix = readdlm("Topologyv4/ps_burstyv1.csv")
     batchsize = size(ps_matrix,2)
     matrix_bursty = zeros(N,batchsize)
 
@@ -26,25 +26,25 @@ for j = 1:2
         matrix_bursty[:,i] = P_bursty
     end
 
-    writedlm("Topologyv6/bursty_data/matrix_bursty_μ=$μ.csv",matrix_bursty)
+    writedlm("Topologyv4/bursty_data/matrix_bursty_μ=$μ.csv",matrix_bursty)
 end
 
-ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+ps_matrix = readdlm("Topologyv4/ps_burstyv1.csv")
 a_list = ps_matrix[1,:]
 b_list = ps_matrix[2,:]
 batchsize_bursty = size(ps_matrix,2)
 matrix_bursty = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
-writedlm("Topologyv6/bursty_data/matrix_bursty_2.csv",matrix_bursty)
+writedlm("Topologyv4/bursty_data/matrix_bursty_μ=2.0.csv",matrix_bursty)
 
 
 matrix_bursty_list = []
 for j = 1:2
-    T1 = T1T2_list[j][1]
-    T2 = T1T2_list[j][2]
-    matrix_bursty = readdlm("Topologyv6/bursty_data/matrix_bursty_$T1-$T2.csv")
+    μ = μ_σ_list[j][1]
+    σ = μ_σ_list[j][2]
+    matrix_bursty = readdlm("Topologyv4/bursty_data/matrix_bursty_μ=$μ.csv")
     push!(matrix_bursty_list,matrix_bursty)
 end
-matrix_bursty = readdlm("Topologyv6/bursty_data/matrix_bursty_10-10.csv")
+matrix_bursty = readdlm("Topologyv4/bursty_data/matrix_bursty_μ=2.0.csv")
 push!(matrix_bursty_list,matrix_bursty)
 
 function plot_distribution(set)
@@ -73,20 +73,20 @@ plot_channel(4)
 
 for i = 1:5
     p = plot_channel(i)
-    savefig(p,"Topologyv6/bursty_data/compare/fig_$i.svg")
+    savefig(p,"Topologyv4/bursty_data/compare/fig_$i.svg")
 end
 
 
-ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+ps_matrix = readdlm("Topologyv4/ps_burstyv1.csv")
 batchsize = size(ps_matrix,2)
 matrix_bursty = zeros(N,batchsize)
 
 μ = 0
 σ = sqrt(4)
-dist = LogNormal(μ,σ)+120
+dist = LogNormal(μ,σ)+100
 mean(dist)
 
-i = 1
+i = 40
 α = ps_matrix[:,i][1]
 β = ps_matrix[:,i][2]
 
@@ -96,8 +96,5 @@ n_cars_max = 30
 P_bursty = car_exact_bursty(dist,α,β,t,n_cars_max,N)
 P_mean = bursty_delay(N,α,β,mean(dist))
 
-P2mean(P_bursty)
-
-
 plot(0:N-1,P_bursty,lw=3,label="0,sqrt(4)")
-plot!(0:N-1,P_mean,lw=3,label="2,sqrt(0)")
+plot!(0:N-1,P_mean,lw=3,label="2,sqrt(0)",line=:dash)
