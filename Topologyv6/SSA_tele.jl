@@ -137,9 +137,9 @@ workers()
     return SSA_distriburion
 end
 batchsize
-matrix_tele = hcat(pmap(set->generate_SSA(set),41:batchsize)...);
+matrix_tele = hcat(pmap(set->generate_SSA(set),31:40)...);
 
-writedlm("Topologyv6/tele/data/matrix_tele_$T1-$(T2)41-50.csv",matrix_tele)
+writedlm("Topologyv6/tele/data/matrix_tele_$T1-$(T2)31-40.csv",matrix_tele)
 
 # P1 = generate_SSA(1)
 # P2 = generate_SSA(10)
@@ -193,3 +193,13 @@ for i = 1:5
     p = plot_channel(i)
     savefig(p,"Topologyv6/tele/data/compare/fig_$i.svg")
 end
+
+matrix_tele1 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-30.csv")
+matrix_tele2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2031-40.csv")
+matrix_tele3 = readdlm("Topologyv6/tele/data/matrix_tele_0-2041-50.csv")
+
+matrix_tele4 = [matrix_tele1 matrix_tele2 matrix_tele3]
+
+Flux.mse(matrix_tele4[:,21:30],matrix_tele3)
+
+writedlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv",matrix_tele4)
