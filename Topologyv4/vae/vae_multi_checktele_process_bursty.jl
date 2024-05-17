@@ -1,7 +1,7 @@
 # 仅用bursty的数据进行外拓
 using Distributed,Pkg
 addprocs(3)
-# rmprocs(5)
+rmprocs(5)
 nprocs()
 workers()
 
@@ -165,8 +165,8 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ1 = 1e8
-λ2 = 1e8
+λ1 = 5e7
+λ2 = 5e7
 @time loss_bursty = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
 # mse_min = [mse_tele]
