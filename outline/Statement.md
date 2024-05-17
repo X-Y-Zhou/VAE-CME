@@ -5,12 +5,20 @@ some introduction
 
 ### Results
 #### lllustration of VAE-CME neural network structure and training protocol
+
+Introduce CME with delay and how to solve it with neural network
+
+Introduce VAE-CME 
+
 ![fig1](Fig1.png)
 
 #### VAE-CME accurately predicts the distributions at times unseen in the training dataset. (three models, birth death, bursty and telegraph)
+
+描述三个反应
 ![fig1](Fig2.png)
 
 #### VAE-CME accurately predicts the distributions for unobservable species. (Oscillatory circuits, less samples and less training time)
+描述震荡反应
 ![fig3](Fig3.png)
 
 #### VAE-CME accurately predicts distributions for reaction network with different delay mechanism. (training and predicting protocol of different delay mechanism)

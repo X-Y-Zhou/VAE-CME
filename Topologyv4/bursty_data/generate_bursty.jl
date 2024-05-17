@@ -83,18 +83,23 @@ matrix_bursty = zeros(N,batchsize)
 
 μ = 0
 σ = sqrt(4)
-dist = LogNormal(μ,σ)+100
+dist = LogNormal(μ,σ)
 mean(dist)
 
-i = 40
+i = 20
 α = ps_matrix[:,i][1]
 β = ps_matrix[:,i][2]
 
-N = 120
-t = 5000
-n_cars_max = 30
+α = 0.8
+β = 3
+N = 200
+t = 50
+n_cars_max = 100
 P_bursty = car_exact_bursty(dist,α,β,t,n_cars_max,N)
 P_mean = bursty_delay(N,α,β,mean(dist))
+
+mean_value = [P2mean(car_exact_bursty(dist,α,β,t,n_cars_max,N)) for t=1:100]
+plot(mean_value,lw=3,line=:dash)
 
 plot(0:N-1,P_bursty,lw=3,label="0,sqrt(4)")
 plot!(0:N-1,P_mean,lw=3,label="2,sqrt(0)",line=:dash)

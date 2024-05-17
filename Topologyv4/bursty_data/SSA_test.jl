@@ -34,11 +34,13 @@ P_exact = car_exact_bd(dist,ρ,t,N)
 plot!(0:N-1,P_exact,lw=3,line=:dash,label="exact")
 
 # bursty
-ps_matrix_bursty = readdlm("Topologyv6/ps_burstyv1.csv")
+ps_matrix_bursty = readdlm("Topologyv4/ps_burstyv1.csv")
 
-set = 1
+set = 20
 α,β = ps_matrix_bursty[:,set]
 
+# α = 0.8
+# β = 3
 μ = 0
 σ = sqrt(4)
 dist = LogNormal(μ,σ)+100
@@ -47,6 +49,7 @@ dist = LogNormal(μ,σ)+100
 L = 200
 tmax = 300.
 N = 120
+
 
 saveat = 0:tmax
 trajectories = 10000
