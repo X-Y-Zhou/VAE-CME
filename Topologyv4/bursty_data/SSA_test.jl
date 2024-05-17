@@ -36,9 +36,9 @@ plot!(0:N-1,P_exact,lw=3,line=:dash,label="exact")
 # bursty
 ps_matrix_bursty = readdlm("Topologyv4/ps_burstyv1.csv")
 
-set = 20
+set = 10
 α,β = ps_matrix_bursty[:,set]
-
+matrix_bursty = readdlm("Topologyv4/bursty_data/matrix_bursty_μ=0.0.csv")
 # α = 0.8
 # β = 3
 μ = 0
@@ -47,7 +47,7 @@ dist = LogNormal(μ,σ)+100
 # dist = Uniform(5,15)
 # dist = 10
 L = 200
-tmax = 300.
+tmax = 500.
 N = 120
 
 
@@ -67,10 +67,13 @@ end
 mean_value = [mean(n_timepoints[:,i]) for i=1:length(saveat)]
 plot(saveat,mean_value,lw=3,xlabel="t",ylabel="mean",label="SSA_test")
 
-t = 300
+t = 500
 SSA_distriburion = convert_histo(n_timepoints[:,t+1])
 plot(SSA_distriburion,label="SSA_test",lw=3)
-plot!(0:N-1,car_exact_bursty(dist,α,β,t,30,N),lw=3,line=:dash)
+plot!(0:N-1,matrix_bursty[:,set],lw=3,line=:dash)
+# plot!(0:N-1,car_exact_bursty(dist,α,β,t,30,N),lw=3,line=:dash)
+
+
 car_exact_bursty(dist,α,β,t,30,N)
 
 train_sol = readdlm("Topologyv6/bursty_data/matrix_bursty_0-20.csv") # var = max
