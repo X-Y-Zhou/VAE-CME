@@ -1,14 +1,20 @@
-
 ### Introduction
 
-some introduction
+基因表达研究的复杂性，发展的很快，CME已经成为了基因表达建模的重要方法
+
+已经有很多利用CME解决基因表达建模的方法，以及存在的缺陷 1、大多数都是做的马尔可夫过程，非马尔可夫的很少。2、对时滞的研究很少。3、在多种物质的系统中，许多建模方法无法使用一种物质的数据预测另一种物质的数据。4、基因表达结构之间的变换研究很少，特别是是否有Switch的存在
+
+变分自编码器的特点
+
+In our study，
 
 ### Results
+
 #### lllustration of VAE-CME neural network structure and training protocol
 
 Introduce CME with delay and how to solve it with neural network
 
-Introduce VAE-CME 
+Introduce VAE-CME
 
 ![fig1](Fig1.png)
 
@@ -18,15 +24,17 @@ Introduce VAE-CME
 ![fig1](Fig2.png)
 
 #### VAE-CME accurately predicts the distributions for unobservable species. (Oscillatory circuits, less samples and less training time)
+
 描述震荡反应
 ![fig3](Fig3.png)
 
 #### VAE-CME accurately predicts distributions for reaction network with different delay mechanism. (training and predicting protocol of different delay mechanism)
+
 ![fig3](Fig4.png)
+
 #### VAE-CME accurately predicts distributions for reaction network with different kinetic parameters and topology
 
 ### Discussion
-
 
 <!-- prediction performance of different topology with different delay mechanism -->
 
