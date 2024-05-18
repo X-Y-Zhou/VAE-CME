@@ -177,13 +177,13 @@ mse_min = [mse_bursty]
 mse_min
 lr_list = [0.01,0.008,0.006,0.004,0.002,0.001]
 lr_list = [0.006,0.004,0.002,0.001]
-lr_list = [0.01,0.008]
+lr_list = [0.01,0.008,0.006]
 lr_list = [0.01]
 lr_list = [0.005]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 20
+    epochs = 40
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
@@ -288,12 +288,6 @@ function plot_channel()
 end
 plot_channel()
 savefig("topo_results/fig_Attribute=0.svg")
-
-function plot_distribution(set)
-    plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
-end
-plot_distribution(1)
 
 function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
