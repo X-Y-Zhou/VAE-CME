@@ -261,10 +261,6 @@ mse_tele2 = Flux.mse(solution_tele,check_sol)
 mse_min = [mse_tele2]
 # mse_min = [mse_tele1+mse_tele2]
 
-Attrtibute = 1
-solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),21:batchsize_tele)...);
-mse_tele2 = Flux.mse(solution_tele2,check_sol2)
-mse_tele = mse_tele2
 
 show_list = [24,25,26,27,31,35,37,41,43,49]
 function plot_distribution(set)
@@ -320,7 +316,7 @@ function plot_channel(i)
 end
 plot_channel(3)
 
-for i = 1:1
+for i = 1:3
     p = plot_channel(i)
     savefig(p,"topo_results/fig_$i.svg")
 end

@@ -132,7 +132,7 @@ workers()
     return SSA_distriburion
 end
 matrix_tele = hcat(pmap(set->generate_SSA(set),1:batchsize)...);
-
+matrix_tele
 writedlm("Topologyv4/tele/data/matrix_tele_μ=$μ.csv",matrix_tele)
 
 # P1 = generate_SSA(1)
