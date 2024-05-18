@@ -182,6 +182,7 @@ lr_list = [0.01]
 lr_list = [0.005]
 lr_list = [0.001,0.0008,0.0006,0.0004,0.0002,0.0001]
 
+
 for lr in lr_list
     opt= ADAM(lr);
     epochs = 40
