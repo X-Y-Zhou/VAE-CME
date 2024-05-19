@@ -16,25 +16,25 @@ workers()
 
 # tele params and check_sol
 @everywhere version = 1
-@everywhere ps_matrix_tele = readdlm("tele/data/ps_telev$version.txt")
+@everywhere ps_matrix_tele = readdlm("Topologyv6/tele/data/ps_telev$version.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
 @everywhere rho_on_list = ps_matrix_tele[3,:]
 @everywhere rho_off = 0.0
 @everywhere gamma= 0.0
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
-check_sol1 = readdlm("tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
-check_sol2 = readdlm("tele/data/matrix_tele_0-2021-50.csv") # Attrtibute = 1
-# check_sol3 = readdlm("tele/data/matrix_tele_50-150.csv") # Attrtibute = 0.5
+check_sol1 = readdlm("Topologyv6/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
+check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv") # Attrtibute = 1
+# check_sol3 = readdlm("Topologyv6/tele/data/matrix_tele_50-150.csv") # Attrtibute = 0.5
 
 # bursty params and train_sol
-@everywhere ps_matrix_bursty = readdlm("ps_burstyv1.csv")
+@everywhere ps_matrix_bursty = readdlm("Topologyv6/ps_burstyv1.csv")
 @everywhere batchsize_bursty = size(ps_matrix_bursty,2)
 @everywhere a_list = ps_matrix_bursty[1,:]
 @everywhere b_list = ps_matrix_bursty[2,:]
 
-train_sol1 = readdlm("bursty_data/matrix_bursty_10-10.csv") # var = 0
-train_sol2 = readdlm("bursty_data/matrix_bursty_0-20.csv") # var = max
+train_sol1 = readdlm("Topologyv6/bursty_data/matrix_bursty_10-10.csv") # var = 0
+train_sol2 = readdlm("Topologyv6/bursty_data/matrix_bursty_0-20.csv") # var = max
 
 # model initialization
 @everywhere latent_size = 2;
@@ -217,7 +217,7 @@ for lr in lr_list
 
         if mse_tele<mse_min[1]
             df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-            CSV.write("vae/params_trained_vae_tele_burstyv2.csv",df)
+            CSV.write("Topologyv6/vae/params_trained_vae_tele_burstyv3.csv",df)
             mse_min[1] = mse_tele
         end
         # print("mse_bursty1:",mse_bursty1,"\n")
@@ -226,14 +226,14 @@ for lr in lr_list
     end
 
     using CSV,DataFrames
-    df = CSV.read("vae/params_trained_vae_tele_burstyv2.csv",DataFrame)
+    df = CSV.read("Topologyv6/vae/params_trained_vae_tele_burstyv3.csv",DataFrame)
     params1 = df.params1[1:length(params1)]
     params2 = df.params2[1:length(params2)]
     ps = Flux.params(params1,params2);
 end
 
 using CSV,DataFrames
-df = CSV.read("vae/params_trained_vae_tele_burstyv2.csv",DataFrame)
+df = CSV.read("Topologyv6/vae/params_trained_vae_tele_burstyv3.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);
@@ -289,7 +289,7 @@ function plot_channel()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
 plot_channel()
-savefig("topo_results/fig_Attribute=0.svg")
+savefig("Topologyv6/topo_results/fig_Attribute=1v2.svg")
 
 function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
