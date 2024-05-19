@@ -5,6 +5,13 @@ addprocs(3)
 nprocs()
 workers()
 
+check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv") # Attrtibute = 1
+check_sol_all = readdlm("Topologyv6/tele/data/matrix_tele_0-20.csv") # Attrtibute = 1
+
+check_sol_all[:,21:50]
+check_sol2
+Flux.mse(check_sol_all[:,21:50],check_sol2)
+
 @everywhere using Flux, DiffEqSensitivity, DifferentialEquations
 @everywhere using Distributions, Distances,Random
 @everywhere using DelimitedFiles, Plots
@@ -24,7 +31,8 @@ workers()
 @everywhere gamma= 0.0
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
 check_sol1 = readdlm("Topologyv6/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
-check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv") # Attrtibute = 1
+# check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv") # Attrtibute = 1
+check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-20.csv") # Attrtibute = 1
 # check_sol3 = readdlm("Topologyv6/tele/data/matrix_tele_50-150.csv") # Attrtibute = 0.5
 
 # bursty params and train_sol
@@ -185,7 +193,7 @@ lr_list = [0.001,0.0008,0.0006,0.0004,0.0002,0.0001]
 
 for lr in lr_list
     opt= ADAM(lr);
-    epochs = 40
+    epochs = 60
     print("learning rate = ",lr,"\n")
 
     @time for epoch in 1:epochs
@@ -211,7 +219,7 @@ for lr in lr_list
         # mse_tele1 = Flux.mse(solution_tele1,check_sol1)
 
         Attrtibute = 1
-        solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),21:batchsize_tele)...);
+        solution_tele2 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
         mse_tele2 = Flux.mse(solution_tele2,check_sol2)
         mse_tele = mse_tele2
 
@@ -256,7 +264,7 @@ check_sol = check_sol1
 mse_tele1 = Flux.mse(solution_tele,check_sol)
 
 Attrtibute = 1
-@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),21:50)...);
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
 solution_tele2 = solution_tele
 check_sol = check_sol2
 mse_tele2 = Flux.mse(solution_tele,check_sol)
@@ -273,6 +281,11 @@ end
 function plot_distribution(set)
     plot(0:N-1,solution_tele2[:,set-20],linewidth = 3,label="VAE 1",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,check_sol2[:,set-20],linewidth = 3,label="exact1",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+end
+
+function plot_distribution(set)
+    plot(0:N-1,check_sol1[:,set],linewidth = 3,label="exact 0",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol2[:,set],linewidth = 3,label="exact 1",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
 
 function plot_channel()
@@ -310,11 +323,11 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(3)
+plot_channel(2)
 
-for i = 1:3
+for i = 1:5
     p = plot_channel(i)
-    savefig(p,"topo_results/fig_$i.svg")
+    savefig(p,"Topologyv6/topo_results/fig_$i.svg")
 end
 
 function plot_distribution(set)
