@@ -71,10 +71,10 @@ p_value*r_value/(1-p_value)^2
 using Plots,NLsolve
 using LinearAlgebra, Distributions, DifferentialEquations
 
-τ = 10
+τ = 100+exp(2)
 N = 120
 
-ps_list = readdlm("Topologyv4/tele/data/ps_telev2.txt")
+ps_list = readdlm("Topologyv4/tele/data/ps_telev1.txt")
 batchsize = size(ps_list,2)
 matrix_tele = zeros(N,batchsize)
 matrix_tele_p0 = zeros(N,batchsize)
@@ -94,7 +94,7 @@ end
 
 # writedlm("Topology/tele/data/matrix_telep0.csv",matrix_tele_p0)
 # writedlm("Topology/tele/data/matrix_telep1.csv",matrix_tele_p1)
-writedlm("Topologyv4/tele/data/matrix_telev2.csv",matrix_tele)
+writedlm("Topologyv4/tele/data/matrix_telev1.csv",matrix_tele)
 
 ps_list = readdlm("Topologyv4/tele/data/ps_telev1.txt")
 matrix_tele = readdlm("Topologyv4/tele/data/matrix_telev1.csv")
@@ -122,7 +122,7 @@ function plot_channel(i)
 end
 plot_channel(2)
 
-for i = 1:5
+for i = 1:4
     p = plot_channel(i)
     savefig(p,"Topologyv4/tele/data/compare/fig_$i.svg")
 end

@@ -45,16 +45,17 @@ ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 batchsize = size(ps_matrix,2)
 
 # tele
+N = 120
 T1T2_list = [[0,200],[50,150]]
-dist = Uniform(0,200)
+dist = Uniform(0,20)
 matrix_bursty = zeros(N,batchsize)
 
 # for i = 1:batchsize
-i = 21
+i = 45
 sigma_on,sigma_off,ρ = ps_matrix[:,i]
 L = 200
 tmax = 100.
-N = 150
+N = 120
 dist = Uniform(0,20)
 # dist = 10
 
@@ -63,7 +64,7 @@ trajectories = 1000
 n_timepoints = zeros(trajectories,length(saveat))
 
 @time for i =1:trajectories
-    if i/100 in [j for j=1.:trajectories/100.]
+    if i/1000 in [j for j=1.:trajectories/1000.]
         print(i,"\n")
     end
 
@@ -86,7 +87,7 @@ else
 end
 
 using Distributed,Pkg
-addprocs(3)
+addprocs(2)
 # rmprocs(5)
 nprocs()
 workers()
@@ -94,7 +95,7 @@ workers()
 @everywhere include("../utils.jl")
 @everywhere include("../SSA_car_utils.jl")
 
-@everywhere ps_matrix = readdlm("tele/data/ps_telev1.txt")
+@everywhere ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 @everywhere batchsize = size(ps_matrix,2)
 
 @everywhere L = 200
@@ -113,7 +114,7 @@ workers()
 
     sigma_on,sigma_off,ρ = ps_matrix[:,set]
     saveat = 0:1:tmax
-    trajectories = 50000
+    trajectories = 20000
     n_timepoints = zeros(trajectories,length(saveat))
 
     @time for i =1:trajectories
@@ -135,9 +136,10 @@ workers()
     end
     return SSA_distriburion
 end
-matrix_tele = hcat(pmap(set->generate_SSA(set),1:batchsize)...);
+batchsize
+matrix_tele = hcat(pmap(set->generate_SSA(set),31:40)...);
 
-writedlm("tele/data/matrix_tele_$T1-$T2.csv",matrix_tele)
+writedlm("Topologyv6/tele/data/matrix_tele_$T1-$(T2)31-40.csv",matrix_tele)
 
 # P1 = generate_SSA(1)
 # P2 = generate_SSA(10)
@@ -191,3 +193,13 @@ for i = 1:5
     p = plot_channel(i)
     savefig(p,"Topologyv6/tele/data/compare/fig_$i.svg")
 end
+
+matrix_tele1 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-30.csv")
+matrix_tele2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2031-40.csv")
+matrix_tele3 = readdlm("Topologyv6/tele/data/matrix_tele_0-2041-50.csv")
+
+matrix_tele4 = [matrix_tele1 matrix_tele2 matrix_tele3]
+
+Flux.mse(matrix_tele4[:,21:30],matrix_tele3)
+
+writedlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv",matrix_tele4)
