@@ -5,12 +5,12 @@ addprocs(3)
 nprocs()
 workers()
 
-check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv") # Attrtibute = 1
-check_sol_all = readdlm("Topologyv6/tele/data/matrix_tele_0-20.csv") # Attrtibute = 1
+# check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv") # Attrtibute = 1
+# check_sol_all = readdlm("Topologyv6/tele/data/matrix_tele_0-20.csv") # Attrtibute = 1
 
-check_sol_all[:,21:50]
-check_sol2
-Flux.mse(check_sol_all[:,21:50],check_sol2)
+# check_sol_all[:,21:50]
+# check_sol2
+# Flux.mse(check_sol_all[:,21:50],check_sol2)
 
 @everywhere using Flux, DiffEqSensitivity, DifferentialEquations
 @everywhere using Distributions, Distances,Random
@@ -22,18 +22,19 @@ Flux.mse(check_sol_all[:,21:50],check_sol2)
 @everywhere N = 120
 
 # tele params and check_sol
-@everywhere version = 1
-@everywhere ps_matrix_tele = readdlm("Topologyv6/tele/data/ps_telev$version.txt")
+@everywhere version = 2
+@everywhere ps_matrix_tele = readdlm("Topologyv6/tele/data/datav2/ps_telev$version.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
 @everywhere rho_on_list = ps_matrix_tele[3,:]
 @everywhere rho_off = 0.0
 @everywhere gamma= 0.0
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
-check_sol1 = readdlm("Topologyv6/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
-# check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-2021-50.csv") # Attrtibute = 1
-check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-20.csv") # Attrtibute = 1
-# check_sol3 = readdlm("Topologyv6/tele/data/matrix_tele_50-150.csv") # Attrtibute = 0.5
+check_sol1 = readdlm("Topologyv6/tele/data/datav2/matrix_tele_10-10.csv") # Attrtibute = 0
+
+# check_sol1 = readdlm("Topologyv6/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
+# check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-20.csv") # Attrtibute = 1
+# check_sol3 = readdlm("Topologyv6/tele/data/matrix_tele_5-15.csv") # Attrtibute = 0.5
 
 # bursty params and train_sol
 @everywhere ps_matrix_bursty = readdlm("Topologyv6/ps_burstyv1.csv")
@@ -268,45 +269,29 @@ Attrtibute = 1
 solution_tele2 = solution_tele
 check_sol = check_sol2
 mse_tele2 = Flux.mse(solution_tele,check_sol)
-mse_min = [mse_tele2]
+# mse_min = [mse_tele2]
 # mse_min = [mse_tele1+mse_tele2]
-Flux.mse(solution_tele[:,21:50],check_sol[:,21:50])
+# Flux.mse(solution_tele[:,21:50],check_sol[:,21:50])
 
-show_list = [24,25,26,27,31,35,37,41,43,49]
-function plot_distribution(set)
-    plot(0:N-1,solution_tele1[:,set],linewidth = 3,label="VAE 0",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol1[:,set],linewidth = 3,label="exact 0",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
-end
-
-function plot_distribution(set)
-    plot(0:N-1,solution_tele2[:,set-20],linewidth = 3,label="VAE 1",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol2[:,set-20],linewidth = 3,label="exact1",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
-end
-
-function plot_distribution(set)
-    plot(0:N-1,check_sol1[:,set],linewidth = 3,label="exact 0",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol2[:,set],linewidth = 3,label="exact 1",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
-end
-
-function plot_channel()
-    p1 = plot_distribution(show_list[1])
-    p2 = plot_distribution(show_list[2])
-    p3 = plot_distribution(show_list[3])
-    p4 = plot_distribution(show_list[4])
-    p5 = plot_distribution(show_list[5])
-    p6 = plot_distribution(show_list[6])
-    p7 = plot_distribution(show_list[7])
-    p8 = plot_distribution(show_list[8])
-    p9 = plot_distribution(show_list[9])
-    p10 = plot_distribution(show_list[10])
-    plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
-end
-plot_channel()
-savefig("Topologyv6/topo_results/fig_Attribute=1v2.svg")
+Attrtibute = 0.5
+@time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
+solution_tele3 = solution_tele
+check_sol = check_sol3
+mse_tele2 = Flux.mse(solution_tele,check_sol)
 
 function plot_distribution(set)
     plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
     plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+end
+
+function plot_distribution(set)
+    plot(0:N-1,check_sol1[:,set],linewidth = 3,label="exact 0",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol2[:,set],linewidth = 3,label="exact 1",title=join([round.(ps_matrix_tele[:,set],digits=4)]))
+    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact 0.5")
+    plot!(0:N-1,solution_tele1[:,set],linewidth = 3,label="VAE 0",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
+    plot!(0:N-1,solution_tele2[:,set],linewidth = 3,label="VAE 1",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
+    plot!(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE 1.5",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
+
 end
 plot_distribution(1)
 
@@ -323,7 +308,7 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(5)
+plot_channel(2)
 
 for i = 1:5
     p = plot_channel(i)
@@ -399,3 +384,29 @@ end
 
 
 
+# show_list = [24,25,26,27,31,35,37,41,43,49]
+# function plot_distribution(set)
+#     plot(0:N-1,solution_tele1[:,set],linewidth = 3,label="VAE 0",xlabel = "# of products \n", ylabel = "\n Probability")
+#     plot!(0:N-1,check_sol1[:,set],linewidth = 3,label="exact 0",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+# end
+
+# function plot_distribution(set)
+#     plot(0:N-1,solution_tele2[:,set-20],linewidth = 3,label="VAE 1",xlabel = "# of products \n", ylabel = "\n Probability")
+#     plot!(0:N-1,check_sol2[:,set-20],linewidth = 3,label="exact1",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+# end
+
+# function plot_channel()
+#     p1 = plot_distribution(show_list[1])
+#     p2 = plot_distribution(show_list[2])
+#     p3 = plot_distribution(show_list[3])
+#     p4 = plot_distribution(show_list[4])
+#     p5 = plot_distribution(show_list[5])
+#     p6 = plot_distribution(show_list[6])
+#     p7 = plot_distribution(show_list[7])
+#     p8 = plot_distribution(show_list[8])
+#     p9 = plot_distribution(show_list[9])
+#     p10 = plot_distribution(show_list[10])
+#     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
+# end
+# plot_channel()
+# savefig("Topologyv6/topo_results/fig_Attribute=1v2.svg")

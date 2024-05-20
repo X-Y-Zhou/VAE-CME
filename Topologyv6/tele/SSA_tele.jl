@@ -1,5 +1,5 @@
-include("../utils.jl")
-include("../SSA_car_utils.jl")
+include("../../utils.jl")
+include("../../SSA_car_utils.jl")
 
 ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
 batchsize = size(ps_matrix,2)
@@ -38,10 +38,10 @@ plot!(0:N-1,tele_exact,label="exact",lw=3,line=:dash)
 
 
 
-include("../utils.jl")
-include("../SSA_car_utils.jl")
+include("../../utils.jl")
+include("../../SSA_car_utils.jl")
 
-ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
+ps_matrix = readdlm("Topologyv6/tele/data/datav2/ps_telev2.txt")
 batchsize = size(ps_matrix,2)
 
 # tele
@@ -51,10 +51,10 @@ dist = Uniform(0,20)
 matrix_bursty = zeros(N,batchsize)
 
 # for i = 1:batchsize
-i = 45
+i = 5
 sigma_on,sigma_off,ρ = ps_matrix[:,i]
 L = 200
-tmax = 100.
+tmax = 600.
 N = 120
 dist = Uniform(0,20)
 # dist = 10
@@ -64,7 +64,7 @@ trajectories = 1000
 n_timepoints = zeros(trajectories,length(saveat))
 
 @time for i =1:trajectories
-    if i/1000 in [j for j=1.:trajectories/1000.]
+    if i/100 in [j for j=1.:trajectories/100.]
         print(i,"\n")
     end
 
@@ -92,11 +92,13 @@ addprocs(2)
 nprocs()
 workers()
 
-@everywhere include("../utils.jl")
-@everywhere include("../SSA_car_utils.jl")
+@everywhere include("../../utils.jl")
+@everywhere include("../../SSA_car_utils.jl")
 
-@everywhere ps_matrix = readdlm("Topologyv6/tele/data/ps_telev1.txt")
+@everywhere ps_matrix = readdlm("Topologyv6/tele/data/datav2/ps_telev2.txt")
 @everywhere batchsize = size(ps_matrix,2)
+batchsize
+ps_matrix
 
 @everywhere L = 200
 @everywhere N = 120
@@ -106,15 +108,16 @@ workers()
 # @everywhere dist = 100
 
 @everywhere function generate_SSA(set)
-    if set < 21
-        tmax = 500
-    else
-        tmax = 100
-    end
+    print(set,"\n")
+    # if set < 21
+    tmax = 600
+    # else
+    #     tmax = 100
+    # end
 
     sigma_on,sigma_off,ρ = ps_matrix[:,set]
     saveat = 0:1:tmax
-    trajectories = 20000
+    trajectories = 50000
     n_timepoints = zeros(trajectories,length(saveat))
 
     @time for i =1:trajectories
@@ -137,9 +140,15 @@ workers()
     return SSA_distriburion
 end
 batchsize
-matrix_tele = hcat(pmap(set->generate_SSA(set),31:40)...);
+@time matrix_tele = hcat(pmap(set->generate_SSA(set),1:10)...);
 
-writedlm("Topologyv6/tele/data/matrix_tele_$T1-$(T2)31-40.csv",matrix_tele)
+writedlm("Topologyv6/tele/data/datav2/matrix_tele_$T1-$(T2).csv",matrix_tele)
+
+readdlm("Topologyv6/tele/data/datav2/ps_telev2.txt")'
+readdlm("Topologyv6/tele/data/ps_telev1.txt")'
+
+
+
 
 # P1 = generate_SSA(1)
 # P2 = generate_SSA(10)
