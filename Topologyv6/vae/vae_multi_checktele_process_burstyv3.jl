@@ -270,7 +270,7 @@ check_sol = check_sol2
 mse_tele2 = Flux.mse(solution_tele,check_sol)
 mse_min = [mse_tele2]
 # mse_min = [mse_tele1+mse_tele2]
-
+Flux.mse(solution_tele[:,21:50],check_sol[:,21:50])
 
 show_list = [24,25,26,27,31,35,37,41,43,49]
 function plot_distribution(set)
@@ -323,7 +323,7 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(2)
+plot_channel(5)
 
 for i = 1:5
     p = plot_channel(i)
