@@ -32,7 +32,8 @@ ps_list = [[sigma_on_list[i],sigma_off_list[i],rho_on_list[i]] for i in index_li
 ps_matrix = hcat([[sigma_on_list[i],sigma_off_list[i],rho_on_list[i]] for i in index_list]...)
 writedlm("Topologyv6/tele/data/datav2/ps_telev2.txt",ps_matrix)
 
-
+# Topologyv6/tele/data/datav2/ps_telev2.txt
+# datav1 的1:10,21:50和datav2的11:20的组合
 
 
 

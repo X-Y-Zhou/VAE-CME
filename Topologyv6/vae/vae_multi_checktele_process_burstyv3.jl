@@ -22,15 +22,17 @@ workers()
 @everywhere N = 120
 
 # tele params and check_sol
-@everywhere version = 2
-@everywhere ps_matrix_tele = readdlm("Topologyv6/tele/data/datav2/ps_telev$version.txt")
+@everywhere version = "final"
+@everywhere ps_matrix_tele = readdlm("Topologyv6/tele/data/data_final/ps_tele_$version.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
 @everywhere rho_on_list = ps_matrix_tele[3,:]
 @everywhere rho_off = 0.0
 @everywhere gamma= 0.0
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
-check_sol1 = readdlm("Topologyv6/tele/data/datav2/matrix_tele_10-10.csv") # Attrtibute = 0
+check_sol1 = readdlm("Topologyv6/tele/data/data_final/matrix_tele_final_10-10.txt") # Attrtibute = 0
+check_sol2 = readdlm("Topologyv6/tele/data/data_final/matrix_tele_final_0-20.txt") # Attrtibute = 1
+check_sol3 = readdlm("Topologyv6/tele/data/data_final/matrix_tele_final_5-15.txt") # Attrtibute = 0.5
 
 # check_sol1 = readdlm("Topologyv6/tele/data/matrix_tele_10-10.csv") # Attrtibute = 0
 # check_sol2 = readdlm("Topologyv6/tele/data/matrix_tele_0-20.csv") # Attrtibute = 1
@@ -280,8 +282,8 @@ check_sol = check_sol3
 mse_tele2 = Flux.mse(solution_tele,check_sol)
 
 function plot_distribution(set)
-    plot(0:N-1,solution_tele[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+    plot(0:N-1,solution_tele2[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol2[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
 
 function plot_distribution(set)
@@ -291,9 +293,8 @@ function plot_distribution(set)
     plot!(0:N-1,solution_tele1[:,set],linewidth = 3,label="VAE 0",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
     plot!(0:N-1,solution_tele2[:,set],linewidth = 3,label="VAE 1",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
     plot!(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE 1.5",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
-
 end
-plot_distribution(1)
+plot_distribution(20)
 
 function plot_channel(i)
     p1 = plot_distribution(1+10*(i-1))
@@ -308,11 +309,11 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(2)
+plot_channel(4)
 
 for i = 1:5
     p = plot_channel(i)
-    savefig(p,"Topologyv6/topo_results/fig_$i.svg")
+    savefig(p,"Topologyv6/topo_results/fig_Attri=1_$i.svg")
 end
 
 function plot_distribution(set)
