@@ -11,7 +11,7 @@ T1T2_list = [[0,20],[5,15]]
 for j = 1:2
     T1 = T1T2_list[j][1]
     T2 = T1T2_list[j][2]
-    ps_matrix = readdlm("Topology_results/var_delay/bursty_data/ps_burstyv1.csv")
+    ps_matrix = readdlm("Topology_results/var_delay/bursty_data/ps_burstyv1.txt")
     batchsize = size(ps_matrix,2)
     matrix_bursty = zeros(N,batchsize)
 
@@ -21,30 +21,33 @@ for j = 1:2
         n_cars_max = 30
         α = ps_matrix[:,i][1]
         β = ps_matrix[:,i][2]
-        P_bursty = car_exact_bursty(T1,T2,α,β,t,n_cars_max,N)
+        P_bursty = car_exact_bursty(Uniform(T1,T2),α,β,t,n_cars_max,N)
 
         matrix_bursty[:,i] = P_bursty
     end
-    writedlm("Topology_results/var_delay/bursty_data/matrix_bursty_$T1-$T2.csv",matrix_bursty)
+    writedlm("Topology_results/var_delay/bursty_data/matrix_bursty_$T1-$T2.txt",matrix_bursty)
 end
 
-ps_matrix = readdlm("Topology_results/var_delay/bursty_data/ps_burstyv1.csv")
+ps_matrix = readdlm("Topology_results/var_delay/bursty_data/ps_burstyv1.txt")
 a_list = ps_matrix[1,:]
 b_list = ps_matrix[2,:]
 batchsize_bursty = size(ps_matrix,2)
 matrix_bursty = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsize_bursty]...)
-writedlm("Topologyv6/bursty_data/matrix_bursty_10-10.csv",matrix_bursty)
+writedlm("Topology_results/var_delay/bursty_data/matrix_bursty_10-10.txt",matrix_bursty)
 
 
 matrix_bursty_list = []
 for j = 1:2
     T1 = T1T2_list[j][1]
     T2 = T1T2_list[j][2]
-    matrix_bursty = readdlm("Topologyv6/bursty_data/matrix_bursty_$T1-$T2.csv")
+    matrix_bursty = readdlm("Topology_results/var_delay/bursty_data/matrix_bursty_$T1-$T2.txt")
     push!(matrix_bursty_list,matrix_bursty)
 end
-matrix_bursty = readdlm("Topologyv6/bursty_data/matrix_bursty_10-10.csv")
+matrix_bursty = readdlm("Topology_results/var_delay/bursty_data/matrix_bursty_10-10.txt")
 push!(matrix_bursty_list,matrix_bursty)
+
+# matrix_bursty_ori = readdlm("Topologyv6/bursty_data/matrix_bursty_5-15.txt")
+# Flux.mse(matrix_bursty_list[2],matrix_bursty_ori)
 
 function plot_distribution(set)
     plot(0:N-1,matrix_bursty_list[1][:,set],linewidth = 3,line=:dash,title=round.(ps_matrix[:,set],digits=4))
@@ -72,7 +75,7 @@ plot_channel(4)
 
 for i = 1:5
     p = plot_channel(i)
-    savefig(p,"Topologyv6/bursty_data/compare/fig_$i.svg")
+    savefig(p,"Topology_results/var_delay/bursty_data/compare/fig_$i.svg")
 end
 
 
@@ -85,7 +88,7 @@ T1T2_list = [[0,20],[5,15]]
 
 # bursty
 dist = Uniform(0,20)
-ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+ps_matrix = readdlm("Topologyv6/ps_burstyv1.txt")
 batchsize = size(ps_matrix,2)
 
 i = 25
@@ -101,7 +104,7 @@ n_cars_max = 30
 mean_value = [P2mean(car_exact_bursty(dist,α,β,t,n_cars_max,N)) for t=1:500]
 plot(mean_value,lw=3,line=:dash)
 
-ps_matrix = readdlm("Topologyv6/ps_burstyv1.csv")
+ps_matrix = readdlm("Topologyv6/ps_burstyv1.txt")
 batchsize = size(ps_matrix,2)
 matrix_bursty = zeros(N,batchsize)
 
@@ -118,7 +121,7 @@ dist = Uniform(0,20)
 end
 
 using Flux
-matrix_bursty_ori = readdlm("Topologyv6/bursty_data/matrix_bursty_0-20.csv")
+matrix_bursty_ori = readdlm("Topologyv6/bursty_data/matrix_bursty_0-20.txt")
 Flux.mse(matrix_bursty,matrix_bursty_ori)
 sum(matrix_bursty)
 
