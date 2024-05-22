@@ -36,6 +36,7 @@ matrix_bursty = hcat([bursty_delay(N, a_list[i],b_list[i], τ) for i = 1:batchsi
 writedlm("Topology_results/var_delay/bursty_data/matrix_bursty_10-10.txt",matrix_bursty)
 
 
+ps_matrix = readdlm("Topology_results/var_delay/bursty_data/ps_burstyv1.txt")
 matrix_bursty_list = []
 for j = 1:2
     T1 = T1T2_list[j][1]
@@ -50,9 +51,9 @@ push!(matrix_bursty_list,matrix_bursty)
 # Flux.mse(matrix_bursty_list[2],matrix_bursty_ori)
 
 function plot_distribution(set)
-    plot(0:N-1,matrix_bursty_list[1][:,set],linewidth = 3,line=:dash,title=round.(ps_matrix[:,set],digits=4))
-    plot!(0:N-1,matrix_bursty_list[2][:,set],linewidth = 3,line=:dash)
-    plot!(0:N-1,matrix_bursty_list[3][:,set],linewidth = 3,line=:dash)
+    plot(0:N-1,matrix_bursty_list[3][:,set],linewidth = 3,label="Uniform(10,10)")
+    plot!(0:N-1,matrix_bursty_list[1][:,set],linewidth = 3,line=:dash,title=round.(ps_matrix[:,set],digits=4),label="Uniform(0,20)")
+    # plot!(0:N-1,matrix_bursty_list[2][:,set],linewidth = 3,line=:dash,label="Uniform(5,15)")
     # plot!(0:N-1,matrix_bursty_list[4][:,set],linewidth = 3,line=:dash)
     # plot!(0:N-1,matrix_bursty_list[5][:,set],linewidth = 3,line=:dash)
 end
