@@ -18,6 +18,15 @@ function convert_histo(data::Vector)
     return saved[:,1], saved[:,2]
 end
 
+function embeding_dist(dist,N)
+    if length(dist)<N
+        dist = vcat(dist,zeros(N-length(dist)))
+    else
+        dist = dist[1:N]
+    end
+    return dist
+end
+
 @adjoint nlsolve(f, x0;kwargs...) =
     let result = nlsolve(f,x0;kwargs...)
         result, function(vresult)
