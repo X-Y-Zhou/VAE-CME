@@ -312,7 +312,7 @@ end
 
 # select
 # bursty
-bursty_list = [2,3,5,17,38,48]
+bursty_list = [2,3,5,10,38,48]
 ps_matrix_bursty = readdlm("Topology_results/var_delay/bursty_data/ps_burstyv1.txt")[:,bursty_list]
 
 solution_bursty1 = readdlm("Topology_results/var_delay/train_results/pre_Attr=0.txt")[:,bursty_list]
