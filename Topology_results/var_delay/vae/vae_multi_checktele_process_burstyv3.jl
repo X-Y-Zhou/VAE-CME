@@ -251,6 +251,9 @@ mse_bursty2 = Flux.mse(solution_bursty2,train_sol2)
 mse_bursty = mse_bursty1 + mse_bursty2
 # mse_min = [mse_bursty]
 
+# writedlm("Topology_results/var_delay/train_results/pre_Attr=0.txt",solution_bursty1)
+# writedlm("Topology_results/var_delay/train_results/pre_Attr=1.txt",solution_bursty2)
+
 Attrtibute = 0
 @time solution_tele = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
 solution_tele1 = solution_tele
@@ -272,20 +275,20 @@ solution_tele3 = solution_tele
 check_sol = check_sol3
 mse_tele2 = Flux.mse(solution_tele,check_sol)
 
-function plot_distribution(set)
-    plot(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
-end
+writedlm("Topology_results/var_delay/topo_results/pre_Attr=0.txt",solution_tele1)
+writedlm("Topology_results/var_delay/topo_results/pre_Attr=1.txt",solution_tele2)
+writedlm("Topology_results/var_delay/topo_results/pre_Attr=0.5.txt",solution_tele3)
+
 
 # function plot_distribution(set)
-#     plot(0:N-1,check_sol1[:,set],linewidth = 3,label="exact 0",xlabel = "# of products \n", ylabel = "\n Probability")
-#     plot!(0:N-1,check_sol2[:,set],linewidth = 3,label="exact 1",title=join([round.(ps_matrix_tele[:,set],digits=4)]))
-#     plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact 0.5")
-#     plot!(0:N-1,solution_tele1[:,set],linewidth = 3,label="VAE 0",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
-#     plot!(0:N-1,solution_tele2[:,set],linewidth = 3,label="VAE 1",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
-#     plot!(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE 1.5",xlabel = "# of products \n", ylabel = "\n Probability",line=:dash)
+#     plot(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+#     plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 # end
-# plot_distribution(20)
+
+function plot_distribution(set)
+    plot(0:N-1,solution_bursty2[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,train_sol2[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bursty[:,set],digits=4)]),line=:dash)
+end
 
 function plot_channel(i)
     p1 = plot_distribution(1+10*(i-1))
@@ -300,10 +303,94 @@ function plot_channel(i)
     p10 = plot_distribution(10+10*(i-1))
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layouts=(2,5),size=(1500,600))
 end
-plot_channel(4)
+plot_channel(1)
 
 for i = 1:5
     p = plot_channel(i)
-    savefig(p,"Topology_results/var_delay/topo_results/fig_Attri=0.5_$i.svg")
+    savefig(p,"Topology_results/var_delay/train_results/fig_Attri=1_$i.svg")
 end
+
+# select
+# bursty
+bursty_list = [2,3,5,17,38,48]
+ps_matrix_bursty = readdlm("Topology_results/var_delay/bursty_data/ps_burstyv1.txt")[:,bursty_list]
+
+solution_bursty1 = readdlm("Topology_results/var_delay/train_results/pre_Attr=0.txt")[:,bursty_list]
+check_bursty1 = readdlm("Topology_results/var_delay/bursty_data/matrix_bursty_10-10.txt")[:,bursty_list]
+Flux.mse(solution_bursty1,check_bursty1)
+
+solution_bursty2 = readdlm("Topology_results/var_delay/train_results/pre_Attr=1.txt")[:,bursty_list]
+check_bursty2 = readdlm("Topology_results/var_delay/bursty_data/matrix_bursty_0-20.txt")[:,bursty_list]
+Flux.mse(solution_bursty2,check_bursty2)
+
+writedlm("Topology_results/var_delay/plot_omni_data/bursty/ps_bursty.txt",ps_matrix_bursty)
+writedlm("Topology_results/var_delay/plot_omni_data/bursty/pre_Attr=0.txt",solution_bursty1)
+writedlm("Topology_results/var_delay/plot_omni_data/bursty/pre_Attr=1.txt",solution_bursty2)
+
+writedlm("Topology_results/var_delay/plot_omni_data/bursty/SSA_Attr=0.txt",check_bursty1)
+writedlm("Topology_results/var_delay/plot_omni_data/bursty/SSA_Attr=1.txt",check_bursty2)
+
+# tele
+tele_list = [6,17,21,28,35,50]
+ps_matrix_tele = readdlm("Topology_results/var_delay/tele_data/ps_tele_final.txt")[:,tele_list]
+
+solution_tele1 = readdlm("Topology_results/var_delay/topo_results/pre_Attr=0.txt")[:,tele_list]
+check_tele1 = readdlm("Topology_results/var_delay/tele_data/matrix_tele_final_10-10.txt")[:,tele_list]
+Flux.mse(solution_tele1,check_tele1)
+
+solution_tele2 = readdlm("Topology_results/var_delay/topo_results/pre_Attr=1.txt")[:,tele_list]
+check_tele2 = readdlm("Topology_results/var_delay/tele_data/matrix_tele_final_0-20.txt")[:,tele_list]
+Flux.mse(solution_tele2,check_tele2)
+
+writedlm("Topology_results/var_delay/plot_omni_data/tele/ps_tele.txt",ps_matrix_tele)
+writedlm("Topology_results/var_delay/plot_omni_data/tele/pre_Attr=0.txt",solution_tele1)
+writedlm("Topology_results/var_delay/plot_omni_data/tele/pre_Attr=1.txt",solution_tele2)
+
+writedlm("Topology_results/var_delay/plot_omni_data/tele/SSA_Attr=0.txt",check_tele1)
+writedlm("Topology_results/var_delay/plot_omni_data/tele/SSA_Attr=1.txt",check_tele2)
+
+# read selected and check
+# bursty
+ps_matrix_bursty = readdlm("Topology_results/var_delay/plot_omni_data/bursty/ps_bursty.txt")
+
+solution_bursty1 = readdlm("Topology_results/var_delay/plot_omni_data/bursty/pre_Attr=0.txt")
+check_bursty1 = readdlm("Topology_results/var_delay/plot_omni_data/bursty/SSA_Attr=0.txt")
+Flux.mse(solution_bursty1,check_bursty1)
+
+solution_bursty2 = readdlm("Topology_results/var_delay/plot_omni_data/bursty/pre_Attr=1.txt")
+check_bursty2 = readdlm("Topology_results/var_delay/plot_omni_data/bursty/SSA_Attr=1.txt")
+Flux.mse(solution_bursty2,check_bursty2)
+
+# tele
+ps_matrix_tele = readdlm("Topology_results/var_delay/plot_omni_data/tele/ps_tele.txt")
+
+solution_tele1 = readdlm("Topology_results/var_delay/plot_omni_data/tele/pre_Attr=0.txt")
+check_tele1 = readdlm("Topology_results/var_delay/plot_omni_data/tele/SSA_Attr=0.txt")
+Flux.mse(solution_tele1,check_tele1)
+
+solution_tele2 = readdlm("Topology_results/var_delay/plot_omni_data/tele/pre_Attr=1.txt")
+check_tele2 = readdlm("Topology_results/var_delay/plot_omni_data/tele/SSA_Attr=1.txt")
+Flux.mse(solution_tele2,check_tele2)
+
+# plot
+function plot_distribution(set)
+    plot(0:N-1,solution_bursty2[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_bursty2[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bursty[:,set],digits=4)]),line=:dash)
+end
+
+function plot_distribution(set)
+    plot(0:N-1,solution_tele2[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_tele2[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+end
+
+function plot_channel()
+    p1 = plot_distribution(1)
+    p2 = plot_distribution(2)
+    p3 = plot_distribution(3)
+    p4 = plot_distribution(4)
+    p5 = plot_distribution(5)
+    p6 = plot_distribution(6)
+    plot(p1,p2,p3,p4,p5,p6,layouts=(3,2),size=(600,900))
+end
+plot_channel()
 
