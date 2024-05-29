@@ -312,6 +312,7 @@ end
 
 # select
 # bursty
+using Flux,DelimitedFiles
 bursty_list = [2,3,5,10,38,48]
 ps_matrix_bursty = readdlm("Topology_results/var_delay/bursty_data/ps_burstyv1.txt")[:,bursty_list]
 
@@ -331,7 +332,7 @@ writedlm("Topology_results/var_delay/plot_omni_data/bursty/SSA_Attr=0.txt",check
 writedlm("Topology_results/var_delay/plot_omni_data/bursty/SSA_Attr=1.txt",check_bursty2)
 
 # tele
-tele_list = [6,17,21,28,35,50]
+tele_list = [10,17,21,28,35,50]
 ps_matrix_tele = readdlm("Topology_results/var_delay/tele_data/ps_tele_final.txt")[:,tele_list]
 
 solution_tele1 = readdlm("Topology_results/var_delay/topo_results/pre_Attr=0.txt")[:,tele_list]
