@@ -14,7 +14,7 @@ In our study，
 
 Introduce CME with delay and how to solve it with neural network
 
-Introduce VAE-CME
+How does VAE work
 
 ![fig1](Fig1.png)
 
