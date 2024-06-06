@@ -72,7 +72,7 @@ solution = (solution[1:N+1, :] + solution[N+2:end, :])
 # Define loss function
 function loss_func(p1,p2,p3,ϵ)
     params_all = [p1;p2;p3;ϵ]
-    sol_cme = solve(ODEProblem(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
+    sol_cme = solve(ODEProblem{true, SciMLBase.FullSpecialize}(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
     temp = sol_cme.u
 
     solution = (sol_cme[1:N+1, :] + sol_cme[N+2:end, :])
@@ -93,7 +93,7 @@ end
 
 ϵ = zeros(latent_size)
 loss_func(params1,params2_1,params2_2,ϵ)
-grads = gradient(()->loss_func(params1,params2_1,params2_2,ϵ),ps)
+@time grads = gradient(()->loss_func(params1,params2_1,params2_2,ϵ),ps)
 
 # Training process
 epochs_all = 0
