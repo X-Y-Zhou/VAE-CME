@@ -72,13 +72,13 @@ tspan = (0, tf);
 saveat = 0:1:100
 ϵ = zeros(latent_size)
 params_all = [params1;params2;ϵ]
-problem = ODEProblem(CME, u0, tspan, params_all);
+problem = ODEProblem{true, SciMLBase.FullSpecialize}(CME, u0, tspan, params_all);
 solution = Array(solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat))
 
 # Define loss function
 function loss_func(p1,p2,ϵ)
     params_all = [p1;p2;ϵ]
-    sol_cme = solve(ODEProblem(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
+    sol_cme = solve(ODEProblem{true, SciMLBase.FullSpecialize}(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
     temp = sol_cme.u
 
     mse = Flux.mse(Array(sol_cme),train_sol[:,saveat.+1])
@@ -98,7 +98,7 @@ end
 
 ϵ = zeros(latent_size)
 loss_func(params1,params2,ϵ)
-grads = gradient(()->loss_func(params1,params2,ϵ),ps)
+@time grads = gradient(()->loss_func(params1,params2,ϵ),ps)
 
 # Training process
 epochs_all = 0
