@@ -2,7 +2,7 @@ using Flux, DiffEqSensitivity, DifferentialEquations
 using Distributions, Distances
 using DelimitedFiles, Plots
 
-include("../utils.jl")
+include("../../utils.jl")
 
 # Exact solution of Bursty Model
 function bursty(N,τ)
