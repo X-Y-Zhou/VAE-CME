@@ -18,6 +18,7 @@ for i =1:size(data,1)
         train_sol[1:N+1,i] = probability[1:N+1]
     end
 end
+writedlm("On-Off/delay_telegraph_distribution.txt",train_sol)
 
 sigma_on=1.0;
 sigma_off=1.0;

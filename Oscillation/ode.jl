@@ -5,8 +5,8 @@ using DelimitedFiles, Plots
 include("../utils.jl")
 
 # Load training data
-solnet_X = readdlm("Oscillation/data/X_train.csv",',')[2:end,:]
-solnet_Y = readdlm("Oscillation/data/Y_train.csv",',')[2:end,:]
+solnet_X = readdlm("Oscillation/data/X_check.csv",',')[2:end,:]
+solnet_Y = readdlm("Oscillation/data/Y_check.csv",',')[2:end,:]
 N = 26
 
 train_sol_X = zeros(N+1,size(solnet_X,1))
