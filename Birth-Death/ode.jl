@@ -69,7 +69,7 @@ end
 u0 = [1.; zeros(N)]
 tf = 100;
 tspan = (0, tf);
-saveat = 0:1:100
+saveat = 1:2:100
 ϵ = zeros(latent_size)
 params_all = [params1;params2;ϵ]
 problem = ODEProblem{true, SciMLBase.FullSpecialize}(CME, u0, tspan, params_all);
@@ -94,7 +94,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ = 10000
+λ = 1e5
 
 ϵ = zeros(latent_size)
 loss_func(params1,params2,ϵ)
@@ -104,14 +104,29 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 lr = 0.02;
 opt= ADAM(lr);
-epochs = 20;
+epochs = 10;
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
+mse_list = []
+
 @time for epoch in 1:epochs
     ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
     grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
     Flux.update!(opt, ps, grads)
+
+    ϵ = zeros(latent_size)
+    u0 = [1.; zeros(N)];
+    tf = 100;
+    tspan = (0, tf);
+    saveat = 1:2:tf
+    params_all = [params1;params2;zeros(latent_size)];
+    problem = ODEProblem(CME, u0, tspan,params_all);
+    solution = Array(solve(problem, Tsit5(), u0=u0, 
+                    p=params_all, saveat=0:time_step:Int(use_time)))
+
+    mse = Flux.mse(solution,train_sol)
+    push!(mse_list,mse)
 end
 
 # Write parameters
