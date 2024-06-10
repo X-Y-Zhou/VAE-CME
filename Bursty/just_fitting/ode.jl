@@ -66,7 +66,8 @@ end
 u0 = [1.; zeros(N)]
 tf = 1200
 tspan = (0, tf)
-saveat = [10:10:120;140:20:1200]
+# saveat = [10:10:120;140:20:1200]
+saveat = 10:10:1200
 ϵ = zeros(latent_size)
 params_all = [params1;params2;ϵ];
 problem = ODEProblem(CME, u0, tspan, params_all);
@@ -109,6 +110,20 @@ print("learning rate = ",lr)
     print(epoch,"\n")
     grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
     Flux.update!(opt, ps, grads)
+
+    ϵ = zeros(latent_size)
+    u0 = [1.; zeros(N)]
+    tf = 1200
+    tspan = (0, tf)
+    # saveat = [10:10:120;140:20:1200]
+    saveat = 10:10:1200
+    ϵ = zeros(latent_size)
+    params_all = [params1;params2;ϵ];
+    problem = ODEProblem(CME, u0, tspan, params_all);
+    solution = Array(solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat))
+
+    mse = Flux.mse(solution,train_sol[:,saveat.+1])
+    push!(mse_list,mse)
 end
 
 # Write params
