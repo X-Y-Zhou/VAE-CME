@@ -69,8 +69,6 @@ params_all = [params1;params2_1;params2_2;ϵ];
 problem = ODEProblem(CME, u0, tspan, params_all);
 solution = Array(solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat))
 solution = (solution[1:N+1, :] + solution[N+2:end, :])
-Int.(saveat.*10 .+1)
-saveat.*10 .+1
 
 # Define loss function
 function loss_func(p1,p2,p3,ϵ)
@@ -105,11 +103,27 @@ opt= ADAM(lr);
 epochs = 20;
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
+mse_list = []
+
 @time for epoch in 1:epochs
     ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
     grads = gradient(()->loss_func(params1,params2_1,params2_2,ϵ),ps)
     Flux.update!(opt, ps, grads)
+
+    u0 = [1.; zeros(2*N+1)]
+    tf = 10;
+    tspan = (0, tf);
+    saveat = 0:0.4:10
+    ϵ = zeros(latent_size)
+    params_all = [params1;params2_1;params2_2;ϵ];
+    problem = ODEProblem(CME, u0, tspan, params_all);
+    solution = Array(solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat))
+    solution = (solution[1:N+1, :] + solution[N+2:end, :])
+
+    mse = Flux.mse(solution,train_sol[:,Int.(saveat.*10 .+1)])
+    print(mse,"\n")
+    push!(mse_list,mse)
 end
 
 # Write parameters
