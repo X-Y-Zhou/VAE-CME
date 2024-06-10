@@ -104,7 +104,7 @@ loss_func(params1,params2,ϵ)
 epochs_all = 0
 lr = 0.1;
 opt= ADAM(lr);
-epochs = 10;
+epochs = 20;
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
 mse_list = []

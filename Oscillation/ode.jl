@@ -86,7 +86,7 @@ solution = solve(problem, Tsit5(), u0=u0, p=params_all, saveat=saveat)
 
 function loss_func(p1,p2,ϵ)
     params_all = [p1;p2;ϵ]
-    sol_cme = solve(ODEProblem(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
+    sol_cme = solve(ODEProblem{true, SciMLBase.FullSpecialize}(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
     temp = sol_cme.u
 
     solution_time_points = Array(sol_cme)
@@ -115,7 +115,7 @@ mse_list = []
 
 # Training process
 epochs_all = 0
-lr = 0.01;
+lr = 0.05;
 opt= ADAM(lr);
 epochs = 20;
 epochs_all = epochs_all + epochs
@@ -136,14 +136,16 @@ mse_list = []
     ϵ = zeros(latent_size)
     params_all = [params1;params2;ϵ]
     problem = ODEProblem(CME, u0, tspan, params_all);
-    solution = Array(solve(problem, Tsit5(), u0=u0, p=params_all, saveat=saveat))
+    # solution = Array(solve(problem, Tsit5(), u0=u0, p=params_all, saveat=saveat))
     solution = solve(problem, Tsit5(), u0=u0, p=params_all, saveat=saveat)
 
-    mse_Y = sum([Flux.mse(vec(sum(reshape(solution_time_points[:,i],N+1,N+1),dims=1)),train_sol_Y[:,saveat[i]+1]) 
+    mse_Y = sum([Flux.mse(vec(sum(reshape(solution[:,i],N+1,N+1),dims=1)),train_sol_Y[:,saveat[i]+1]) 
                     for i=1:length(saveat)])/length(saveat)
     print(mse_Y,"\n")
     push!(mse_list,mse_Y)
 end
+
+mse_list
 
 # Write params
 using CSV,DataFrames
