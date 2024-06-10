@@ -75,7 +75,7 @@ solution = solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat)
 # Define loss function
 function loss_func(p1,p2,ϵ)
     params_all = [p1;p2;ϵ]
-    sol_cme = solve(ODEProblem(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
+    sol_cme = solve(ODEProblem{true, SciMLBase.FullSpecialize}(CME, u0, tspan, params_all),Tsit5(),u0=u0,p=params_all,saveat=saveat)
     temp = sol_cme.u
 
     mse = Flux.mse(Array(sol_cme),train_sol[:,saveat.+1])
@@ -118,7 +118,7 @@ CSV.write("Bursty/params_ode.csv",df)
 
 # Check
 using CSV,DataFrames
-df = CSV.read("Bursty/params_ode.csv",DataFrame)
+df = CSV.read("Bursty/just_fitting/params_ode.csv",DataFrame)
 params1 = df.params1
 params2 = df.params2[1:length(params2)]
 ps = Flux.params(params1,params2);

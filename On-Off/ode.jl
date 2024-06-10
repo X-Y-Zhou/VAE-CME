@@ -18,7 +18,7 @@ for i =1:size(data,1)
         train_sol[1:N+1,i] = probability[1:N+1]
     end
 end
-writedlm("On-Off/delay_telegraph_distribution.txt",train_sol)
+# writedlm("On-Off/delay_telegraph_distribution.txt",train_sol)
 
 sigma_on=1.0;
 sigma_off=1.0;
@@ -63,12 +63,14 @@ end
 u0 = [1.; zeros(2*N+1)]
 tf = 10;
 tspan = (0, tf);
-saveat = 0:0.1:10
+saveat = 0:0.4:10
 ϵ = zeros(latent_size)
 params_all = [params1;params2_1;params2_2;ϵ];
 problem = ODEProblem(CME, u0, tspan, params_all);
 solution = Array(solve(problem,Tsit5(),u0=u0,p=params_all,saveat=saveat))
 solution = (solution[1:N+1, :] + solution[N+2:end, :])
+Int.(saveat.*10 .+1)
+saveat.*10 .+1
 
 # Define loss function
 function loss_func(p1,p2,p3,ϵ)
@@ -77,7 +79,7 @@ function loss_func(p1,p2,p3,ϵ)
     temp = sol_cme.u
 
     solution = (sol_cme[1:N+1, :] + sol_cme[N+2:end, :])
-    mse = Flux.mse(Array(solution),train_sol)
+    mse = Flux.mse(Array(solution),train_sol[:,Int.(saveat.*10 .+1)])
     print("mse:",mse," ")
 
     μ_logσ_list = [split_encoder_result(re1(p1)(temp[i]), latent_size) for i=1:length(saveat)]
@@ -90,7 +92,7 @@ function loss_func(p1,p2,p3,ϵ)
     return loss
 end
 
-λ2 = 6000
+λ = 1e4
 
 ϵ = zeros(latent_size)
 loss_func(params1,params2_1,params2_2,ϵ)
