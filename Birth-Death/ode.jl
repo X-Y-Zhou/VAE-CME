@@ -102,7 +102,7 @@ loss_func(params1,params2,ϵ)
 
 # Training process
 epochs_all = 0
-lr = 0.02;
+lr = 0.1;
 opt= ADAM(lr);
 epochs = 10;
 epochs_all = epochs_all + epochs
@@ -123,11 +123,14 @@ mse_list = []
     params_all = [params1;params2;zeros(latent_size)];
     problem = ODEProblem(CME, u0, tspan,params_all);
     solution = Array(solve(problem, Tsit5(), u0=u0, 
-                    p=params_all, saveat=0:time_step:Int(use_time)))
+                    p=params_all, saveat=saveat))
 
-    mse = Flux.mse(solution,train_sol)
+    mse = Flux.mse(solution,train_sol[:,saveat.+1])
+    print(mse,"\n")
     push!(mse_list,mse)
 end
+
+mse_list
 
 # Write parameters
 using CSV,DataFrames
