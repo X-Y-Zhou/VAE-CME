@@ -92,7 +92,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
-λ2 = 1000000
+λ = 1e5
 
 ϵ = zeros(latent_size)
 loss_func(params1,params2,ϵ)
@@ -105,6 +105,8 @@ opt= ADAM(lr);
 epochs = 10;
 epochs_all = epochs_all + epochs
 print("learning rate = ",lr)
+mse_list = []
+
 @time for epoch in 1:epochs
     ϵ = rand(Normal(),latent_size)
     print(epoch,"\n")
@@ -125,6 +127,8 @@ print("learning rate = ",lr)
     mse = Flux.mse(solution,train_sol[:,saveat.+1])
     push!(mse_list,mse)
 end
+
+mse_list
 
 # Write params
 using DataFrames,CSV
