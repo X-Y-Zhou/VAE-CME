@@ -1,6 +1,6 @@
 # VAE-CME
 $$
-\begin{align}
+\begin{aligned}
 a = 1
-\end{align}
+\end{aligned}
 $$
