@@ -1,5 +1,0 @@
-trainingwin-1.jl: exp ax^b/(c+x^d) 100组参数 params_trained_bp-1_1.csv 前25个训练集权重调为10
-trainingwin-2.jl: exp ax^b/(c+x^d)+k/τ 100组参数 params_trained_bp-2_1.csv 前25个训练集权重调为10
-
-
-trainingwin-3.jl: exp ax^b/(c+x^b)+k/τ 训练集只有geo 40组参数

@@ -1,6 +1,0 @@
-birth death 模型 ρ = 10, τ = 5 时间间隔 0:1:100, 分子数截断 N = 100 bd.txt
-bursty 模型 α = 0.0282 β = 3.46 τ = 120 时间间隔 0:1:200 分子数截断 N = 70, bursty.txt 
-on off 模型 σon = 0.03 σoff = 0.04 ρ = 10, τ = 5 ,时间间隔0:1:200 分子数截断 N = 100 onoff.txt
-oscillation 模型 时间间隔 τ = 20 分子数截断 N = 50 oscillation_X.txt,oscillation_Y.txt
-
-
