@@ -94,8 +94,8 @@ mse_tele3 = Flux.mse(solution_tele3,check_sol3)
 
 # Plot probability distribution
 function plot_distribution(set)
-    plot(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+    plot(0:N-1,solution_tele1[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol1[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
 
 function plot_channel()
@@ -106,7 +106,7 @@ function plot_channel()
     plot(p1,p2,p3,p4,layouts=(1,4),size=(1200,300))
 end
 plot_channel()
-
+# savefig("Fig5bcd_Fig6b/Fig6b/results/Attri=0.25.svg")
 
 
 
