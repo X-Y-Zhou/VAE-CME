@@ -6,8 +6,8 @@ using DelimitedFiles, Plots
 include("../utils.jl")
 
 # Load check data
-check_sol_X = readdlm("Fig3b/data/X_check.txt")
-check_sol_Y = readdlm("Fig3b/data/Y_check.txt")
+check_sol_X = readdlm("Fig4b/data/X_check.txt")
+check_sol_Y = readdlm("Fig4b/data/Y_check.txt")
 
 # Truncation
 N = 26
@@ -62,7 +62,7 @@ end
 
 # Read trained VAE parameters
 using CSV,DataFrames
-df = CSV.read("Fig3b/params_trained.csv",DataFrame)
+df = CSV.read("Fig4b/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 
@@ -114,7 +114,7 @@ function plot_distribution_X_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,800))
 end
 plot_distribution_X_all()
-# savefig("Fig3b/results/X.svg")
+# savefig("Fig4b/results/X.svg")
 
 function plot_distribution_Y_all()
     p1 = plot_distribution_Y(28)
@@ -129,7 +129,7 @@ function plot_distribution_Y_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,800))
 end
 plot_distribution_Y_all()
-# savefig("Fig3b/results/Y.svg")
+# savefig("Fig4b/results/Y.svg")
 
 
 

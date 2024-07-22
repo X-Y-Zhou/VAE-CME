@@ -6,7 +6,7 @@ using DelimitedFiles, Plots
 include("../utils.jl")
 
 # Load training data 
-train_sol = readdlm("Fig2b/data/Birth_death.txt")
+train_sol = readdlm("Fig3def/data/Birth_death.txt")
 
 # Truncation
 N = 271
@@ -40,7 +40,7 @@ end
 
 # Read trained VAE parameters
 using CSV,DataFrames
-df = CSV.read("Fig2b/params_trained/Birth_Death.csv",DataFrame)
+df = CSV.read("Fig3def/params_trained/Birth_Death.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2
 
@@ -74,6 +74,6 @@ function plot_all()
     plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,size=(1200,900))
 end
 plot_all()
-# savefig("Fig2b/results/Birth_Death.svg")
+# savefig("Fig3def/results/Birth_Death.svg")
 
 

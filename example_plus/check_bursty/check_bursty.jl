@@ -19,8 +19,8 @@ addprocs(3)
 @everywhere b_list = ps_matrix_bursty[2,:]
 
 # Load check data 
-check_sol1 = readdlm("example_plus/check_bursty/Exact_proba/bursty_exact_Attr=0.0.txt") # Attrtibute = 0   τ ~ Normal(30,0)
-check_sol2 = readdlm("example_plus/check_bursty/Exact_proba/bursty_exact_Attr=0.5.txt")  # Attrtibute = 0.5    τ ~ Normal(30,5)
+check_sol1 = readdlm("example_plus/check_bursty/Exact_proba/bursty_exact_Attr=0.0.txt")  # Attrtibute = 0    τ ~ Normal(30,0)
+check_sol2 = readdlm("example_plus/check_bursty/Exact_proba/bursty_exact_Attr=0.5.txt")  # Attrtibute = 0.5  τ ~ Normal(30,5)
 check_sol3 = readdlm("example_plus/check_bursty/Exact_proba/bursty_exact_Attr=1.0.txt")  # Attrtibute = 1.0  τ ~ Normal(30,10)
 
 # Model initialization

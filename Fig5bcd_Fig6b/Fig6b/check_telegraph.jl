@@ -22,9 +22,9 @@ addprocs(3)
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
 
 # Load check data 
-check_sol1 = readdlm("Fig5bcd_Fig6b/Fig6b/SSA_proba/tele_SSA_Attr=0.25.txt") # Attrtibute = 0.25   τ ~ Uniform(7.5,12.5)
+check_sol1 = readdlm("Fig5bcd_Fig6b/Fig6b/SSA_proba/tele_SSA_Attr=0.25.txt")  # Attrtibute = 0.25   τ ~ Uniform(7.5,12.5)
 check_sol2 = readdlm("Fig5bcd_Fig6b/Fig6b/SSA_proba/tele_SSA_Attr=0.50.txt")  # Attrtibute = 0.5    τ ~ Uniform(5,15)
-check_sol3 = readdlm("Fig5bcd_Fig6b/Fig6b/SSA_proba/tele_SSA_Attr=0.75.txt")  # Attrtibute = 0.75  τ ~ Uniform(2.5,17.5)
+check_sol3 = readdlm("Fig5bcd_Fig6b/Fig6b/SSA_proba/tele_SSA_Attr=0.75.txt")  # Attrtibute = 0.75   τ ~ Uniform(2.5,17.5)
 
 # Model initialization
 @everywhere latent_size = 2;
