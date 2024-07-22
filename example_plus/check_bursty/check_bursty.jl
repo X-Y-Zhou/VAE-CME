@@ -91,12 +91,6 @@ function plot_channel()
     plot(p1,p2,p3,p4,p5,p6,layouts=(3,2),size=(600,900))
 end
 plot_channel()
-# savefig("example_plus/check_bursty/results/Attri=0.0.svg")
-
-# writedlm("example_plus/check_bursty/pre_proba/bursty_pre_Attr=0.0.txt",solution_bursty1)
-# writedlm("example_plus/check_bursty/pre_proba/bursty_pre_Attr=0.5.txt",solution_bursty2)
-# writedlm("example_plus/check_bursty/pre_proba/bursty_pre_Attr=1.0.txt",solution_bursty3)
-
 
 
 

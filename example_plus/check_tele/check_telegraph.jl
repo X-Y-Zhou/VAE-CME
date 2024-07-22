@@ -104,8 +104,8 @@ mse_tele4 = Flux.mse(solution_tele4,check_sol4)
 
 # Plot probability distribution
 function plot_distribution(set)
-    plot(0:N-1,solution_tele4[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol4[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+    plot(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
 
 function plot_channel()
@@ -118,14 +118,6 @@ function plot_channel()
     plot(p1,p2,p3,p4,p5,p6,layouts=(3,2),size=(600,900))
 end
 plot_channel()
-savefig("example_plus/check_tele/results/Attr=1.0.svg")
-
-writedlm("example_plus/check_tele/pre_proba/tele_pre_Attr=0.0.txt",solution_tele0)
-# writedlm("example_plus/check_tele/pre_proba/tele_pre_Attr=0.25.txt",solution_tele1)
-# writedlm("example_plus/check_tele/pre_proba/tele_pre_Attr=0.5.txt",solution_tele2)
-# writedlm("example_plus/check_tele/pre_proba/tele_pre_Attr=0.75.txt",solution_tele3)
-writedlm("example_plus/check_tele/pre_proba/tele_pre_Attr=1.0.txt",solution_tele4)
-
 
 
 
