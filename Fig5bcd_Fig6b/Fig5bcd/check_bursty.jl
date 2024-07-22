@@ -13,15 +13,15 @@ addprocs(3)
 @everywhere N = 120
 
 # Define kinetic parameters
-@everywhere ps_matrix_bursty = readdlm("Fig5bcd_Fig6bv2/Fig5bcd/ps_check.txt")
+@everywhere ps_matrix_bursty = readdlm("Fig5bcd_Fig6b/Fig5bcd/ps_bursty_check.txt")
 @everywhere batchsize_bursty = size(ps_matrix_bursty,2)
 @everywhere a_list = ps_matrix_bursty[1,:]
 @everywhere b_list = ps_matrix_bursty[2,:]
 
 # Load check data 
-check_sol1 = readdlm("Fig5bcd_Fig6bv2/Fig5bcd/Exact_proba/bursty_exact_Attr=0.0.txt") # Attrtibute = 0   τ ~ Uniform(10,10)
-check_sol2 = readdlm("Fig5bcd_Fig6bv2/Fig5bcd/Exact_proba/bursty_exact_Attr=0.5.txt")  # Attrtibute = 0.5    τ ~ Uniform(5,15)
-check_sol3 = readdlm("Fig5bcd_Fig6bv2/Fig5bcd/Exact_proba/bursty_exact_Attr=1.0.txt")  # Attrtibute = 1.0  τ ~ Uniform(0,20)
+check_sol1 = readdlm("Fig5bcd_Fig6b/Fig5bcd/Exact_proba/bursty_exact_Attr=0.0.txt") # Attrtibute = 0   τ ~ Uniform(10,10)
+check_sol2 = readdlm("Fig5bcd_Fig6b/Fig5bcd/Exact_proba/bursty_exact_Attr=0.5.txt")  # Attrtibute = 0.5    τ ~ Uniform(5,15)
+check_sol3 = readdlm("Fig5bcd_Fig6b/Fig5bcd/Exact_proba/bursty_exact_Attr=1.0.txt")  # Attrtibute = 1.0  τ ~ Uniform(0,20)
 
 # Model initialization
 @everywhere latent_size = 2;
@@ -47,38 +47,38 @@ end
 
 # Define the CME solver
 @everywhere sol_bursty(p1,p2,ϵ,a,b,P_0,Attrtibute) = nlsolve(x->f_bursty!(x,p1,p2,ϵ,a,b,Attrtibute),P_0).zero
-@everywhere function solve_tele(a,b,p1,p2,ϵ,Attrtibute)
+@everywhere function solve_bursty(a,b,p1,p2,ϵ,Attrtibute)
     P_0_distribution = NegativeBinomial(a*τ, 1/(1+b))
     P_0 = [pdf(P_0_distribution,i) for i=0:N-1]
 
-    solution = sol_tele(p1,p2,ϵ,a,b,P_0,Attrtibute)
-    solution = solution[1:N]+solution[N+1:2*N]
+    solution = sol_bursty(p1,p2,ϵ,a,b,P_0,Attrtibute)
     return solution
 end
 
 # Read trained VAE parameters
 using CSV,DataFrames
-df = CSV.read("Fig5bcd_Fig6bv2/params_trained.csv",DataFrame)
+df = CSV.read("Fig5bcd_Fig6b/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 
 # Solve the CME
+ϵ = zeros(latent_size)
 Attrtibute = 0
-@time solution_tele1 = hcat(pmap(i->sol_bursty(a_list[i],b_list[i],p1,p2,ϵ,P_0,Attrtibute),1:batchsize_bursty)...);
+@time solution_tele1 = hcat(pmap(i->solve_bursty(a_list[i],b_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_bursty)...);
 mse_tele1 = Flux.mse(solution_tele1,check_sol1)
 
 Attrtibute = 0.5
-@time solution_tele2 = hcat(pmap(i->sol_bursty(a_list[i],b_list[i],p1,p2,ϵ,P_0,Attrtibute),1:batchsize_bursty)...);
+@time solution_tele2 = hcat(pmap(i->solve_bursty(a_list[i],b_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_bursty)...);
 mse_tele2 = Flux.mse(solution_tele2,check_sol2)
 
 Attrtibute = 1.0
-@time solution_tele3 = hcat(pmap(i->sol_bursty(a_list[i],b_list[i],p1,p2,ϵ,P_0,Attrtibute),1:batchsize_bursty)...);
+@time solution_tele3 = hcat(pmap(i->solve_bursty(a_list[i],b_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_bursty)...);
 mse_tele3 = Flux.mse(solution_tele3,check_sol3)
 
 # Plot probability distribution
 function plot_distribution(set)
-    plot(0:N-1,solution_tele1[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol1[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+    plot(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bursty[:,set],digits=4)]),line=:dash)
 end
 
 function plot_channel()
@@ -88,10 +88,10 @@ function plot_channel()
     p4 = plot_distribution(4)
     p5 = plot_distribution(5)
     p6 = plot_distribution(6)
-    plot(p1,p2,p3,p4,p5,p6,layouts=(2,3),size=(900,600))
+    plot(p1,p2,p3,p4,p5,p6,layouts=(3,2),size=(600,900))
 end
 plot_channel()
-
+# savefig("Fig5bcd_Fig6b/Fig5bcd/results/Attri=1.0.svg")
 
 
 

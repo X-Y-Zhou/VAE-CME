@@ -13,7 +13,7 @@ addprocs(3)
 @everywhere N = 120
 
 # Define kinetic parameters
-@everywhere ps_matrix_tele = readdlm("Fig5bcd_Fig6bv2/Fig6b/ps_tele.txt")
+@everywhere ps_matrix_tele = readdlm("Fig5bcd_Fig6b/Fig6b/ps_tele_check.txt")
 @everywhere sigma_on_list = ps_matrix_tele[1,:]
 @everywhere sigma_off_list = ps_matrix_tele[2,:]
 @everywhere rho_on_list = ps_matrix_tele[3,:]
@@ -22,9 +22,9 @@ addprocs(3)
 @everywhere batchsize_tele = size(ps_matrix_tele,2)
 
 # Load check data 
-check_sol1 = readdlm("Fig5bcd_Fig6bv2/Fig6b/SSA_proba/tele_SSA_Attr=0.25.txt") # Attrtibute = 0.25   τ ~ Uniform(7.5,12.5)
-check_sol2 = readdlm("Fig5bcd_Fig6bv2/Fig6b/SSA_proba/tele_SSA_Attr=0.5.txt")  # Attrtibute = 0.5    τ ~ Uniform(5,15)
-check_sol3 = readdlm("Fig5bcd_Fig6bv2/Fig6b/SSA_proba/tele_SSA_Attr=0.75.txt")  # Attrtibute = 0.75  τ ~ Uniform(2.5,17.5)
+check_sol1 = readdlm("Fig5bcd_Fig6b/Fig6b/SSA_proba/tele_SSA_Attr=0.25.txt") # Attrtibute = 0.25   τ ~ Uniform(7.5,12.5)
+check_sol2 = readdlm("Fig5bcd_Fig6b/Fig6b/SSA_proba/tele_SSA_Attr=0.50.txt")  # Attrtibute = 0.5    τ ~ Uniform(5,15)
+check_sol3 = readdlm("Fig5bcd_Fig6b/Fig6b/SSA_proba/tele_SSA_Attr=0.75.txt")  # Attrtibute = 0.75  τ ~ Uniform(2.5,17.5)
 
 # Model initialization
 @everywhere latent_size = 2;
@@ -74,11 +74,12 @@ end
 
 # Read trained VAE parameters
 using CSV,DataFrames
-df = CSV.read("Fig5bcd_Fig6bv2/params_trained.csv",DataFrame)
+df = CSV.read("Fig5bcd_Fig6b/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 
 # Solve the CME
+ϵ = zeros(latent_size)
 Attrtibute = 0.25
 @time solution_tele1 = hcat(pmap(i->solve_tele(sigma_on_list[i],sigma_off_list[i],rho_on_list[i],params1,params2,ϵ,Attrtibute),1:batchsize_tele)...);
 mse_tele1 = Flux.mse(solution_tele1,check_sol1)
@@ -93,8 +94,8 @@ mse_tele3 = Flux.mse(solution_tele3,check_sol3)
 
 # Plot probability distribution
 function plot_distribution(set)
-    plot(0:N-1,solution_tele1[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol1[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
+    plot(0:N-1,solution_tele3[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_tele[:,set],digits=4)]),line=:dash)
 end
 
 function plot_channel()

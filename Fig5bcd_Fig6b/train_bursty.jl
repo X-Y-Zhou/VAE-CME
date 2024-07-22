@@ -14,14 +14,14 @@ addprocs(3)
 @everywhere N = 120
 
 # Define kinetic parameters
-@everywhere ps_matrix_bursty = readdlm("Fig5bcd_Fig6bv2/train_data/ps_bursty.txt")
+@everywhere ps_matrix_bursty = readdlm("Fig5bcd_Fig6b/train_data/ps_bursty.txt")
 @everywhere batchsize_bursty = size(ps_matrix_bursty,2)
 @everywhere a_list = ps_matrix_bursty[1,:]
 @everywhere b_list = ps_matrix_bursty[2,:]
 
 # Load training data 
-train_sol1 = readdlm("Fig5bcd_Fig6bv2/train_data/matrix_bursty_10-10.txt") # Attrtibute = 0   τ ~ Uniform(10,10)
-train_sol2 = readdlm("Fig5bcd_Fig6bv2/train_data/matrix_bursty_0-20.txt")  # Attrtibute = 1   τ ~ Uniform(0,20)
+train_sol1 = readdlm("Fig5bcd_Fig6b/train_data/matrix_bursty_10-10.txt") # Attrtibute = 0   τ ~ Uniform(10,10)
+train_sol2 = readdlm("Fig5bcd_Fig6b/train_data/matrix_bursty_0-20.txt")  # Attrtibute = 1   τ ~ Uniform(0,20)
 
 # Model initialization
 @everywhere latent_size = 2;
@@ -109,6 +109,7 @@ function loss_func(p1,p2,ϵ)
     return loss
 end
 
+ϵ = zeros(latent_size)
 λ = 1e6
 @time loss_bursty = loss_func(params1,params2,ϵ)
 @time grads = gradient(()->loss_func(params1,params2,ϵ) , ps)
@@ -131,11 +132,11 @@ end
 # Write trained VAE parameters
 using CSV,DataFrames
 df = DataFrame(params1 = vcat(params1,[0 for i=1:length(params2)-length(params1)]),params2 = params2)
-CSV.write("Fig5bcd_Fig6bv2/params_trained.csv",df)
+CSV.write("Fig5bcd_Fig6b/params_trained.csv",df)
 
 # Read trained VAE parameters
 using CSV,DataFrames
-df = CSV.read("Fig5bcd_Fig6bv2/params_trained.csv",DataFrame)
+df = CSV.read("Fig5bcd_Fig6b/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 
@@ -167,7 +168,3 @@ function plot_channel(i)
 end
 plot_channel(1)
 
-for i = 1:5
-    p = plot_channel(i)
-    savefig(p,"Fig5b/results/train_results/fig_Attri=1_$i.svg")
-end
