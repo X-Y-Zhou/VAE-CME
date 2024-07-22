@@ -9,19 +9,19 @@ addprocs(3)
 @everywhere include("../../utils.jl")
 
 # Define time delay and truncation
-@everywhere τ = 10
+@everywhere τ = 30
 @everywhere N = 120
 
 # Define kinetic parameters
-@everywhere ps_matrix_bursty = readdlm("Fig5bcd_Fig6b/Fig5bcd/ps_bursty_check.txt")
+@everywhere ps_matrix_bursty = readdlm("example_plus/check_bursty/ps_bursty_check.txt")
 @everywhere batchsize_bursty = size(ps_matrix_bursty,2)
 @everywhere a_list = ps_matrix_bursty[1,:]
 @everywhere b_list = ps_matrix_bursty[2,:]
 
 # Load check data 
-check_sol1 = readdlm("Fig5bcd_Fig6b/Fig5bcd/Exact_proba/bursty_exact_Attr=0.0.txt") # Attrtibute = 0   τ ~ Uniform(10,10)
-check_sol2 = readdlm("Fig5bcd_Fig6b/Fig5bcd/Exact_proba/bursty_exact_Attr=0.5.txt")  # Attrtibute = 0.5    τ ~ Uniform(5,15)
-check_sol3 = readdlm("Fig5bcd_Fig6b/Fig5bcd/Exact_proba/bursty_exact_Attr=1.0.txt")  # Attrtibute = 1.0  τ ~ Uniform(0,20)
+check_sol1 = readdlm("example_plus/check_bursty/Exact_proba/bursty_exact_Attr=0.0.txt") # Attrtibute = 0   τ ~ Normal(30,0)
+check_sol2 = readdlm("example_plus/check_bursty/Exact_proba/bursty_exact_Attr=0.5.txt")  # Attrtibute = 0.5    τ ~ Normal(30,5)
+check_sol3 = readdlm("example_plus/check_bursty/Exact_proba/bursty_exact_Attr=1.0.txt")  # Attrtibute = 1.0  τ ~ Normal(30,10)
 
 # Model initialization
 @everywhere latent_size = 2;
@@ -57,7 +57,7 @@ end
 
 # Read trained VAE parameters
 using CSV,DataFrames
-df = CSV.read("Fig5bcd_Fig6b/params_trained.csv",DataFrame)
+df = CSV.read("example_plus/params_trained.csv",DataFrame)
 params1 = df.params1[1:length(params1)]
 params2 = df.params2[1:length(params2)]
 
@@ -77,8 +77,8 @@ mse_bursty3 = Flux.mse(solution_bursty3,check_sol3)
 
 # Plot probability distribution
 function plot_distribution(set)
-    plot(0:N-1,solution_bursty3[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
-    plot!(0:N-1,check_sol3[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bursty[:,set],digits=4)]),line=:dash)
+    plot(0:N-1,solution_bursty1[:,set],linewidth = 3,label="VAE-CME",xlabel = "# of products \n", ylabel = "\n Probability")
+    plot!(0:N-1,check_sol1[:,set],linewidth = 3,label="exact",title=join([round.(ps_matrix_bursty[:,set],digits=4)]),line=:dash)
 end
 
 function plot_channel()
@@ -91,10 +91,11 @@ function plot_channel()
     plot(p1,p2,p3,p4,p5,p6,layouts=(3,2),size=(600,900))
 end
 plot_channel()
-# savefig("Fig5bcd_Fig6b/Fig5bcd/results/Attri=1.0.svg")
+# savefig("example_plus/check_bursty/results/Attri=0.0.svg")
 
-
-
+# writedlm("example_plus/check_bursty/pre_proba/bursty_pre_Attr=0.0.txt",solution_bursty1)
+# writedlm("example_plus/check_bursty/pre_proba/bursty_pre_Attr=0.5.txt",solution_bursty2)
+# writedlm("example_plus/check_bursty/pre_proba/bursty_pre_Attr=1.0.txt",solution_bursty3)
 
 
 
